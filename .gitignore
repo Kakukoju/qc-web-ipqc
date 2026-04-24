@@ -1,0 +1,16 @@
+node_modules/
+server/node_modules/
+dist/
+
+.env
+.env.*
+!.env.example
+
+.DS_Store
+
+_codex_tmp/
+_codex_build/
+.claude/
+.mcp.json
+
+server/uploads/

@@ -1,0 +1,82 @@
+@import "tailwindcss";
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: #0B1220;
+  color: #EAF2FF;
+  font-family: 'Inter', 'Noto Sans TC', system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+#root {
+  width: 100%;
+  min-height: 100vh;
+}
+
+/* AG Grid dark theme override */
+.ag-theme-alpine-dark {
+  --ag-background-color: #121A2B;
+  --ag-header-background-color: #1A2438;
+  --ag-odd-row-background-color: #121A2B;
+  --ag-even-row-background-color: #0F1725;
+  --ag-border-color: #2A3754;
+  --ag-row-border-color: #2A3754;
+  --ag-foreground-color: #EAF2FF;
+  --ag-secondary-foreground-color: #93A4C3;
+  --ag-header-foreground-color: #93A4C3;
+  --ag-selected-row-background-color: rgba(0, 212, 170, 0.1);
+  --ag-range-selection-border-color: #00D4AA;
+  --ag-font-size: 13px;
+  --ag-row-height: 36px;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #0B1220;
+}
+::-webkit-scrollbar-thumb {
+  background: #2A3754;
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #4DA3FF;
+}
+
+/* Pulse animation for NG */
+@keyframes pulse-red {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(255, 92, 115, 0.4); }
+  50% { box-shadow: 0 0 0 6px rgba(255, 92, 115, 0); }
+}
+
+.pulse-ng {
+  animation: pulse-red 1.5s infinite;
+}
+
+/* Green flash for save */
+@keyframes flash-green {
+  0% { box-shadow: 0 0 0 0 rgba(0, 212, 170, 0.6); }
+  50% { box-shadow: 0 0 12px 4px rgba(0, 212, 170, 0.3); }
+  100% { box-shadow: 0 0 0 0 rgba(0, 212, 170, 0); }
+}
+
+.flash-save {
+  animation: flash-green 0.8s ease-out;
+}
+
+/* Number counter animation */
+@keyframes count-up {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.count-animate {
+  animation: count-up 0.5s ease-out;
+}

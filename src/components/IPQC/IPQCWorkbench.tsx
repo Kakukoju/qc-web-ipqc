@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import RawDataView from './RawDataView';
 import PendingInspectionTab from './PendingInspectionTab';
 import ScheduleImport from './ScheduleImport';
@@ -11,17 +11,49 @@ const TABS = [
 
 type TabId = typeof TABS[number]['id'];
 
-export default function IPQCWorkbench() {
+interface LotSelection { marker: string; sheet: string }
+
+export default function IPQCWorkbench({ sharedLot, onLotChange }: {
+  sharedLot?: LotSelection | null;
+  onLotChange?: (lot: LotSelection | null) => void;
+}) {
   const [tab, setTab] = useState<TabId>('rawdata');
   const [rawKey, setRawKey] = useState(0);
-  const [navTarget, setNavTarget] = useState<{ marker: string; sheet: string } | null>(null);
+  const [navTarget, setNavTarget] = useState<LotSelection | null>(null);
 
-  // When an item is activated in 待檢驗, switch to 原始數據 and navigate to that marker/sheet
+  // Track whether the change came from us to avoid re-triggering
+  const selfTriggered = useRef(false);
+
+  // When sharedLot changes externally (from QC page), push to rawdata
+  useEffect(() => {
+    if (selfTriggered.current) {
+      selfTriggered.current = false;
+      return;
+    }
+    if (sharedLot?.marker && sharedLot?.sheet) {
+      setNavTarget(sharedLot);
+      setRawKey(k => k + 1);
+      setTab('rawdata');
+    }
+  }, [sharedLot]);
+
+  // When an item is activated in 待檢驗
   const handleActivated = useCallback((beadName: string, sheetName: string) => {
-    setNavTarget({ marker: beadName, sheet: sheetName });
+    const lot = { marker: beadName, sheet: sheetName };
+    setNavTarget(lot);
     setRawKey(k => k + 1);
     setTab('rawdata');
-  }, []);
+    selfTriggered.current = true;
+    onLotChange?.(lot);
+  }, [onLotChange]);
+
+  // RawDataView selection changed → sync up to App
+  const handleRawSelectionChange = useCallback((marker: string | null, sheet: string | null) => {
+    if (marker && sheet) {
+      selfTriggered.current = true;
+      onLotChange?.({ marker, sheet });
+    }
+  }, [onLotChange]);
 
   return (
     <div className="flex flex-col h-full">
@@ -40,7 +72,7 @@ export default function IPQCWorkbench() {
         ))}
       </div>
 
-      {tab === 'rawdata' && <RawDataView key={rawKey} initMarker={navTarget?.marker} initSheet={navTarget?.sheet} />}
+      {tab === 'rawdata' && <RawDataView key={rawKey} initMarker={navTarget?.marker} initSheet={navTarget?.sheet} onSelectionChange={handleRawSelectionChange} />}
       {tab === 'inspection' && <PendingInspectionTab onActivated={handleActivated} />}
       {tab === 'schedule' && <ScheduleImport />}
     </div>

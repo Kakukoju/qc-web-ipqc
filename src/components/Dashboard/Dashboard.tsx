@@ -1,3 +1,4 @@
+import { useState, useRef, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import {
   Package, ClipboardCheck, FlaskConical,
@@ -11,14 +12,13 @@ import {
 import KpiCard from './KpiCard';
 import { useFetch } from '../../api/useFetch';
 import {
-  fetchBeadStats, fetchKpi, fetchTrend, fetchAnomalies,
+  fetchBeadStats, fetchKpi, fetchTrend, fetchAnomalies, fetchYears,
   type BeadStat, type KpiData, type TrendRow, type AnomalyRow,
 } from '../../api/drbeads';
 
 interface DashboardProps { onNavigate: (view: string) => void }
 
-
-
+const currentYear = new Date().getFullYear().toString();
 
 const CustomTooltip = ({ active, payload, label }: any) => {
   if (!active || !payload?.length) return null;
@@ -33,14 +33,24 @@ const CustomTooltip = ({ active, payload, label }: any) => {
 };
 
 export default function Dashboard({ onNavigate }: DashboardProps) {
-  const { data: kpi, loading: kpiLoading } = useFetch<KpiData>(() => fetchKpi(), []);
-  const { data: beadStats } = useFetch<BeadStat[]>(() => fetchBeadStats(), []);
-  const { data: trend } = useFetch<TrendRow[]>(() => fetchTrend('tCREA'), []);
-  const { data: anomalies } = useFetch<AnomalyRow[]>(() => fetchAnomalies(), []);
+  const [year, setYear] = useState(currentYear);
+  const [trendMarker, setTrendMarker] = useState('tCREA');
+  const trendRef = useRef<HTMLDivElement>(null);
+
+  const { data: years } = useFetch<string[]>(() => fetchYears(), []);
+  const { data: kpi, loading: kpiLoading } = useFetch<KpiData>(() => fetchKpi(year), [year]);
+  const { data: beadStats } = useFetch<BeadStat[]>(() => fetchBeadStats(year), [year]);
+  const { data: trend } = useFetch<TrendRow[]>(() => fetchTrend(trendMarker, 10, year), [trendMarker, year]);
+  const { data: anomalies } = useFetch<AnomalyRow[]>(() => fetchAnomalies(year), [year]);
 
   const kpiData = kpi || { total_batches: 0, total_records: 0, passed: 0, ng: 0, markers: 0 };
   const trendData = trend || [];
   const recentAnomalies = anomalies || [];
+
+  const handleCardClick = useCallback((beadName: string) => {
+    setTrendMarker(beadName);
+    trendRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }, []);
 
   if (kpiLoading) {
     return (
@@ -52,9 +62,20 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
 
   return (
     <div className="p-6 space-y-6 overflow-y-auto h-full">
-      <div>
-        <h1 className="text-xl font-semibold text-[#EAF2FF]">生產 QC 總覽</h1>
-        <p className="text-sm text-[#93A4C3] mt-0.5">{new Date().toISOString().slice(0, 10)} · 今日生產狀況</p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-xl font-semibold text-[#EAF2FF]">Dashboard · {year}-Beads IPQC 總覽</h1>
+          <p className="text-sm text-[#93A4C3] mt-0.5">{new Date().toISOString().slice(0, 10)} · 今日生產狀況</p>
+        </div>
+        <select
+          value={year}
+          onChange={e => setYear(e.target.value)}
+          className="bg-[#0B1220] border border-[#2A3754] rounded-lg px-3 py-1.5 text-sm text-[#4DA3FF] font-bold focus:outline-none focus:border-[#4DA3FF] cursor-pointer"
+        >
+          {(years || [currentYear]).map(y => (
+            <option key={y} value={y}>{y}</option>
+          ))}
+        </select>
       </div>
 
       <div className="grid grid-cols-6 gap-4">
@@ -73,8 +94,9 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
             <motion.div key={s.bead_name}
               initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5 + i * 0.03 }}
               whileHover={{ y: -3, transition: { duration: 0.15 } }}
-              onClick={() => onNavigate('qc')}
-              className="bg-[#121A2B] border border-[#2A3754] rounded-xl p-3 cursor-pointer hover:border-[#4DA3FF]/50 transition-colors"
+              onClick={() => handleCardClick(s.bead_name)}
+              onDoubleClick={() => onNavigate('qc')}
+              className={`bg-[#121A2B] border rounded-xl p-3 cursor-pointer transition-colors ${trendMarker === s.bead_name ? 'border-[#4DA3FF] bg-[#4DA3FF]/10' : 'border-[#2A3754] hover:border-[#4DA3FF]/50'}`}
             >
               <div className="flex items-center justify-between mb-2">
                 <span className="text-xs font-bold text-[#4DA3FF]">{s.bead_name}</span>
@@ -93,17 +115,13 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
         </div>
       </div>
 
-      <div className="grid grid-cols-3 gap-4">
+      <div ref={trendRef} className="grid grid-cols-3 gap-4">
         <div className="col-span-2 bg-[#121A2B] border border-[#2A3754] rounded-xl p-4">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2">
               <TrendingUp size={16} className="text-[#4DA3FF]" />
               <span className="text-sm font-medium text-[#EAF2FF]">批次趨勢</span>
-            </div>
-            <div className="flex gap-2">
-              {['OD Mean', 'CV %', 'Bias %'].map((t) => (
-                <button key={t} className="text-xs px-2 py-1 rounded-md bg-[#1A2438] text-[#93A4C3] hover:text-[#EAF2FF] transition-colors">{t}</button>
-              ))}
+              <span className="text-xs text-[#4DA3FF] bg-[#4DA3FF]/10 px-2 py-0.5 rounded-full">{trendMarker}</span>
             </div>
           </div>
           <ResponsiveContainer width="100%" height={180}>
@@ -118,6 +136,18 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
               <Line type="monotone" dataKey="bias" name="Bias %" stroke="#00D4AA" strokeWidth={2} dot={{ fill: '#00D4AA', r: 3 }} />
             </LineChart>
           </ResponsiveContainer>
+          <div className="mt-4 pt-4 border-t border-[#2A3754]">
+            <p className="text-xs text-[#93A4C3] mb-2">{trendMarker} PASS / NG 比例</p>
+            <ResponsiveContainer width="100%" height={100}>
+              <BarChart data={trendData} barSize={16}>
+                <XAxis dataKey="lot" tick={{ fill: '#93A4C3', fontSize: 10 }} />
+                <Tooltip content={<CustomTooltip />} />
+                <Legend wrapperStyle={{ fontSize: 10, color: '#93A4C3' }} />
+                <Bar dataKey="pass" name="PASS" fill="#00D4AA" radius={[2, 2, 0, 0]} />
+                <Bar dataKey="ng" name="NG" fill="#FF5C73" radius={[2, 2, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
         </div>
 
         <div className="bg-[#121A2B] border border-[#2A3754] rounded-xl p-4">
@@ -149,18 +179,6 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
               </motion.div>
             ))}
             {recentAnomalies.length === 0 && <p className="text-xs text-[#93A4C3] text-center py-4">暫無異常</p>}
-          </div>
-
-          <div className="mt-4 pt-4 border-t border-[#2A3754]">
-            <p className="text-xs text-[#93A4C3] mb-2">本月 PASS / NG 比例</p>
-            <ResponsiveContainer width="100%" height={80}>
-              <BarChart data={trendData} barSize={16}>
-                <XAxis dataKey="lot" tick={{ fill: '#93A4C3', fontSize: 10 }} />
-                <Tooltip content={<CustomTooltip />} />
-                <Bar dataKey="pass" name="PASS" fill="#00D4AA" radius={[2, 2, 0, 0]} />
-                <Bar dataKey="ng" name="NG" fill="#FF5C73" radius={[2, 2, 0, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
           </div>
         </div>
       </div>

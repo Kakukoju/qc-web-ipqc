@@ -203,7 +203,7 @@ const TABLE_TABS: { type: TableType; label: string }[] = [
   { type: 'all_batch',    label: '④ 全批次' },
 ];
 
-export default function RawDataView({ initMarker, initSheet }: { initMarker?: string; initSheet?: string }) {
+export default function RawDataView({ initMarker, initSheet, onSelectionChange }: { initMarker?: string; initSheet?: string; onSelectionChange?: (marker: string | null, sheet: string | null) => void }) {
   const [markers, setMarkers] = useState<string[]>([]);
   const [selMarker, setSelMarker] = useState('');
   const [sheets, setSheets] = useState<string[]>([]);
@@ -250,6 +250,11 @@ export default function RawDataView({ initMarker, initSheet }: { initMarker?: st
       setSelSheet(pick);
     });
   }, [selMarker]); // eslint-disable-line
+
+  // Sheet selected → load data
+  useEffect(() => {
+    onSelectionChange?.(selMarker || null, selSheet || null);
+  }, [selMarker, selSheet]); // eslint-disable-line
 
   // Sheet selected → load data
   useEffect(() => {

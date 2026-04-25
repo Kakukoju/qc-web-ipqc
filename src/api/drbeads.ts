@@ -167,8 +167,8 @@ export async function fetchBeadRecords(bead_name: string, sheet_name: string): P
   );
 }
 
-export async function fetchBeadStats(): Promise<BeadStat[]> {
-  return get<BeadStat[]>('/stats');
+export async function fetchBeadStats(year?: string): Promise<BeadStat[]> {
+  return get<BeadStat[]>(year ? `/stats?year=${year}` : '/stats');
 }
 
 export async function deleteBeadSheet(bead_name: string, sheet_name: string): Promise<{ deleted: number }> {
@@ -192,14 +192,20 @@ export interface AnomalyRow {
   id: number; type: string; description: string; status: string; created_at: string;
 }
 
-export async function fetchKpi(): Promise<KpiData> {
-  return get<KpiData>('/kpi');
+export async function fetchKpi(year?: string): Promise<KpiData> {
+  return get<KpiData>(year ? `/kpi?year=${year}` : '/kpi');
 }
 
-export async function fetchTrend(bead_name: string, limit = 10): Promise<TrendRow[]> {
-  return get<TrendRow[]>(`/trend?bead_name=${encodeURIComponent(bead_name)}&limit=${limit}`);
+export async function fetchTrend(bead_name: string, limit = 10, year?: string): Promise<TrendRow[]> {
+  let url = `/trend?bead_name=${encodeURIComponent(bead_name)}&limit=${limit}`;
+  if (year) url += `&year=${year}`;
+  return get<TrendRow[]>(url);
 }
 
-export async function fetchAnomalies(): Promise<AnomalyRow[]> {
-  return get<AnomalyRow[]>('/anomalies');
+export async function fetchAnomalies(year?: string): Promise<AnomalyRow[]> {
+  return get<AnomalyRow[]>(year ? `/anomalies?year=${year}` : '/anomalies');
+}
+
+export async function fetchYears(): Promise<string[]> {
+  return get<string[]>('/years');
 }

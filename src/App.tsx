@@ -12,7 +12,7 @@ import TuttiPage from './components/Tutti/TuttiPage';
 import { apiUrl } from './api/base';
 
 const viewTitles: Record<string, string> = {
-  dashboard: 'Dashboard · 生產總覽',
+  dashboard: 'Dashboard',
   qc: 'IPQC 管理 · Dried Beads 半成品檢驗紀錄',
   ipqc: 'IPQC 工作台 · 原始數據',
   production: '生產管理',
@@ -22,17 +22,36 @@ const viewTitles: Record<string, string> = {
   settings: '系統設定',
 };
 
+interface LotSelection { marker: string; sheet: string }
 interface SearchResult { bead_name: string; sheet_name: string; tab: 'table1' | 'table2'; insp_date: string | null; }
 
-function QCView() {
+function QCView({ sharedLot, onLotChange }: {
+  sharedLot: LotSelection | null;
+  onLotChange: (lot: LotSelection | null) => void;
+}) {
   const [tab, setTab] = useState<'table1' | 'table2'>('table1');
-  const [nav, setNav] = useState<{ marker: string; sheet: string } | null>(null);
-  const [table1Sel, setTable1Sel] = useState<{ marker: string; sheet: string } | null>(null);
+  const [nav, setNav] = useState<LotSelection | null>(null);
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<SearchResult[]>([]);
   const [showResults, setShowResults] = useState(false);
   const timerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const wrapRef = useRef<HTMLDivElement>(null);
+
+
+
+  // Track whether the change came from us
+  const selfTriggered = useRef(false);
+
+  // When sharedLot changes externally (e.g. from IPQC), push as nav
+  useEffect(() => {
+    if (selfTriggered.current) {
+      selfTriggered.current = false;
+      return;
+    }
+    if (sharedLot?.marker && sharedLot?.sheet) {
+      setNav(sharedLot);
+    }
+  }, [sharedLot]);
 
   // Debounced search
   useEffect(() => {
@@ -65,8 +84,14 @@ function QCView() {
     setShowResults(false);
   }, []);
 
-  // Reset nav after it's consumed
   const clearNav = useCallback(() => setNav(null), []);
+
+  const handleSelectionChange = useCallback((marker: string | null, sheet: string | null) => {
+    if (marker && sheet) {
+      selfTriggered.current = true;
+      onLotChange({ marker, sheet });
+    }
+  }, [onLotChange]);
 
   return (
     <div className="flex flex-col h-full overflow-hidden">
@@ -78,7 +103,7 @@ function QCView() {
           <button
             key={t.id}
             onClick={() => {
-              if (table1Sel) setNav(table1Sel);
+              if (sharedLot) setNav(sharedLot);
               setTab(t.id);
             }}
             className={`px-4 py-2 text-xs font-medium rounded-t-lg transition-colors border-b-2 -mb-px
@@ -90,7 +115,6 @@ function QCView() {
           </button>
         ))}
 
-        {/* Search bar */}
         <div ref={wrapRef} className="relative ml-auto mb-1">
           <Search size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-[#93A4C3]" />
           <input
@@ -132,9 +156,7 @@ function QCView() {
           ? <DriedBeadsPage
               navTarget={nav?.marker && tab === 'table1' ? nav : null}
               onNavConsumed={clearNav}
-              onSelectionChange={(marker, sheet) => {
-                setTable1Sel(marker && sheet ? { marker, sheet } : null);
-              }}
+              onSelectionChange={handleSelectionChange}
             />
           : <PostsPage navTarget={nav?.marker && tab === 'table2' ? nav : null} onNavConsumed={clearNav} />}
       </div>
@@ -160,6 +182,16 @@ function PlaceholderView({ title }: { title: string }) {
 
 export default function App() {
   const [activeView, setActiveView] = useState('dashboard');
+  const [sharedLot, setSharedLot] = useState<LotSelection | null>(null);
+
+  // Expose global nav function for year-filter-patched.js
+  useEffect(() => {
+    (window as any).__navigateToQcLot = (marker: string, sheet: string) => {
+      setSharedLot({ marker, sheet });
+      setActiveView('qc');
+    };
+    return () => { delete (window as any).__navigateToQcLot; };
+  }, []);
 
   return (
     <div className="flex h-screen w-screen overflow-hidden bg-[#0B1220]">
@@ -179,8 +211,8 @@ export default function App() {
               className="h-full"
             >
               {activeView === 'dashboard' && <Dashboard onNavigate={setActiveView} />}
-              {activeView === 'qc' && <QCView />}
-              {activeView === 'ipqc' && <IPQCWorkbench />}
+              {activeView === 'qc' && <QCView sharedLot={sharedLot} onLotChange={setSharedLot} />}
+              {activeView === 'ipqc' && <IPQCWorkbench sharedLot={sharedLot} onLotChange={setSharedLot} />}
               {activeView === 'settings' && <SettingsPage />}
               {activeView === 'monitor' && <TuttiPage />}
               {!['dashboard', 'qc', 'ipqc', 'settings', 'monitor'].includes(activeView) && (

@@ -3,8 +3,7 @@ import { fileURLToPath } from 'url';
 import path from 'path';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-// __dirname = …/qc-web-app/server/db  →  ../../../  =  D:/QC-web
-const DB_PATH = path.resolve(__dirname, '../../../ipqcdrybeads.db');
+const DB_PATH = process.env.DB_PATH || path.resolve(__dirname, '../../../ipqcdrybeads.db');
 
 const db = new Database(DB_PATH);
 db.pragma('journal_mode = WAL');

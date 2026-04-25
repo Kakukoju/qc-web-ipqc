@@ -3,7 +3,7 @@ import { fileURLToPath } from 'url';
 import path from 'path';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const DB_PATH = path.resolve(__dirname, '../../../bead_ipqc_spec.db');
+const DB_PATH = process.env.SPEC_DB_PATH || path.resolve(__dirname, '../../../bead_ipqc_spec.db');
 
 const specDb = new Database(DB_PATH);
 specDb.pragma('journal_mode = WAL');

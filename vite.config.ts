@@ -13,8 +13,9 @@ export default defineConfig(({ mode }) => {
     server: {
       proxy: {
         [apiBase]: {
-          target: 'http://localhost:3001',
+          target: env.VITE_API_TARGET || 'http://localhost:3201',
           changeOrigin: true,
+          rewrite: (path: string) => path.replace(new RegExp(`^${apiBase}`), '/api'),
           proxyTimeout: 120000,
           timeout: 120000,
         },

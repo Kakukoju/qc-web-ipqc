@@ -25,9 +25,10 @@ const viewTitles: Record<string, string> = {
 interface LotSelection { marker: string; sheet: string }
 interface SearchResult { bead_name: string; sheet_name: string; tab: 'table1' | 'table2'; insp_date: string | null; }
 
-function QCView({ sharedLot, onLotChange }: {
+function QCView({ sharedLot, onLotChange, year }: {
   sharedLot: LotSelection | null;
   onLotChange: (lot: LotSelection | null) => void;
+  year: string;
 }) {
   const [tab, setTab] = useState<'table1' | 'table2'>('table1');
   const [nav, setNav] = useState<LotSelection | null>(null);
@@ -157,6 +158,7 @@ function QCView({ sharedLot, onLotChange }: {
               navTarget={nav?.marker && tab === 'table1' ? nav : null}
               onNavConsumed={clearNav}
               onSelectionChange={handleSelectionChange}
+              year={year}
             />
           : <PostsPage navTarget={nav?.marker && tab === 'table2' ? nav : null} onNavConsumed={clearNav} />}
       </div>
@@ -183,6 +185,7 @@ function PlaceholderView({ title }: { title: string }) {
 export default function App() {
   const [activeView, setActiveView] = useState('dashboard');
   const [sharedLot, setSharedLot] = useState<LotSelection | null>(null);
+  const [sharedYear, setSharedYear] = useState(new Date().getFullYear().toString());
 
   // Expose global nav function for year-filter-patched.js
   useEffect(() => {
@@ -210,8 +213,8 @@ export default function App() {
               transition={{ duration: 0.2 }}
               className="h-full"
             >
-              {activeView === 'dashboard' && <Dashboard onNavigate={setActiveView} />}
-              {activeView === 'qc' && <QCView sharedLot={sharedLot} onLotChange={setSharedLot} />}
+              {activeView === 'dashboard' && <Dashboard onNavigate={setActiveView} onYearChange={setSharedYear} />}
+              {activeView === 'qc' && <QCView sharedLot={sharedLot} onLotChange={setSharedLot} year={sharedYear} />}
               {activeView === 'ipqc' && <IPQCWorkbench sharedLot={sharedLot} onLotChange={setSharedLot} />}
               {activeView === 'settings' && <SettingsPage />}
               {activeView === 'monitor' && <TuttiPage />}

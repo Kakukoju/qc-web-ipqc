@@ -2,7 +2,7 @@
  * /api/excel-import — Upload Excel (.xlsx) → parse → write drbeadinspection + posts
  *
  * Mirrors the logic of drbeadinspection_import.py + posts_import.py
- * Cell mapping based on the 2026 IPQC template (M1:AE142)
+ * Cell mapping based on the IPQC template (M1:AE142)
  */
 import { Router } from 'express';
 import multer from 'multer';
@@ -11,7 +11,7 @@ import path from 'path';
 import db from '../db/sqlite.js';
 
 const router = Router();
-const upload = multer({ storage: multer.memoryStorage() });
+const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 50 * 1024 * 1024 } });
 
 const XLSX_READ_OPTS = {
   type:        'buffer',
@@ -65,12 +65,21 @@ function specStr(ws, r, c1, c2) {
   return parts.length ? parts.join(' ') : null;
 }
 
-/** Extract bead_name from filename: "2026-FRU-使用F1、F2.xlsx" → "FRU" */
+/** Extract bead_name from filename:
+ *  "2025-QBi-ALB.xlsx" → "QALB"
+ *  "2025-QBi-ALT-A.xlsx" → "QALT-A"
+ *  "2025-QFRU-使用F1、F2.xlsx" → "QFRU"
+ *  "2025-QLIPA -2.xlsx" → "QLIPA"
+ *  "2026-tCREA.xlsx" → "tCREA"
+ */
 function extractBeadName(filename) {
   const stem = path.basename(filename, path.extname(filename));
-  const after = stem.replace(/^2026-/, '');
-  const m = after.match(/^([A-Za-z0-9-]+)/);
-  return m ? m[1].replace(/-$/, '') : after;
+  let after = stem.replace(/^20[2-9]\d-/, '');
+  // QBi-X → QX
+  if (/^QBi-/i.test(after)) after = 'Q' + after.slice(4);
+  // Take alphanumeric + dash portion, stop at CJK/space/special
+  const m = after.match(/^([A-Za-z][A-Za-z0-9]*(?:-[A-Za-z0-9]+)*)/);
+  return m ? m[1] : after;
 }
 
 /** Check if sheet is a data sheet (表一: M1 contains 'Dried Beads') */
@@ -286,6 +295,8 @@ const postInsert = db.prepare(`INSERT INTO posts (${postCols.join(',')}) VALUES 
 
 const existsStmt = db.prepare('SELECT 1 FROM drbeadinspection WHERE bead_name=? AND sheet_name=? LIMIT 1');
 const postsExistsStmt = db.prepare('SELECT 1 FROM posts WHERE bead_name=? AND sheet_name=? LIMIT 1');
+const drDeleteStmt = db.prepare('DELETE FROM drbeadinspection WHERE bead_name=? AND sheet_name=?');
+const postsDeleteStmt = db.prepare('DELETE FROM posts WHERE bead_name=? AND sheet_name=?');
 
 function safeParams(cols, obj) {
   const p = {};
@@ -294,7 +305,8 @@ function safeParams(cols, obj) {
 }
 
 // ── POST /api/excel-import/upload-batch ──────────────────────────────────
-// Accept multiple 2026-*.xlsx files (from folder select)
+// Accept multiple year-*.xlsx files (from folder select)
+// Duplicate bead_name+sheet_name: delete old then re-insert
 
 router.post('/upload-batch', upload.array('files', 100), (req, res) => {
   const files = req.files || [];
@@ -302,13 +314,16 @@ router.post('/upload-batch', upload.array('files', 100), (req, res) => {
 
   const summary = { total_files: 0, imported_files: 0, total_sheets: 0, skipped_sheets: 0, results: [] };
 
-  // ── Phase 1: parse all xlsx files (CPU-intensive, outside transaction) ──
   const allT1Rows = [], allT2Rows = [];
-  const seenThisChunk = new Set(); // within-chunk deduplicate
+  const deleteKeys = new Set();
 
   for (const file of files) {
     const originalName = file.originalname || '';
-    if (!originalName.startsWith('2026-') || !originalName.endsWith('.xlsx') || originalName.startsWith('~$')) continue;
+    console.log('[excel-import] file:', JSON.stringify(originalName), 'size:', file.size);
+    if (!/^20[2-9]\d-/.test(originalName) || !originalName.endsWith('.xlsx') || originalName.startsWith('~$')) {
+      console.log('[excel-import] SKIP file (pattern mismatch)');
+      continue;
+    }
 
     const beadName = extractBeadName(originalName);
     summary.total_files++;
@@ -324,22 +339,16 @@ router.post('/upload-batch', upload.array('files', 100), (req, res) => {
       ws['!sheetname'] = sheetName;
 
       const key = `${beadName}\x00${sheetName}`;
-      const drExists = seenThisChunk.has(key) || !!existsStmt.get(beadName, sheetName);
-      const postExists = !!postsExistsStmt.get(beadName, sheetName);
 
-      if (drExists && postExists) {
-        fileResult.skipped++;
-        summary.skipped_sheets++;
-        continue;
-      }
-
-      const t1Rows = (!drExists && isDataSheet(ws)) ? parseTable1(ws, beadName, originalName) : [];
-      const t2Rows = (!postExists && isPostsSheet(ws)) ? parseTable2(ws, beadName, originalName) : [];
+      const t1Rows = isDataSheet(ws) ? parseTable1(ws, beadName, originalName) : [];
+      const t2Rows = isPostsSheet(ws) ? parseTable2(ws, beadName, originalName) : [];
       if (!t1Rows.length && !t2Rows.length) continue;
+
+      // Mark for delete-before-insert (upsert)
+      deleteKeys.add(key);
 
       allT1Rows.push(...t1Rows);
       allT2Rows.push(...t2Rows);
-      seenThisChunk.add(key);
       fileResult.imported++;
       summary.total_sheets++;
     }
@@ -348,9 +357,14 @@ router.post('/upload-batch', upload.array('files', 100), (req, res) => {
     summary.results.push(fileResult);
   }
 
-  // ── Phase 2: write to DB in a single short transaction ──
+  // ── Phase 2: delete old + insert new in a single transaction ──
   try {
     db.transaction(() => {
+      for (const key of deleteKeys) {
+        const [bead, sheet] = key.split('\x00');
+        drDeleteStmt.run(bead, sheet);
+        postsDeleteStmt.run(bead, sheet);
+      }
       for (const row of allT1Rows) drInsert.run(safeParams(drCols, row));
       for (const row of allT2Rows) postInsert.run(safeParams(postCols, row));
     })();

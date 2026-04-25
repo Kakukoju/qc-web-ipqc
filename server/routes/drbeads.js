@@ -405,47 +405,32 @@ router.get('/kpi', (req, res) => {
 // GET /api/drbeads/trend?bead_name=tCREA&limit=10
 router.get('/trend', (req, res) => {
   const bead = req.query.bead_name || 'tCREA';
-  const limit = parseInt(req.query.limit) || 10;
+  const limit = parseInt(req.query.limit) || 999;
   const year = normalizeYear(req.query.year);
-  const sql = year ? `
-    SELECT
-      sheet_name AS lot,
-      insp_date,
-      AVG(CAST(od_slope AS REAL)) AS od_mean,
-      AVG(CAST(od_cvpct_l1 AS REAL)) AS cv,
-      AVG(CAST(od_bias_l1 AS REAL)) AS bias,
-      SUM(CASE WHEN final_decision LIKE '%PASS%' OR final_decision LIKE '%Accept%' THEN 1 ELSE 0 END) AS pass,
-      SUM(CASE WHEN final_decision LIKE '%FAIL%' OR final_decision LIKE '%NG%' THEN 1 ELSE 0 END) AS ng
-    FROM drbeadinspection
-    WHERE bead_name = ? AND insp_date LIKE ?
-    GROUP BY sheet_name, insp_date
-    ORDER BY insp_date DESC
-    LIMIT ?
-  ` : `
-    SELECT
-      sheet_name AS lot,
-      insp_date,
-      AVG(CAST(od_slope AS REAL)) AS od_mean,
-      AVG(CAST(od_cvpct_l1 AS REAL)) AS cv,
-      AVG(CAST(od_bias_l1 AS REAL)) AS bias,
-      SUM(CASE WHEN final_decision LIKE '%PASS%' OR final_decision LIKE '%Accept%' THEN 1 ELSE 0 END) AS pass,
-      SUM(CASE WHEN final_decision LIKE '%FAIL%' OR final_decision LIKE '%NG%' THEN 1 ELSE 0 END) AS ng
-    FROM drbeadinspection
-    WHERE bead_name = ?
-    GROUP BY sheet_name, insp_date
-    ORDER BY insp_date DESC
-    LIMIT ?
-  `;
+  const cols = `
+      sheet_name AS lot, insp_date,
+      AVG(CAST(od_mean_l1 AS REAL)) AS od_l1, AVG(CAST(od_mean_l2 AS REAL)) AS od_l2,
+      AVG(CAST(od_mean_n1 AS REAL)) AS od_n1, AVG(CAST(od_mean_n3 AS REAL)) AS od_n3,
+      AVG(CAST(od_cvpct_l1 AS REAL)) AS cv_l1, AVG(CAST(od_cvpct_l2 AS REAL)) AS cv_l2,
+      AVG(CAST(od_cvpct_n1 AS REAL)) AS cv_n1, AVG(CAST(od_cvpct_n3 AS REAL)) AS cv_n3,
+      AVG(CAST(rconc_cv_l1 AS REAL)) AS ccv_l1, AVG(CAST(rconc_cv_l2 AS REAL)) AS ccv_l2,
+      AVG(CAST(rconc_cv_n1 AS REAL)) AS ccv_n1, AVG(CAST(rconc_cv_n3 AS REAL)) AS ccv_n3,
+      AVG(CAST(mean_bias_l1 AS REAL)) AS bias_l1, AVG(CAST(mean_bias_l2 AS REAL)) AS bias_l2`;
+  const where = year
+    ? `WHERE bead_name = ? AND insp_date LIKE ?`
+    : `WHERE bead_name = ?`;
+  const sql = `SELECT ${cols} FROM drbeadinspection ${where} GROUP BY sheet_name, insp_date ORDER BY insp_date DESC LIMIT ?`;
   const rows = year
     ? db.prepare(sql).all(bead, yearLike(year), limit)
     : db.prepare(sql).all(bead, limit);
+  const pct = v => v ? parseFloat((Number(v) * 100).toFixed(2)) : null;
+  const num = v => v ? parseFloat(Number(v).toFixed(4)) : null;
   res.json(rows.reverse().map(r => ({
     lot: r.lot,
-    odMean: r.od_mean ? parseFloat(Number(r.od_mean).toFixed(4)) : 0,
-    cv: r.cv ? parseFloat((Number(r.cv) * 100).toFixed(2)) : 0,
-    bias: r.bias ? parseFloat((Number(r.bias) * 100).toFixed(2)) : 0,
-    pass: r.pass || 0,
-    ng: r.ng || 0,
+    od_l1: num(r.od_l1), od_l2: num(r.od_l2), od_n1: num(r.od_n1), od_n3: num(r.od_n3),
+    cv_l1: pct(r.cv_l1), cv_l2: pct(r.cv_l2), cv_n1: pct(r.cv_n1), cv_n3: pct(r.cv_n3),
+    ccv_l1: pct(r.ccv_l1), ccv_l2: pct(r.ccv_l2), ccv_n1: pct(r.ccv_n1), ccv_n3: pct(r.ccv_n3),
+    bias_l1: pct(r.bias_l1), bias_l2: pct(r.bias_l2),
   })));
 });
 

@@ -17,6 +17,13 @@ body {
   min-height: 100vh;
 }
 
+/* Styled scrollbar */
+.styled-scroll::-webkit-scrollbar { width: 8px; height: 8px; }
+.styled-scroll::-webkit-scrollbar-track { background: #0B1220; border-radius: 4px; }
+.styled-scroll::-webkit-scrollbar-thumb { background: #4DA3FF; border-radius: 4px; min-height: 40px; }
+.styled-scroll::-webkit-scrollbar-thumb:hover { background: #6AB5FF; }
+.styled-scroll { scrollbar-width: thin; scrollbar-color: #4DA3FF #0B1220; }
+
 /* AG Grid dark theme override */
 .ag-theme-alpine-dark {
   --ag-background-color: #121A2B;

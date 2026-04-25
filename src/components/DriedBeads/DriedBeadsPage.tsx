@@ -26,20 +26,20 @@ function passColor(v: string | null) {
 
 // ── Stats overview ────────────────────────────────────────────────────────────
 
-function StatsGrid({ selected, onSelect, onImported }: { selected: string | null; onSelect: (bead: string) => void; onImported: () => void }) {
-  const { data: stats, loading, refresh } = useFetch<BeadStat[]>(() => fetchBeadStats(), []);
+function StatsGrid({ selected, onSelect, onImported, year }: { selected: string | null; onSelect: (bead: string) => void; onImported: () => void; year?: string }) {
+  const { data: stats, loading, refresh } = useFetch<BeadStat[]>(() => fetchBeadStats(year), [year]);
   const fileRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
   const [progress, setProgress] = useState('');
   const [toast, setToast] = useState<{ msg: string; ok: boolean } | null>(null);
 
-  const CHUNK_SIZE = 8;
+  const CHUNK_SIZE = 2;
 
   const handleFolder = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const allFiles = Array.from(e.target.files || []);
     e.target.value = '';
-    const xlsxFiles = allFiles.filter(f => f.name.startsWith('2026-') && f.name.endsWith('.xlsx') && !f.name.startsWith('~$'));
-    if (!xlsxFiles.length) { setToast({ msg: '資料夾內無 2026-*.xlsx 檔案', ok: false }); setTimeout(() => setToast(null), 3000); return; }
+    const xlsxFiles = allFiles.filter(f => /^20[2-9]\d-/.test(f.name) && f.name.endsWith('.xlsx') && !f.name.startsWith('~$'));
+    if (!xlsxFiles.length) { setToast({ msg: '資料夾內無年份-*.xlsx 檔案（如 2025-QBi-ALB.xlsx）', ok: false }); setTimeout(() => setToast(null), 3000); return; }
     setUploading(true);
     setProgress(`第 0 / ${xlsxFiles.length} 檔`);
     setToast(null);
@@ -63,11 +63,11 @@ function StatsGrid({ selected, onSelect, onImported }: { selected: string | null
   };
 
   if (loading && !uploading) return <div className="text-[#93A4C3] text-sm p-4">載入中…</div>;
-  const year = new Date().getFullYear();
+  const displayYear = year || new Date().getFullYear().toString();
   return (
     <div>
       <div className="flex items-center gap-3 mb-2 flex-wrap">
-        <div className="text-[10px] text-[#556A88]">{year} 年度 Beads 檢驗總覽</div>
+        <div className="text-[10px] text-[#556A88]">{displayYear} 年度 Beads 檢驗總覽</div>
         {/* @ts-expect-error webkitdirectory is non-standard */}
         <input ref={fileRef} type="file" webkitdirectory="" className="hidden" onChange={handleFolder} />
         <button
@@ -701,16 +701,18 @@ function InspectionFormModal({
 
 // ── Main Page ─────────────────────────────────────────────────────────────────
 
-export default function DriedBeadsPage({ navTarget, onNavConsumed, onSelectionChange }: {
+export default function DriedBeadsPage({ navTarget, onNavConsumed, onSelectionChange, year }: {
   navTarget?: { marker: string; sheet: string } | null;
   onNavConsumed?: () => void;
   onSelectionChange?: (marker: string | null, sheet: string | null) => void;
+  year?: string;
 }) {
   const [selectedMarker, setSelectedMarker] = useState<string | null>(null);
   const [selectedSheet,  setSelectedSheet]  = useState<string | null>(null);
   const [showForm,       setShowForm]        = useState(false);
   const [spec,           setSpec]            = useState<SpecRow | null>(null);
   const [csMeta,         setCsMeta]          = useState<CsMeta[]>([]);
+  const detailRef = useRef<HTMLDivElement>(null);
 
   // Handle external navigation from search
   useEffect(() => {
@@ -727,7 +729,7 @@ export default function DriedBeadsPage({ navTarget, onNavConsumed, onSelectionCh
     onSelectionChange?.(selectedMarker, selectedSheet);
   }, [selectedMarker, selectedSheet]);
 
-  const { data: markers, refresh: refreshMarkers } = useFetch<string[]>(() => fetchBeadMarkers(), []);
+  const { data: markers, refresh: refreshMarkers } = useFetch<string[]>(() => fetchBeadMarkers(year), [year]);
   const { data: records, loading: recLoading } = useFetch<DrBeadRecord[]>(
     () => selectedMarker && selectedSheet
       ? fetchBeadRecords(selectedMarker, selectedSheet)
@@ -751,10 +753,10 @@ export default function DriedBeadsPage({ navTarget, onNavConsumed, onSelectionCh
   }, []);
 
   return (
-    <div className="flex flex-col h-full p-4 overflow-hidden gap-4">
+    <div className="flex flex-col h-full p-4 gap-4 overflow-y-auto styled-scroll">
 
       {/* Stats row */}
-      <StatsGrid selected={selectedMarker} onImported={() => { refreshMarkers(); }} onSelect={async (bead) => {
+      <StatsGrid selected={selectedMarker} onImported={() => { refreshMarkers(); }} year={year} onSelect={async (bead) => {
         setSelectedMarker(bead);
         setShowForm(false);
         try {
@@ -766,10 +768,11 @@ export default function DriedBeadsPage({ navTarget, onNavConsumed, onSelectionCh
             setSelectedSheet(null);
           }
         } catch { setSelectedSheet(null); }
+        setTimeout(() => detailRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 100);
       }} />
 
       {/* Three-column layout */}
-      <div className="flex flex-1 gap-4 overflow-hidden min-h-0">
+      <div ref={detailRef} className="flex flex-1 gap-4 min-h-[400px] overflow-hidden">
 
         {/* Col 1: Marker selector */}
         <div className="w-36 shrink-0 flex flex-col gap-1 overflow-y-auto">

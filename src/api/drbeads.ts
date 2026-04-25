@@ -153,12 +153,14 @@ export interface BeadStat {
 
 // ── API functions ─────────────────────────────────────────────────────────────
 
-export async function fetchBeadMarkers(): Promise<string[]> {
-  return get<string[]>('/markers');
+export async function fetchBeadMarkers(year?: string): Promise<string[]> {
+  return get<string[]>(year ? `/markers?year=${year}` : '/markers');
 }
 
-export async function fetchBeadSheets(bead_name: string): Promise<SheetSummary[]> {
-  return get<SheetSummary[]>(`/sheets?bead_name=${encodeURIComponent(bead_name)}`);
+export async function fetchBeadSheets(bead_name: string, year?: string): Promise<SheetSummary[]> {
+  let url = `/sheets?bead_name=${encodeURIComponent(bead_name)}`;
+  if (year) url += `&year=${year}`;
+  return get<SheetSummary[]>(url);
 }
 
 export async function fetchBeadRecords(bead_name: string, sheet_name: string): Promise<DrBeadRecord[]> {
@@ -185,7 +187,11 @@ export interface KpiData {
 }
 
 export interface TrendRow {
-  lot: string; odMean: number; cv: number; bias: number; pass: number; ng: number;
+  lot: string;
+  od_l1: number | null; od_l2: number | null; od_n1: number | null; od_n3: number | null;
+  cv_l1: number | null; cv_l2: number | null; cv_n1: number | null; cv_n3: number | null;
+  ccv_l1: number | null; ccv_l2: number | null; ccv_n1: number | null; ccv_n3: number | null;
+  bias_l1: number | null; bias_l2: number | null;
 }
 
 export interface AnomalyRow {

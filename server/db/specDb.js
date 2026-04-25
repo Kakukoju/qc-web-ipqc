@@ -1,8 +1,10 @@
 import Database from 'better-sqlite3';
 import { fileURLToPath } from 'url';
 import path from 'path';
+import dotenv from 'dotenv';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
+dotenv.config({ path: path.resolve(__dirname, '../.env') });
 const DB_PATH = process.env.SPEC_DB_PATH || path.resolve(__dirname, '../../../bead_ipqc_spec.db');
 
 const specDb = new Database(DB_PATH);

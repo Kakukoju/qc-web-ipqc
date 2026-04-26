@@ -90,7 +90,7 @@ function buildMarkerConfigs(meta: ColMeta[], calRules: CalRule[]): MarkerConfig[
   return configs;
 }
 
-export default function LoadCsvModal({ levels, meta, calRules, csData, rows, tableType, beadName, onApply, onClose, onRefresh }: Props) {
+export default function LoadCsvModal({ levels, meta, calRules, csData, rows, tableType, beadName, onApply, onClose }: Props) {
   const [files, setFiles] = useState<File[]>([]);
   const [selLevel, setSelLevel] = useState(levels[0] ?? '');
   const [startIdx, setStartIdx] = useState(0); // combo_idx offset to start writing
@@ -267,24 +267,7 @@ export default function LoadCsvModal({ levels, meta, calRules, csData, rows, tab
 
       const allUpdates = [...odUpdates, ...concUpdates, ...newRows];
       onApply(allUpdates);
-
-      // Auto-save all updates to DB immediately
-      const toSave = allUpdates.filter(r => {
-        // Save rows that have data OR rows that were cleared (existed in parent)
-        return WELL_FIELDS.some(f => (r as any)[f] !== null) || parentIds.has(r.id);
-      });
-      await Promise.all(toSave.map(r => {
-        const { id, lot_id, ctrl_lot, d_lot, bigD_lot, u_lot, w2, w3, w4, w5, w6, w7, w8, w9, w10, w11, w12, w13, w14, w15, w16, w17, w18, w19 } = r;
-        return fetch(apiUrl(`/rawdata/${id}`), {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ lot_id, ctrl_lot, d_lot, bigD_lot, u_lot, w2, w3, w4, w5, w6, w7, w8, w9, w10, w11, w12, w13, w14, w15, w16, w17, w18, w19 }),
-        });
-      }));
-
       onClose();
-      // Refresh parent to load clean state from DB
-      if (onRefresh) onRefresh();
     } catch (e: any) {
       setError(e.message || String(e));
     } finally {

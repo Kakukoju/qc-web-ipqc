@@ -47,6 +47,8 @@ async function sendTeamsAlert(title, items) {
   } catch (e) { console.error('[teams] send failed:', e.message); }
 }
 
+let lastAlertHash = "";
+
 // ── SSH: run remote sqlite3 query, return JSON rows ──────────────────
 function queryRemoteDb(sql) {
   return new Promise((resolve, reject) => {
@@ -119,6 +121,41 @@ async function syncScheduleCache() {
     })();
     lastSyncTime = Date.now();
     console.log('[schedule] synced ' + rows.length + ' schedule + ' + pnRows.length + ' PN rows from EC2');
+
+    // Check anomalies after sync
+    const anomalies = [];
+    // Empty lots
+    for (const r of rows) {
+      if (!(r.Lot || '').trim() && r.WorkOrder) {
+        anomalies.push('空批號: ' + r.Marker + ' 工單=' + r.WorkOrder + ' 日期=' + r.Date);
+      }
+    }
+    // PN mismatch
+    if (pnRows.length) {
+      const pnMap = new Map();
+      for (const r of pnRows) {
+        const m = (r['Marker name'] || '').trim();
+        const pn = (r.PN || '').trim();
+        if (m && pn) { if (!pnMap.has(m)) pnMap.set(m, []); pnMap.get(m).push(pn.slice(-3)); }
+      }
+      for (const r of rows) {
+        const lot = (r.Lot || '').trim();
+        if (!lot || lot.length < 3 || lot.endsWith('-RD')) continue;
+        const marker = (r.Marker || '').trim();
+        const suffixes = pnMap.get(marker);
+        if (suffixes && !suffixes.includes(lot.slice(0, 3))) {
+          anomalies.push('批號異常: ' + marker + ' lot=' + lot + ' 前三碼應為' + suffixes.join('/') + ' 工單=' + r.WorkOrder);
+        }
+      }
+    }
+    // Only log if anomalies changed (Teams notification disabled)
+    const hash = anomalies.sort().join('|');
+    if (anomalies.length > 0 && hash !== lastAlertHash) {
+      lastAlertHash = hash;
+      console.log('[schedule] anomalies:', anomalies.length, anomalies.slice(0, 3));
+    } else if (anomalies.length === 0) {
+      lastAlertHash = '';
+    }
   } catch (err) {
     console.error('[schedule] sync failed:', err.message);
   }
@@ -267,54 +304,15 @@ router.get('/pending', (_req, res) => {
     // the new row's date is within 1 day of the group's earliest date.
 
     // Step 1: parse all rows, skip R&D lots and empty lots
-    //          Collect anomalies for Teams notification
     const parsed = [];
-    const anomalies = [];
     for (const row of schedRows) {
       const p = parseMarker(row.Marker);
       if (!p) continue;
-      const lot = (row.Lot || '').trim();
-      if (lot.endsWith('-RD')) continue;
-      if (!lot) {
-        anomalies.push({ type: 'empty_lot', marker: row.Marker, wo: row.WorkOrder, date: row.Date });
-        continue;
-      }
-      const prodDate = (row.Date || '').replace(/\//g, '-');
+      const lot = (row.Lot || "").trim();
+      if (lot.endsWith("-RD") || !lot) continue;
+      const prodDate = (row.Date || "").replace(/\//g, "-");
       const woExists = existingWOs.has(row.WorkOrder);
       parsed.push({ ...p, prodDate, wo: row.WorkOrder, lot, woExists });
-    }
-
-    // PN mismatch check: lot prefix (first 3 chars) must match bead PN suffix (last 3 chars)
-    const pnRows = db.prepare('SELECT marker_name, pn FROM pn_cache').all();
-    const pnMap = new Map();
-    for (const r of pnRows) {
-      const m = (r.marker_name || '').trim();
-      const pn = (r.pn || '').trim();
-      if (m && pn) { if (!pnMap.has(m)) pnMap.set(m, []); pnMap.get(m).push(pn.slice(-3)); }
-    }
-    for (const r of parsed) {
-      if (!r.lot || r.lot.length < 3) continue;
-      // Find PN suffixes for this marker's original schedule name
-      // parsed has beadName (QC name), need to check against schedule marker names
-      const lotPrefix = r.lot.slice(0, 3);
-      // Try beadName and common variants
-      let suffixes = null;
-      for (const [mk, suf] of pnMap) {
-        if (r.beadName === mk || r.beadName === mk.replace(/-[A-Z]$/, '')) { suffixes = suf; break; }
-      }
-      if (suffixes && !suffixes.includes(lotPrefix)) {
-        anomalies.push({ type: 'pn_mismatch', marker: r.beadName, lot: r.lot, wo: r.wo, date: r.prodDate, expected: suffixes.join('/') });
-      }
-    }
-
-    // Send Teams alert if anomalies found
-    if (anomalies.length > 0) {
-      const msgs = anomalies.map(a => {
-        if (a.type === 'empty_lot') return `空批號: ${a.marker} 工單=${a.wo} 日期=${a.date}`;
-        if (a.type === 'pn_mismatch') return `批號異常: ${a.marker} lot=${a.lot} 前三碼應為${a.expected} 工單=${a.wo}`;
-        return JSON.stringify(a);
-      });
-      sendTeamsAlert('排產匯入異常', msgs);
     }
 
     // Step 2: group by beadName

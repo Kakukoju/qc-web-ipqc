@@ -517,15 +517,28 @@ router.post('/sync-qc', (req, res) => {
     // ── Find existing rows ──
     // drbeadinspection: try exact batch_combo first, then lot-based fuzzy
     function findDrRows(lotId) {
+      // Try exact batch_combo match
       let rows = db.prepare(`SELECT * FROM drbeadinspection WHERE bead_name = ? AND batch_combo = ?`).all(bead_name, lotId);
       if (rows.length) return rows;
-      rows = db.prepare(`SELECT * FROM drbeadinspection WHERE bead_name = ? AND sheet_name = ? AND batch_combo = ?`).all(bead_name, sheet_name, lotId);
+      // Try with spaces (lot_id has no spaces, batch_combo has spaces)
+      const lotWithSpaces = lotId.replace(/([A-Z]{2})/g, ' $1').trim();
+      rows = db.prepare(`SELECT * FROM drbeadinspection WHERE bead_name = ? AND sheet_name = ? AND batch_combo = ?`).all(bead_name, sheet_name, lotWithSpaces);
+      if (rows.length) return rows;
+      // Try matching by replacing batch_combo spaces
+      rows = db.prepare(`SELECT * FROM drbeadinspection WHERE bead_name = ? AND sheet_name = ? AND REPLACE(batch_combo, ' ', '') = ?`).all(bead_name, sheet_name, lotId);
       if (rows.length) return rows;
       return [];
     }
     function findPostRows(lotId) {
+      // Try direct lot match
       let rows = db.prepare(`SELECT * FROM posts WHERE bead_name = ? AND sheet_name = ? AND (lot_d = ? OR lot_bigD = ? OR lot_u = ?)`).all(bead_name, sheet_name, lotId, lotId, lotId);
       if (rows.length) return rows;
+      // lot_id is concatenated d+D+U lots; match by combo_idx from drbeadinspection
+      const drRows = findDrRows(lotId);
+      if (drRows.length) {
+        rows = db.prepare(`SELECT * FROM posts WHERE bead_name = ? AND sheet_name = ? AND combo_idx = ?`).all(bead_name, sheet_name, drRows[0].batch_col - 16);
+        if (rows.length) return rows;
+      }
       return [];
     }
 
@@ -597,6 +610,7 @@ router.post('/sync-qc', (req, res) => {
       for (const cr of comboResults) {
         // drbeadinspection: find by batch_combo or lot fields
         let drRow = db.prepare(`SELECT id FROM drbeadinspection WHERE bead_name = ? AND batch_combo = ?`).get(bead_name, cr.lot_id)
+          || db.prepare(`SELECT id FROM drbeadinspection WHERE bead_name = ? AND sheet_name = ? AND REPLACE(batch_combo, ' ', '') = ?`).get(bead_name, sheet_name, cr.lot_id)
           || db.prepare(`SELECT id FROM drbeadinspection WHERE bead_name = ? AND (d_lot = ? OR bigD_lot = ? OR u_lot = ?)`).get(bead_name, cr.lot_id, cr.lot_id, cr.lot_id);
         if (drRow) {
           const { sets, params } = buildDrSets(cr);
@@ -609,7 +623,8 @@ router.post('/sync-qc', (req, res) => {
         }
 
         // posts: find by lot fields
-        let postRow = db.prepare(`SELECT id FROM posts WHERE bead_name = ? AND (lot_d = ? OR lot_bigD = ? OR lot_u = ?)`).get(bead_name, cr.lot_id, cr.lot_id, cr.lot_id);
+        let postRow = db.prepare(`SELECT id FROM posts WHERE bead_name = ? AND sheet_name = ? AND (lot_d = ? OR lot_bigD = ? OR lot_u = ?)`).get(bead_name, sheet_name, cr.lot_id, cr.lot_id, cr.lot_id)
+          || db.prepare(`SELECT id FROM posts WHERE bead_name = ? AND sheet_name = ? AND combo_idx = ?`).get(bead_name, sheet_name, lots.indexOf(cr.lot_id) + 1);
         if (postRow) {
           const { sets, params } = buildPostSets(cr);
           params.id = postRow.id;

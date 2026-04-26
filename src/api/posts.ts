@@ -109,6 +109,8 @@ export interface PostRecord {
   fb_conc_cv_l2: string | null;
   fb_bias_l1: string | null;
   fb_bias_l2: string | null;
+  remarks: string | null;
+  hold_reason: string | null;
 }
 
 export interface PostSheetSummary {

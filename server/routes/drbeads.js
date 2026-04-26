@@ -18,27 +18,20 @@ function yearLike(year) {
   return `${year}%`;
 }
 
-// ── PN lookup cache from EC2 Liquid form QC ──────────────────────────────
-let _pnCache = null; // Map<markerName, { name, pn }[]>
+// ── PN lookup from local pn_cache (synced from EC2 Liquid form QC) ────────
+let _pnCache = null;
 let _pnCacheTime = 0;
 
 function getEc2PnMap() {
-  // Cache for 10 minutes
   if (_pnCache && Date.now() - _pnCacheTime < 600000) return _pnCache;
   try {
-    const os = require('os');
-    const path = require('path');
-    const Database = require('better-sqlite3');
-    const tmpPath = path.join(os.tmpdir(), 'P01_schedule_cache.db');
-    const schedDb = new Database(tmpPath, { readonly: true });
-    const rows = schedDb.prepare('SELECT [Marker name],[PN],[Name] FROM [Liquid form QC]').all();
-    schedDb.close();
+    const rows = db.prepare('SELECT marker_name, pn, name FROM pn_cache').all();
     const map = new Map();
     for (const r of rows) {
-      const marker = (r['Marker name'] || '').trim();
-      const pn = (r.PN || '').trim();
-      const name = (r.Name || '').trim();
-      if (!marker || !pn || marker === 'Marker name') continue;
+      const marker = (r.marker_name || '').trim();
+      const pn = (r.pn || '').trim();
+      const name = (r.name || '').trim();
+      if (!marker || !pn) continue;
       if (!map.has(marker)) map.set(marker, []);
       map.get(marker).push({ name, pn });
     }

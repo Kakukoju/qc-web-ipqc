@@ -14,9 +14,6 @@
 import { Router } from 'express';
 import { Client } from 'ssh2';
 import { readFileSync, existsSync } from 'fs';
-import path from 'path';
-import os from 'os';
-import Database from 'better-sqlite3';
 import db from '../db/sqlite.js';
 
 const router = Router();
@@ -25,24 +22,51 @@ const SSH_HOST = process.env.SSH_HOST || '54.199.19.240';
 const SSH_USER = process.env.SSH_USER || 'ec2-user';
 const SSH_KEY  = process.env.SSH_KEY_PATH || 'D:\\AWS\\beadsops-api_pem.pem';
 const REMOTE_DB = process.env.REMOTE_DB_PATH || '/opt/beadsops/data/P01_formualte_schedule.db';
+const TEAMS_WEBHOOK = 'https://skylamb.webhook.office.com/webhookb2/2a08d9e8-2969-447a-826b-a6e378cfd967@15d82f97-4f15-4ead-9ab6-18aa0cd45388/IncomingWebhook/be88d82e15b44d75a2cf55a80e52b35b/7731650f-a7d2-4b94-ad86-14e06a65ea2e/V22OCJBKMz6BrY4z6Hg1FTByAD0uXKdoJa8eWMlQSQeq01';
 
-// ── SSH + SFTP: download remote DB to temp ────────────────────────────
-function fetchRemoteDb() {
+async function sendTeamsAlert(title, items) {
+  if (!items.length) return;
+  const body = items.map(i => '- ' + i).join('\n');
+  const card = {
+    type: 'message',
+    attachments: [{
+      contentType: 'application/vnd.microsoft.card.adaptive',
+      content: {
+        '$schema': 'http://adaptivecards.io/schemas/adaptive-card.json',
+        type: 'AdaptiveCard', version: '1.4',
+        body: [
+          { type: 'TextBlock', text: '⚠️ ' + title, weight: 'Bolder', size: 'Medium', color: 'Attention' },
+          { type: 'TextBlock', text: body, wrap: true, size: 'Small' },
+          { type: 'TextBlock', text: 'to: 呂祐鋓', size: 'Small', isSubtle: true },
+        ]
+      }
+    }]
+  };
+  try {
+    await fetch(TEAMS_WEBHOOK, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(card) });
+  } catch (e) { console.error('[teams] send failed:', e.message); }
+}
+
+// ── SSH: run remote sqlite3 query, return JSON rows ──────────────────
+function queryRemoteDb(sql) {
   return new Promise((resolve, reject) => {
     if (!existsSync(SSH_KEY)) {
       return reject(new Error(`SSH key not found: ${SSH_KEY}`));
     }
     const conn = new Client();
-    const tmpPath = path.join(os.tmpdir(), 'P01_schedule_cache.db');
-
     conn.on('ready', () => {
-      conn.sftp((err, sftp) => {
+      const escaped = sql.replace(/"/g, '\\"');
+      const cmd = `sqlite3 -json "${REMOTE_DB}" "${escaped}"`;
+      conn.exec(cmd, (err, stream) => {
         if (err) { conn.end(); return reject(err); }
-        sftp.fastGet(REMOTE_DB, tmpPath, (err2) => {
+        let out = '', errOut = '';
+        stream.on('data', (d) => { out += d; });
+        stream.stderr.on('data', (d) => { errOut += d; });
+        stream.on('close', () => {
           conn.end();
-          if (err2) return reject(new Error(`SFTP download failed: ${err2.message}`));
-          try { resolve(new Database(tmpPath, { readonly: true })); }
-          catch (e) { reject(e); }
+          if (errOut && !out) return reject(new Error(errOut.trim()));
+          try { resolve(JSON.parse(out || '[]')); }
+          catch { resolve([]); }
         });
       });
     });
@@ -50,6 +74,58 @@ function fetchRemoteDb() {
     conn.connect({ host: SSH_HOST, port: 22, username: SSH_USER, privateKey: readFileSync(SSH_KEY) });
   });
 }
+
+// ── Local schedule cache ──────────────────────────────────────────────────────
+db.exec(`CREATE TABLE IF NOT EXISTS schedule_cache (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  prod_date TEXT, marker TEXT, work_order TEXT, lot TEXT,
+  synced_at TEXT DEFAULT (datetime('now','localtime'))
+)`);
+db.exec('CREATE INDEX IF NOT EXISTS idx_sched_cache_date ON schedule_cache(prod_date)');
+
+db.exec(`CREATE TABLE IF NOT EXISTS pn_cache (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  marker_name TEXT, pn TEXT, name TEXT
+)`);
+
+let lastSyncTime = 0;
+const SYNC_INTERVAL = 10 * 60 * 1000;
+
+async function syncScheduleCache() {
+  try {
+    // Sync DropletSchedule
+    const rows = await queryRemoteDb(
+      'SELECT "Date", Marker, WorkOrder, Lot FROM DropletSchedule WHERE "Date" >= \'2025/01/01\' AND WorkOrder IS NOT NULL AND Lot IS NOT NULL'
+    );
+    // Sync Liquid form QC (PN data)
+    let pnRows = [];
+    try {
+      pnRows = await queryRemoteDb(
+        'SELECT "Marker name", PN, Name FROM "Liquid form QC" WHERE PN IS NOT NULL AND PN != \'\''
+      );
+    } catch (e) { console.error('[schedule] pn sync failed:', e.message); }
+
+    db.transaction(() => {
+      if (rows.length) {
+        db.exec('DELETE FROM schedule_cache');
+        const ins = db.prepare('INSERT INTO schedule_cache (prod_date, marker, work_order, lot) VALUES (?,?,?,?)');
+        for (const r of rows) ins.run(r.Date, r.Marker, r.WorkOrder, r.Lot);
+      }
+      if (pnRows.length) {
+        db.exec('DELETE FROM pn_cache');
+        const ins2 = db.prepare('INSERT INTO pn_cache (marker_name, pn, name) VALUES (?,?,?)');
+        for (const r of pnRows) ins2.run(r['Marker name'], r.PN, r.Name);
+      }
+    })();
+    lastSyncTime = Date.now();
+    console.log('[schedule] synced ' + rows.length + ' schedule + ' + pnRows.length + ' PN rows from EC2');
+  } catch (err) {
+    console.error('[schedule] sync failed:', err.message);
+  }
+}
+
+syncScheduleCache();
+setInterval(syncScheduleCache, SYNC_INTERVAL);
 
 // ── Marker → { beadName (QC DB name), reagent: 'd'|'bigD'|'u' } ──────
 //
@@ -170,25 +246,15 @@ function getExistingWorkOrders() {
 }
 
 // ── GET /api/schedule/pending ─────────────────────────────────────────
-router.get('/pending', async (_req, res) => {
-  let schedDb;
-  try {
-    schedDb = await fetchRemoteDb();
-  } catch (err) {
-    // Local dev: return empty if EC2 unreachable
-    return res.json([]);
-  }
-
+router.get('/pending', (_req, res) => {
   try {
     // "Date" is a reserved word → must be quoted
-    const schedRows = schedDb.prepare(`
-      SELECT "Date", Marker, WorkOrder, Lot
-      FROM DropletSchedule
-      WHERE "Date" >= '2026/04/01'
-        AND WorkOrder IS NOT NULL AND Lot IS NOT NULL
-      ORDER BY "Date" DESC
+    const schedRows = db.prepare(`
+      SELECT prod_date AS "Date", marker AS Marker, work_order AS WorkOrder, lot AS Lot
+      FROM schedule_cache
+      WHERE prod_date >= '2025/01/01'
+      ORDER BY prod_date DESC
     `).all();
-    schedDb.close();
 
     const existingWOs = getExistingWorkOrders();
 
@@ -200,16 +266,55 @@ router.get('/pending', async (_req, res) => {
     // Algorithm: per beadName, sort by date, merge into a group if
     // the new row's date is within 1 day of the group's earliest date.
 
-    // Step 1: parse all rows, skip R&D lots but KEEP rows whose WO already exists
-    //          (we need them for grouping; we'll mark them later)
+    // Step 1: parse all rows, skip R&D lots and empty lots
+    //          Collect anomalies for Teams notification
     const parsed = [];
+    const anomalies = [];
     for (const row of schedRows) {
       const p = parseMarker(row.Marker);
       if (!p) continue;
-      if ((row.Lot || '').trim().endsWith('-RD')) continue;
+      const lot = (row.Lot || '').trim();
+      if (lot.endsWith('-RD')) continue;
+      if (!lot) {
+        anomalies.push({ type: 'empty_lot', marker: row.Marker, wo: row.WorkOrder, date: row.Date });
+        continue;
+      }
       const prodDate = (row.Date || '').replace(/\//g, '-');
       const woExists = existingWOs.has(row.WorkOrder);
-      parsed.push({ ...p, prodDate, wo: row.WorkOrder, lot: row.Lot, woExists });
+      parsed.push({ ...p, prodDate, wo: row.WorkOrder, lot, woExists });
+    }
+
+    // PN mismatch check: lot prefix (first 3 chars) must match bead PN suffix (last 3 chars)
+    const pnRows = db.prepare('SELECT marker_name, pn FROM pn_cache').all();
+    const pnMap = new Map();
+    for (const r of pnRows) {
+      const m = (r.marker_name || '').trim();
+      const pn = (r.pn || '').trim();
+      if (m && pn) { if (!pnMap.has(m)) pnMap.set(m, []); pnMap.get(m).push(pn.slice(-3)); }
+    }
+    for (const r of parsed) {
+      if (!r.lot || r.lot.length < 3) continue;
+      // Find PN suffixes for this marker's original schedule name
+      // parsed has beadName (QC name), need to check against schedule marker names
+      const lotPrefix = r.lot.slice(0, 3);
+      // Try beadName and common variants
+      let suffixes = null;
+      for (const [mk, suf] of pnMap) {
+        if (r.beadName === mk || r.beadName === mk.replace(/-[A-Z]$/, '')) { suffixes = suf; break; }
+      }
+      if (suffixes && !suffixes.includes(lotPrefix)) {
+        anomalies.push({ type: 'pn_mismatch', marker: r.beadName, lot: r.lot, wo: r.wo, date: r.prodDate, expected: suffixes.join('/') });
+      }
+    }
+
+    // Send Teams alert if anomalies found
+    if (anomalies.length > 0) {
+      const msgs = anomalies.map(a => {
+        if (a.type === 'empty_lot') return `空批號: ${a.marker} 工單=${a.wo} 日期=${a.date}`;
+        if (a.type === 'pn_mismatch') return `批號異常: ${a.marker} lot=${a.lot} 前三碼應為${a.expected} 工單=${a.wo}`;
+        return JSON.stringify(a);
+      });
+      sendTeamsAlert('排產匯入異常', msgs);
     }
 
     // Step 2: group by beadName
@@ -637,6 +742,13 @@ router.post('/activate', (req, res) => {
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
+});
+
+// ── GET /api/schedule/sync ── force re-sync from EC2
+router.get('/sync', async (_req, res) => {
+  await syncScheduleCache();
+  const count = db.prepare('SELECT COUNT(*) AS n FROM schedule_cache').get();
+  res.json({ synced: count.n, lastSync: new Date(lastSyncTime).toISOString() });
 });
 
 export default router;

@@ -65,6 +65,10 @@ app.get('/api/search', (req, res) => {
   if (!cols.includes('d_lot'))    db.exec('ALTER TABLE rawdata ADD COLUMN d_lot TEXT');
   if (!cols.includes('bigD_lot')) db.exec('ALTER TABLE rawdata ADD COLUMN bigD_lot TEXT');
   if (!cols.includes('u_lot'))    db.exec('ALTER TABLE rawdata ADD COLUMN u_lot TEXT');
+  // posts: add remarks + hold_reason columns
+  const postCols = db.prepare("PRAGMA table_info(posts)").all().map(c => c.name);
+  if (!postCols.includes('remarks'))     db.exec('ALTER TABLE posts ADD COLUMN remarks TEXT');
+  if (!postCols.includes('hold_reason')) db.exec('ALTER TABLE posts ADD COLUMN hold_reason TEXT');
   db.exec('CREATE INDEX IF NOT EXISTS idx_dr_bead_sheet ON drbeadinspection(bead_name, sheet_name)');
   db.exec('CREATE INDEX IF NOT EXISTS idx_posts_bead_sheet ON posts(bead_name, sheet_name)');
   db.exec(`CREATE TABLE IF NOT EXISTS tutti_curves (

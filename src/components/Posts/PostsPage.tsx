@@ -167,6 +167,93 @@ function EditCell({
   );
 }
 
+
+// ── Judge select with Hold/Accept workflow ────────────────────────────
+
+function JudgeSelect({ recId, field, value, autoValue, onSaved }: {
+  recId: number; field: string; value: string | null; autoValue: string | null;
+  onSaved: (updated: PostRecord) => void;
+}) {
+  const display = value || autoValue || '—';
+  const [showModal, setShowModal] = useState(false);
+  const [pendingVal, setPendingVal] = useState('');
+  const [reason, setReason] = useState('');
+  const [saving, setSaving] = useState(false);
+
+  const needsReason = (newVal: string) => newVal === 'Hold' || (newVal === 'Accept' && (value === 'Hold' || value === 'Fail'));
+
+  const doSave = async (newVal: string, remarkText?: string) => {
+    setSaving(true);
+    try {
+      const payload: Record<string, string | null> = { [field]: newVal };
+      if (remarkText) payload.remarks = (newVal === 'Hold' ? '[Hold] ' : '[Accept] ') + remarkText;
+      if (newVal === 'Hold' && remarkText) payload.hold_reason = remarkText;
+      const updated = await updatePostRecord(recId, payload);
+      onSaved(updated);
+    } catch (e: any) { alert(e.message); }
+    finally { setSaving(false); setShowModal(false); setReason(''); }
+  };
+
+  const handleChange = (newVal: string) => {
+    if (needsReason(newVal)) {
+      setPendingVal(newVal);
+      setReason('');
+      setShowModal(true);
+    } else {
+      doSave(newVal);
+    }
+  };
+
+  return (
+    <>
+      <select
+        value={display}
+        onChange={e => handleChange(e.target.value)}
+        disabled={saving}
+        className={`text-xs font-semibold px-1.5 py-0.5 rounded bg-[#0F1A2E] border border-[#2A3754] outline-none cursor-pointer ${passColor(display)}`}
+        style={{ background: 'rgba(255,255,255,0.06)' }}
+      >
+        <option value="">{display || '請選擇'}</option>
+        <option value="Accept">Accept</option>
+        <option value="Fail">Fail</option>
+        <option value="Hold">Hold</option>
+        <option value="可併">可併</option>
+        <option value="不可併">不可併</option>
+        <option value="—">—</option>
+      </select>
+      {showModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick={() => setShowModal(false)}>
+          <div className="bg-[#121A2B] border border-[#2A3754] rounded-xl p-4 w-80" onClick={e => e.stopPropagation()}>
+            <p className="text-sm font-bold text-[#EAF2FF] mb-2">
+              {pendingVal === 'Hold' ? 'Hold 原因' : 'Accept 原因'}
+            </p>
+            <p className="text-[10px] text-[#93A4C3] mb-3">
+              {pendingVal === 'Hold' ? '請輸入 Hold 原因，後續補測試通過後可放行' : '請輸入 Accept 原因（如補測試結果）'}
+            </p>
+            <textarea
+              value={reason}
+              onChange={e => setReason(e.target.value)}
+              placeholder="輸入原因..."
+              rows={3}
+              className="w-full bg-[#0B1220] border border-[#2A3754] rounded-lg px-3 py-2 text-xs text-[#EAF2FF] placeholder-[#556A88] focus:outline-none focus:border-[#4DA3FF] mb-3"
+            />
+            <div className="flex gap-2 justify-end">
+              <button onClick={() => setShowModal(false)} className="px-3 py-1.5 text-xs text-[#93A4C3] hover:text-[#EAF2FF]">取消</button>
+              <button
+                onClick={() => doSave(pendingVal, reason)}
+                disabled={!reason.trim() || saving}
+                className="px-3 py-1.5 rounded-lg text-xs font-bold bg-[#4DA3FF] text-[#0B1220] disabled:opacity-40"
+              >
+                {saving ? '儲存中...' : '確認'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </>
+  );
+}
+
 // ── Sheet detail + edit ───────────────────────────────────────────────────────
 
 function SheetDetail({ records, spec, csMeta, onSaved }: {
@@ -284,10 +371,10 @@ function SheetDetail({ records, spec, csMeta, onSaved }: {
                     {isEditing(rec.id) ? EC(rec, 'bias_conform') : <JudgeChip value={rec.bias_conform || (() => { const j = judgeRecord(toMeasured(rec), spec); return j.batchPass === null ? null : j.batchPass ? '符合' : '不符合'; })()} />}
                   </td>
                   <td className="px-2 py-2 text-center">
-                    {isEditing(rec.id) ? EC(rec, 'merge_judge') : <JudgeChip value={rec.merge_judge || judgeRecord(toMeasured(rec), spec).mergeLabel} />}
+                    <JudgeSelect recId={rec.id} field="merge_judge" value={rec.merge_judge} autoValue={judgeRecord(toMeasured(rec), spec).mergeLabel} onSaved={onSaved} />
                   </td>
                   <td className="px-2 py-2 text-center">
-                    {isEditing(rec.id) ? EC(rec, 'final_judge') : <JudgeChip value={rec.final_judge || judgeRecord(toMeasured(rec), spec).finalLabel} />}
+                    <JudgeSelect recId={rec.id} field="final_judge" value={rec.final_judge} autoValue={judgeRecord(toMeasured(rec), spec).finalLabel} onSaved={onSaved} />
                   </td>
                   <td className="px-2 py-2 text-center">
                     {isEditing(rec.id) ? (
@@ -483,8 +570,8 @@ function SheetDetail({ records, spec, csMeta, onSaved }: {
                   <td className="px-1 py-2 text-center text-[11px]">
                     <span className={warnBias(rec.fb_bias_l2)}>{pct(rec.fb_bias_l2)}</span>
                   </td>
-                  <td className="px-2 py-2 text-center"><JudgeChip value={rec.sb_judge_result || (() => { const j = judgeRecord(toMeasured(rec), spec); return j.batchLabel === '—' ? null : j.batchLabel; })()} /></td>
-                  <td className="px-2 py-2 text-center"><JudgeChip value={rec.fb_initial_judge || (() => { const j = judgeRecord(toMeasured(rec), spec); return j.mergeLabel === '—' ? null : j.mergeLabel; })()} /></td>
+                  <td className="px-2 py-2 text-center"><JudgeSelect recId={rec.id} field="sb_judge_result" value={rec.sb_judge_result} autoValue={(() => { const j = judgeRecord(toMeasured(rec), spec); return j.batchLabel === '—' ? null : j.batchLabel; })()} onSaved={onSaved} /></td>
+                  <td className="px-2 py-2 text-center"><JudgeSelect recId={rec.id} field="fb_initial_judge" value={rec.fb_initial_judge} autoValue={(() => { const j = judgeRecord(toMeasured(rec), spec); return j.mergeLabel === '—' ? null : j.mergeLabel; })()} onSaved={onSaved} /></td>
                 </tr>
               ))}
               {/* Total row */}

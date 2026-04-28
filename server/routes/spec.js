@@ -314,11 +314,13 @@ router.get('/lookup/:bead_name', (req, res) => {
   const stripReagent = (s) => String(s || '').replace(/[-_]?(AU|AD|BU|BD|[ADBU])$/i, '');
   // Strip Q prefix for Qbi markers
   const stripQ = (s) => String(s || '').replace(/^Q/i, '');
+  // Strip QBi- prefix (QBi-K → K, QBI-K → K)
+  const stripQBi = (s) => String(s || '').replace(/^QBI-/i, '');
   // Strip leading t (tCREA → CREA)
   const stripT = (s) => String(s || '').replace(/^T(?=[A-Z])/, '');
   const clean = (s) => up(s).replace(/[^A-Z0-9/_(),-]+/g, '');
   // Core: strip helper prefixes/suffixes after normalizing punctuation
-  const core = (s) => stripT(stripReagent(stripQ(clean(s))));
+  const core = (s) => stripT(stripReagent(stripQBi(stripQ(clean(s)))));
 
   function extractMarkerTokens(raw) {
     const source = String(raw || '').toUpperCase();
@@ -329,6 +331,7 @@ router.get('/lookup/:bead_name', (req, res) => {
       if (token === 'QBI' || token === 'DEVICE') continue;
       tokens.add(token);
       tokens.add(stripReagent(token));
+      tokens.add(stripQBi(token));
       tokens.add(stripQ(token));
       tokens.add(stripT(token));
       tokens.add(core(token));
@@ -338,6 +341,7 @@ router.get('/lookup/:bead_name', (req, res) => {
     if (normalized) {
       tokens.add(normalized);
       tokens.add(stripReagent(normalized));
+      tokens.add(stripQBi(normalized));
       tokens.add(stripQ(normalized));
       tokens.add(stripT(normalized));
       tokens.add(core(normalized));

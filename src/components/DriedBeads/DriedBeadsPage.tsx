@@ -360,9 +360,12 @@ function fmtPct(v: string | null): string {
 }
 
 /** Format numeric value to 4 decimal places */
-/** Format spec string: "< 0.08" → "< 8%", "濃度± 0.05" → "濃度± 5%", "-" → "-" */
+/** Format spec string for display.
+ *  - If already contains '%', show as-is (from bead_ipqc_spec).
+ *  - Otherwise convert decimals: "< 0.08" → "< 8%", "濃度± 0.05" → "濃度± 5%" */
 function fmtSpec(v: string | null): string {
   if (!v || v === '-' || v === '- -') return v || '—';
+  if (v.includes('%')) return v.replace(/\r\n/g, ' ');
   return v.replace(/(\d+\.\d+)/g, (_, d) => {
     const n = parseFloat(d);
     return isNaN(n) ? d : (n * 100).toFixed(0) + '%';
@@ -601,10 +604,10 @@ function InspectionFormModal({
           <tbody>
             {/* OD CV — show rows that have data */}
             {([
-              { lv: 'L1', g: (r: DrBeadRecord) => r.od_cv_l1 || r.od_cvpct_l1, sp: spec?.single_cv || first?.od_cv_spec },
-              { lv: 'L2', g: (r: DrBeadRecord) => r.od_cv_l2 || r.od_cvpct_l2, sp: spec?.single_cv || first?.od_cv_spec },
-              { lv: 'N1', g: (r: DrBeadRecord) => r.od_cv_n1 || r.od_cvpct_n1, sp: spec?.single_cv || first?.od_cv_spec },
-              { lv: 'N3', g: (r: DrBeadRecord) => r.od_cv_n3 || r.od_cvpct_n3, sp: spec?.single_cv || first?.od_cv_spec },
+              { lv: 'L1', g: (r: DrBeadRecord) => r.od_cv_l1 || r.od_cvpct_l1, sp: spec?.single_cv },
+              { lv: 'L2', g: (r: DrBeadRecord) => r.od_cv_l2 || r.od_cvpct_l2, sp: spec?.single_cv },
+              { lv: 'N1', g: (r: DrBeadRecord) => r.od_cv_n1 || r.od_cvpct_n1, sp: spec?.single_cv },
+              { lv: 'N3', g: (r: DrBeadRecord) => r.od_cv_n3 || r.od_cvpct_n3, sp: spec?.single_cv },
             ] as { lv: string; g: (r: DrBeadRecord) => string | null; sp?: string | null }[]).filter(row => records.some(r => row.g(r))).map((row, ri, arr) => (
               <tr key={`od${ri}`}>
                 {ri === 0 && <td rowSpan={arr.length} style={{ ...th, verticalAlign: 'middle' }}>☑OD CV</td>}
@@ -615,10 +618,10 @@ function InspectionFormModal({
             ))}
             {/* Conc.CV — show rows that have data */}
             {([
-              { lv: 'L1', g: (r: DrBeadRecord) => r.rconc_cv_l1 || r.conc_cvpct_l1, sp: spec?.single_cv || first?.rconc_cv_spec },
-              { lv: 'L2', g: (r: DrBeadRecord) => r.rconc_cv_l2 || r.conc_cvpct_l2, sp: spec?.single_cv || first?.rconc_cv_spec },
-              { lv: 'N1', g: (r: DrBeadRecord) => r.rconc_cv_n1, sp: spec?.single_cv || first?.rconc_cv_spec },
-              { lv: 'N3', g: (r: DrBeadRecord) => r.rconc_cv_n3, sp: spec?.single_cv || first?.rconc_cv_spec },
+              { lv: 'L1', g: (r: DrBeadRecord) => r.rconc_cv_l1 || r.conc_cvpct_l1, sp: spec?.single_cv },
+              { lv: 'L2', g: (r: DrBeadRecord) => r.rconc_cv_l2 || r.conc_cvpct_l2, sp: spec?.single_cv },
+              { lv: 'N1', g: (r: DrBeadRecord) => r.rconc_cv_n1, sp: spec?.single_cv },
+              { lv: 'N3', g: (r: DrBeadRecord) => r.rconc_cv_n3, sp: spec?.single_cv },
             ] as { lv: string; g: (r: DrBeadRecord) => string | null; sp?: string | null }[]).filter(row => records.some(r => row.g(r))).map((row, ri, arr) => (
               <tr key={`rc${ri}`}>
                 {ri === 0 && <td rowSpan={arr.length} style={{ ...th, verticalAlign: 'middle' }}>☑Conc.CV</td>}
@@ -629,8 +632,8 @@ function InspectionFormModal({
             ))}
             {/* Mean Bias */}
             {([
-              { lv: 'L1', g: (r: DrBeadRecord) => r.mean_bias_l1, sp: spec?.merge_bias || first?.mean_bias_spec },
-              { lv: 'L2', g: (r: DrBeadRecord) => r.mean_bias_l2, sp: spec?.merge_bias || first?.mean_bias_spec },
+              { lv: 'L1', g: (r: DrBeadRecord) => r.mean_bias_l1, sp: spec?.merge_bias },
+              { lv: 'L2', g: (r: DrBeadRecord) => r.mean_bias_l2, sp: spec?.merge_bias },
             ] as { lv: string; g: (r: DrBeadRecord) => string | null; sp?: string | null }[]).map((row, ri) => (
               <tr key={`mb${ri}`}>
                 {ri === 0 && <td rowSpan={2} style={{ ...th, verticalAlign: 'middle' }}>Mean Bias</td>}
@@ -641,8 +644,8 @@ function InspectionFormModal({
             ))}
             {/* 全批次CV */}
             {([
-              { lv: 'L1', g: (r: DrBeadRecord) => r.total_cv_l1, sp: spec?.merge_cv || first?.total_cv_spec },
-              { lv: 'L2', g: (r: DrBeadRecord) => r.total_cv_l2, sp: spec?.merge_cv || first?.total_cv_spec },
+              { lv: 'L1', g: (r: DrBeadRecord) => r.total_cv_l1, sp: spec?.merge_cv },
+              { lv: 'L2', g: (r: DrBeadRecord) => r.total_cv_l2, sp: spec?.merge_cv },
             ] as { lv: string; g: (r: DrBeadRecord) => string | null; sp?: string | null }[]).map((row, ri) => (
               <tr key={`tc${ri}`}>
                 {ri === 0 && <td rowSpan={2} style={{ ...th, verticalAlign: 'middle' }}>全批次CV</td>}
@@ -653,8 +656,8 @@ function InspectionFormModal({
             ))}
             {/* 起始值 */}
             {([
-              { lv: 'L1', g: (r: DrBeadRecord) => r.initial_l1, sp: spec?.init_l1_od || first?.initial_spec },
-              { lv: 'L2', g: (r: DrBeadRecord) => r.initial_l2, sp: spec?.init_l2_od || first?.initial_spec },
+              { lv: 'L1', g: (r: DrBeadRecord) => r.initial_l1, sp: spec?.init_l1_od },
+              { lv: 'L2', g: (r: DrBeadRecord) => r.initial_l2, sp: spec?.init_l2_od },
             ] as { lv: string; g: (r: DrBeadRecord) => string | null; sp?: string | null }[]).map((row, ri) => (
               <tr key={`ic${ri}`}>
                 {ri === 0 && <td rowSpan={2} style={{ ...th, verticalAlign: 'middle' }}>起始值</td>}

@@ -10,7 +10,7 @@
  * ── 全批次 (all_batch) ──
  * Collect ALL rows' two-level OD values → least-squares regression per well → apply to all
  *
- * Excluded: Na, K (skip concentration calculation)
+ * All markers with csassign data support concentration calculation.
  * tCREA: uses well_od (which stores Creatinine-Creatine subtraction result)
  */
 
@@ -23,11 +23,12 @@ const WELL_FIELDS = [
 ] as const;
 type WF = typeof WELL_FIELDS[number];
 
-const EXCLUDED_BEADS = new Set(['Na', 'K']);
-
-function isExcluded(beadName: string): boolean {
-  return EXCLUDED_BEADS.has(beadName);
-}
+// Fixed slope/intercept for markers that use a pre-determined calibration curve
+// rather than a 2-point CS regression (e.g. K, Na ISE-style beads).
+const FIXED_SLOPE: Record<string, { m: number; b: number }> = {
+  K:  { m: 11.9,    b: -3.43  },
+  Na: { m: 0.00859, b: -0.21  },
+};
 
 interface LevelPair {
   odA: string;    // e.g. "L2 OD"
@@ -148,7 +149,37 @@ export function computeConcentrations(
   beadName: string,
   csData: CsAssignRow[],
 ): RawDataRow[] {
-  if (isExcluded(beadName)) return [];
+  const keyOf = (r: RawDataRow) => `${r.lot_id}|${r.combo_idx}`;
+  const result = new Map<number, RawDataRow>();
+  const merge = (row: RawDataRow, field: WF, val: number) => {
+    const existing = result.get(row.id) ?? { ...row };
+    (existing as any)[field] = round6(val);
+    result.set(row.id, existing);
+  };
+
+  // Fixed slope/intercept path (K, Na): Conc = m * OD + b per well, per level
+  const fixed = FIXED_SLOPE[beadName];
+  if (fixed) {
+    const { m, b } = fixed;
+    const wellOd = allRows.filter(r => r.table_type === 'well_od');
+    const indBatch = allRows.filter(r => r.table_type === 'ind_batch');
+    const allBatch = allRows.filter(r => r.table_type === 'all_batch');
+    for (const odRow of wellOd) {
+      const concLevel = odRow.level.replace(' OD', ' Conc.');
+      const key = keyOf(odRow);
+      const indRow = indBatch.find(r => r.level === concLevel && keyOf(r) === key);
+      const abRow  = allBatch.find(r => r.level === concLevel && keyOf(r) === key);
+      for (const f of WELL_FIELDS) {
+        const x = getVal(odRow, f);
+        if (x === null) continue;
+        if (indRow) merge(indRow, f, m * x + b);
+        if (abRow)  merge(abRow,  f, m * x + b);
+      }
+    }
+    return [...result.values()];
+  }
+
+  // csassign 2-point / least-squares path
   if (!Array.isArray(csData) || !csData.length) return [];
 
   const csRow = findCsRow(beadName, csData);
@@ -158,15 +189,6 @@ export function computeConcentrations(
   const odLevels = [...new Set(wellOd.map(r => r.level))];
   const pairs = findLevelPairs(odLevels, csRow);
   if (!pairs.length) return [];
-
-  const keyOf = (r: RawDataRow) => `${r.lot_id}|${r.combo_idx}`;
-  const result = new Map<number, RawDataRow>();
-
-  const merge = (row: RawDataRow, field: WF, val: number) => {
-    const existing = result.get(row.id) ?? { ...row };
-    (existing as any)[field] = round6(val);
-    result.set(row.id, existing);
-  };
 
   for (const pair of pairs) {
     const rowsA = wellOd.filter(r => r.level === pair.odA);

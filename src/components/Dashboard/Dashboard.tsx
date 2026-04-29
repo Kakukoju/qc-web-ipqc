@@ -124,9 +124,44 @@ interface ChartProps {
   onDblClickLot: (lot: string) => void;
 }
 
+/** Clamp extreme outliers so Y-axis stays readable; returns { data, yDomain } */
+function useClampedChart(data: TrendRow[], prefix: string, levels: string[], limit: number | null | undefined, odRanges?: OdRanges) {
+  // Visible ceiling = spec limit × 2 (enough room to show exceed dots clearly)
+  let ceil = limit != null ? limit * 2 : null;
+  if (!ceil && odRanges) {
+    const maxOd = Math.max(odRanges.l1?.max ?? 0, odRanges.l2?.max ?? 0);
+    if (maxOd > 0) ceil = maxOd * 2;
+  }
+  if (!ceil) return { data, yDomain: ['auto', 'auto'] as [string, string] };
+  const floor = -ceil;
+  let needsClamp = false;
+  for (const r of data) {
+    for (const lv of levels) {
+      const v = (r as any)[`${prefix}_${lv}`];
+      if (v != null && (v > ceil || v < floor)) { needsClamp = true; break; }
+    }
+    if (needsClamp) break;
+  }
+  if (!needsClamp) return { data, yDomain: ['auto', 'auto'] as [string, string] };
+  // Clamp to 80% of ceiling so dots sit below the top edge (⚠ icon has room)
+  const clampVal = ceil * 0.8;
+  const clampFloor = -clampVal;
+  const clamped = data.map(r => {
+    const row = { ...r } as any;
+    for (const lv of levels) {
+      const k = `${prefix}_${lv}`;
+      if (row[k] != null) row[k] = Math.max(clampFloor, Math.min(clampVal, row[k]));
+    }
+    return row as TrendRow;
+  });
+  // Set Y domain with padding above clamp so ⚠ icon is fully visible
+  return { data: clamped, yDomain: ['auto', ceil] as [string, number] };
+}
+
 function TrendChart({ title, data, prefix, unit = '', limit, limitLabel, odRanges, onDblClickLot }: ChartProps) {
   const levels = activeLevels(data, prefix);
   if (!levels.length) return null;
+  const { data: chartData, yDomain } = useClampedChart(data, prefix, levels, limit, odRanges);
   return (
     <div className="mt-4">
       <div className="flex items-center gap-2 mb-2">
@@ -134,10 +169,10 @@ function TrendChart({ title, data, prefix, unit = '', limit, limitLabel, odRange
         {limit != null && <span className="text-[10px] text-[#FF5C73]">Spec: {limitLabel || `<${limit}${unit}`}</span>}
       </div>
       <ResponsiveContainer width="100%" height={160}>
-        <LineChart data={data}>
+        <LineChart data={chartData} margin={{ top: 18, right: 5, bottom: 0, left: 5 }}>
           <CartesianGrid strokeDasharray="3 3" stroke="#2A3754" />
           <XAxis dataKey="lot" tick={{ fill: '#93A4C3', fontSize: 9 }} angle={-30} textAnchor="end" height={45} />
-          <YAxis tick={{ fill: '#93A4C3', fontSize: 10 }} unit={unit} domain={['auto', 'auto']} />
+          <YAxis tick={{ fill: '#93A4C3', fontSize: 10 }} unit={unit} domain={yDomain as any} />
           <Tooltip content={<CustomTooltip />} />
           <Legend wrapperStyle={{ fontSize: 10, color: '#93A4C3' }} />
           {limit != null && <ReferenceLine y={limit} stroke="#FF5C73" strokeDasharray="6 3" />}

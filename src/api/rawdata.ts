@@ -56,18 +56,21 @@ export interface RawDataResponse {
 
 // ── API functions ──────────────────────────────────────────────────────────
 
-export function fetchRawdataMarkers(): Promise<string[]> {
-  return get<string[]>('/markers');
+export function fetchRawdataMarkers(year?: string): Promise<string[]> {
+  const qs = year ? `?year=${encodeURIComponent(year)}` : '';
+  return get<string[]>(`/markers${qs}`);
 }
 
-export function fetchRawdataSheets(bead_name: string): Promise<string[]> {
-  return get<string[]>(`/sheets?bead_name=${encodeURIComponent(bead_name)}`);
+export function fetchRawdataSheets(bead_name: string, year?: string): Promise<string[]> {
+  const params = new URLSearchParams({ bead_name });
+  if (year) params.set('year', year);
+  return get<string[]>(`/sheets?${params.toString()}`);
 }
 
-export function fetchRawdata(bead_name: string, sheet_name: string): Promise<RawDataResponse> {
-  return get<RawDataResponse>(
-    `/data?bead_name=${encodeURIComponent(bead_name)}&sheet_name=${encodeURIComponent(sheet_name)}`
-  );
+export function fetchRawdata(bead_name: string, sheet_name: string, year?: string): Promise<RawDataResponse> {
+  const params = new URLSearchParams({ bead_name, sheet_name });
+  if (year) params.set('year', year);
+  return get<RawDataResponse>(`/data?${params.toString()}`);
 }
 
 export function updateRawdataRow(id: number, changes: Partial<RawDataRow>): Promise<RawDataRow> {
@@ -79,7 +82,13 @@ export function fetchBeadReagents(): Promise<BeadReagentInfo[]> {
   return get<BeadReagentInfo[]>('/bead-reagents');
 }
 
-export interface SheetCombo { lot_id: string; ctrl_lot: string | null; }
+export interface SheetCombo {
+  lot_id: string;
+  ctrl_lot: string | null;
+  d_lot?: string | null;
+  bigD_lot?: string | null;
+  u_lot?: string | null;
+}
 
 export async function createSheet(
   bead_name: string,
@@ -92,6 +101,16 @@ export async function createSheet(
     body: JSON.stringify({ bead_name, sheet_name, combos }),
   });
   if (!res.ok) throw new Error(`createSheet ${res.status}`);
+  return res.json();
+}
+
+export async function deleteSheet(bead_name: string, sheet_name: string): Promise<{ ok: boolean; deleted: number }> {
+  const res = await fetch(`${BASE}/sheets`, {
+    method: 'DELETE',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ bead_name, sheet_name }),
+  });
+  if (!res.ok) throw new Error(`deleteSheet ${res.status}`);
   return res.json();
 }
 

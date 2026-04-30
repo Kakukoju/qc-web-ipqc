@@ -55,7 +55,7 @@ function inSel(s: Sel | null, r: number, c: number): boolean {
 function reagentLabels(n: number): string[] {
   if (n === 1) return ['Lot'];
   if (n === 2) return ['D-Lot', 'U-Lot'];
-  if (n === 3) return ['D-Lot', 'D₂-Lot', 'U-Lot'];
+  if (n === 3) return ['d-Lot', 'D-Lot', 'U-Lot'];
   return Array.from({ length: n }, (_, i) => `R${i + 1}-Lot`);
 }
 
@@ -120,7 +120,7 @@ export default function RawDataGrid({ tableType, rows, meta, beadName, nReagents
     if (WELL_FIELDS.some(f => (r as any)[f] !== null)) combosWithData.add(r.combo_idx);
   });
   const filtered = typeRows
-    .filter(r => combosWithData.has(r.combo_idx))
+    .filter(r => combosWithData.size === 0 || combosWithData.has(r.combo_idx))
     .sort((a, b) => (levelOrder.get(a.level) ?? 99) - (levelOrder.get(b.level) ?? 99) || a.combo_idx - b.combo_idx);
 
   // meta: use well_od meta for all 4 tabs (row1~row3 well mapping is the same)

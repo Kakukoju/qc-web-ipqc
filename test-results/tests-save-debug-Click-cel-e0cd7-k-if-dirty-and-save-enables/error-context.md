@@ -1,0 +1,1106 @@
+# Instructions
+
+- Following Playwright test failed.
+- Explain why, be concise, respect Playwright best practices.
+- Provide a snippet of code with the fix, if possible.
+
+# Test info
+
+- Name: tests/save-debug.spec.cjs >> Click cell to edit, check if dirty and save enables
+- Location: tests/save-debug.spec.cjs:4:1
+
+# Error details
+
+```
+Test timeout of 30000ms exceeded.
+```
+
+```
+Error: locator.selectOption: Test timeout of 30000ms exceeded.
+Call log:
+  - waiting for locator('select').nth(1)
+    - locator resolved to <select class="bg-[#0d1f3a] border border-[#2A3754] text-[#D4E8FF] text-xs rounded px-2 py-1 focus:outline-none focus:border-[#4DA3FF] max-w-50">…</select>
+  - attempting select option action
+    2 × waiting for element to be visible and enabled
+      - did not find some options
+    - retrying select option action
+    - waiting 20ms
+    2 × waiting for element to be visible and enabled
+      - did not find some options
+    - retrying select option action
+      - waiting 100ms
+    49 × waiting for element to be visible and enabled
+       - did not find some options
+     - retrying select option action
+       - waiting 500ms
+
+```
+
+# Page snapshot
+
+```yaml
+- generic [ref=e1]:
+  - generic [ref=e3]:
+    - complementary [ref=e4]:
+      - generic [ref=e5]:
+        - img [ref=e7]
+        - generic [ref=e14]:
+          - text: Automatic Baseline
+          - text: Assignment
+      - navigation [ref=e15]:
+        - button "Dashboard" [ref=e16]:
+          - img [ref=e18]
+          - generic [ref=e23]: Dashboard
+        - button "生產管理" [ref=e24]:
+          - img [ref=e26]
+          - generic [ref=e28]: 生產管理
+        - button "IPQC 管理" [ref=e29]:
+          - img [ref=e31]
+          - generic [ref=e33]: IPQC 管理
+        - button "IPQC 工作台" [active] [ref=e34]:
+          - img [ref=e36]
+          - generic [ref=e40]: IPQC 工作台
+        - button "Tutti-Beads 預建線" [ref=e42]:
+          - img [ref=e44]
+          - generic [ref=e46]: Tutti-Beads 預建線
+        - button "異常管理" [ref=e47]:
+          - img [ref=e49]
+          - generic [ref=e51]: 異常管理
+        - button "報表分析" [ref=e52]:
+          - img [ref=e54]
+          - generic [ref=e56]: 報表分析
+        - button "系統設定" [ref=e57]:
+          - img [ref=e59]
+          - generic [ref=e62]: 系統設定
+      - button [ref=e63]:
+        - img [ref=e65]
+    - generic [ref=e67]:
+      - banner [ref=e68]:
+        - generic [ref=e69]: IPQC 工作台 · 原始數據
+        - generic [ref=e70]:
+          - button [ref=e72]:
+            - img [ref=e73]
+          - button "QC 工程師" [ref=e77]:
+            - img [ref=e79]
+            - generic [ref=e82]: QC 工程師
+            - img [ref=e83]
+      - main [ref=e85]:
+        - generic [ref=e87]:
+          - generic [ref=e88]:
+            - button "原始數據" [ref=e89]
+            - button "待檢驗" [ref=e90]
+            - button "排產匯入" [ref=e91]
+          - generic [ref=e92]:
+            - generic [ref=e93]:
+              - generic [ref=e94]:
+                - generic [ref=e95]: Marker
+                - combobox [ref=e96]:
+                  - option "ALB"
+                  - option "ALP"
+                  - option "ALT-A"
+                  - option "AMY-A"
+                  - option "AST"
+                  - option "BCl"
+                  - option "BUN"
+                  - option "CPK"
+                  - option "CRP"
+                  - option "Ca"
+                  - option "Cl"
+                  - option "FRU"
+                  - option "GLIPA-A"
+                  - option "HDL"
+                  - option "K"
+                  - option "LAC"
+                  - option "LDH"
+                  - option "NH3"
+                  - option "NT4-202503"
+                  - option "Na"
+                  - option "PHOS"
+                  - option "RGT"
+                  - option "TBA"
+                  - option "TBIL"
+                  - option "TC"
+                  - option "TG"
+                  - option "TP"
+                  - option "UA"
+                  - option "UCRE"
+                  - option "UPRO"
+                  - option "tASTi"
+                  - option "tCO2"
+                  - option "tCREA" [selected]
+                  - option "tGlu"
+              - generic [ref=e97]:
+                - generic [ref=e98]: Sheet
+                - combobox [ref=e99]:
+                  - option "26D17ABU17ABCD" [selected]
+                  - option "26D1734U175678"
+                  - option "26D1712U171234"
+                  - option "26D1634U165678"
+                  - option "26D1612U161234"
+                  - option "26D15ABU15ABCD"
+                  - option "26D1534U155678"
+                  - option "26D1512U151234"
+                  - option "26D1434U145678"
+                  - option "26D1412U141234"
+                  - option "26D1334U135678"
+                  - option "26D1312U131234心臟病"
+                  - option "26D1312U131234"
+                  - option "26D1234U125678心臟病"
+                  - option "26D1234U125678"
+                  - option "26D1212U121234心臟病"
+                  - option "26D1212U121234"
+                  - option "26D11ABU11ABCD心臟病"
+                  - option "26D11ABU11ABCD"
+                  - option "26D1134U115678"
+                  - option "26D1112U111234"
+                  - option "26D1034U105678"
+                  - option "26D1012U101234"
+                  - option "26D0934U095678"
+                  - option "26D0912U091234"
+                  - option "26D0734U075678"
+                  - option "26D0712U071234心臟病"
+                  - option "26D0712U071234"
+                  - option "26D0612U061234心臟病"
+                  - option "26D0612U061234"
+                  - option "26D0534U055678心臟病"
+                  - option "26D0534U055678"
+                  - option "26D0512U051234心臟病"
+                  - option "26D0512U051234"
+                  - option "26D0434U045678"
+                  - option "26D0412U041234"
+                  - option "26D0334U035678"
+                  - option "26D0312U031234"
+                  - option "26D0234U025678"
+                  - option "26D0212U021234+02ZRD"
+                  - option "26D0212U021234"
+                  - option "2602ZRD"
+                - button "新增 Sheet" [ref=e100]:
+                  - img [ref=e101]
+                - button "刪除 Sheet" [ref=e103]:
+                  - img [ref=e104]
+              - generic [ref=e107]:
+                - generic [ref=e108]: 批號組合 (8)
+                - generic [ref=e109]:
+                  - generic [ref=e110]:
+                    - generic [ref=e111]: "1"
+                    - generic [ref=e112]: 1802617A / 1812617A / 1822617A
+                  - generic [ref=e113]:
+                    - generic [ref=e114]: "2"
+                    - generic [ref=e115]: 1802617A / 1812617A / 1822617B
+                  - generic [ref=e116]:
+                    - generic [ref=e117]: "3"
+                    - generic [ref=e118]: 1802617B / 1812617B / 1822617C
+                  - generic [ref=e119]:
+                    - generic [ref=e120]: "4"
+                    - generic [ref=e121]: 1802617B / 1812617B / 1822617D
+                  - generic [ref=e122]:
+                    - generic [ref=e123]: "5"
+                    - generic [ref=e124]: 1802617A / 1812617A / 1822617A
+                  - generic [ref=e125]:
+                    - generic [ref=e126]: "6"
+                    - generic [ref=e127]: 1802617A / 1812617A / 1822617B
+                  - generic [ref=e128]:
+                    - generic [ref=e129]: "7"
+                    - generic [ref=e130]: 1802617B / 1812617B / 1822617C
+                  - generic [ref=e131]:
+                    - generic [ref=e132]: "8"
+                    - generic [ref=e133]: 1802617B / 1812617B / 1822617D
+              - generic [ref=e134]: Ctrl+C 複製 · Ctrl+V 貼上 · Ctrl+S 儲存 · Del 清除 · 雙擊 編輯 · Lot欄空白時 Tab → 帶入預設 Lot
+            - generic [ref=e135]:
+              - button "① Well OD 計算" [ref=e136]
+              - button "② OD 相扣計算" [ref=e137]
+              - button "③ 個別批次" [ref=e138]
+              - button "④ 全批次" [ref=e139]
+            - generic [ref=e141]:
+              - generic [ref=e142]:
+                - generic [ref=e143]: 32 筆資料 · 4 個 Level
+                - generic [ref=e144]:
+                  - button "修改 Well 配置" [ref=e145]:
+                    - img [ref=e146]
+                    - text: 修改 Well 配置
+                  - button "Load CSV" [ref=e149]:
+                    - img [ref=e150]
+                    - text: Load CSV
+                  - button "儲存 (Ctrl+S)" [disabled] [ref=e153]
+              - table [ref=e155]:
+                - rowgroup [ref=e178]:
+                  - row "Blank Creatine Creatinine Creatine Creatinine Creatine Creatinine Creatine Creatinine Creatine Creatinine Creatine Creatinine" [ref=e179]:
+                    - cell [ref=e180]
+                    - cell [ref=e181]
+                    - cell [ref=e182]
+                    - cell "Blank" [ref=e183]
+                    - cell [ref=e184]
+                    - cell [ref=e185]
+                    - cell [ref=e186]
+                    - cell [ref=e187]
+                    - cell [ref=e188]
+                    - cell "Creatine" [ref=e189]
+                    - cell "Creatinine" [ref=e190]
+                    - cell "Creatine" [ref=e191]
+                    - cell "Creatinine" [ref=e192]
+                    - cell "Creatine" [ref=e193]
+                    - cell "Creatinine" [ref=e194]
+                    - cell "Creatine" [ref=e195]
+                    - cell "Creatinine" [ref=e196]
+                    - cell "Creatine" [ref=e197]
+                    - cell "Creatinine" [ref=e198]
+                    - cell "Creatine" [ref=e199]
+                    - cell "Creatinine" [ref=e200]
+                  - row "CH1 CH7-CH6 CH7-CH6 CH7-CH6 CH7-CH6 CH7-CH6 CH7-CH6 CH7-CH6 CH7-CH6 CH7-CH6 CH7-CH6 CH7-CH6 CH7-CH6" [ref=e201]:
+                    - cell [ref=e202]
+                    - cell [ref=e203]
+                    - cell [ref=e204]
+                    - cell "CH1" [ref=e205]
+                    - cell [ref=e206]
+                    - cell [ref=e207]
+                    - cell [ref=e208]
+                    - cell [ref=e209]
+                    - cell [ref=e210]
+                    - cell "CH7-CH6" [ref=e211]
+                    - cell "CH7-CH6" [ref=e212]
+                    - cell "CH7-CH6" [ref=e213]
+                    - cell "CH7-CH6" [ref=e214]
+                    - cell "CH7-CH6" [ref=e215]
+                    - cell "CH7-CH6" [ref=e216]
+                    - cell "CH7-CH6" [ref=e217]
+                    - cell "CH7-CH6" [ref=e218]
+                    - cell "CH7-CH6" [ref=e219]
+                    - cell "CH7-CH6" [ref=e220]
+                    - cell "CH7-CH6" [ref=e221]
+                    - cell "CH7-CH6" [ref=e222]
+                  - row "1-0 88-1 88-1 88-1 88-1 88-1 88-1 88-1 88-1 88-1 88-1 88-1 88-1" [ref=e223]:
+                    - cell [ref=e224]
+                    - cell [ref=e225]
+                    - cell [ref=e226]
+                    - cell "1-0" [ref=e227]
+                    - cell [ref=e228]
+                    - cell [ref=e229]
+                    - cell [ref=e230]
+                    - cell [ref=e231]
+                    - cell [ref=e232]
+                    - cell "88-1" [ref=e233]
+                    - cell "88-1" [ref=e234]
+                    - cell "88-1" [ref=e235]
+                    - cell "88-1" [ref=e236]
+                    - cell "88-1" [ref=e237]
+                    - cell "88-1" [ref=e238]
+                    - cell "88-1" [ref=e239]
+                    - cell "88-1" [ref=e240]
+                    - cell "88-1" [ref=e241]
+                    - cell "88-1" [ref=e242]
+                    - cell "88-1" [ref=e243]
+                    - cell "88-1" [ref=e244]
+                  - row "CS Type d-Lot / D-Lot / U-Lot ↹ 機台 W2 W3 W4 W5 W6 W7 W8 W9 W10 W11 W12 W13 W14 W15 W16 W17 W18 W19" [ref=e245]:
+                    - cell "CS Type" [ref=e246]
+                    - cell "d-Lot / D-Lot / U-Lot ↹" [ref=e247]:
+                      - generic "Tab：帶入預設 Lot（從 Well OD 同批號）" [ref=e248]:
+                        - text: d-Lot / D-Lot / U-Lot
+                        - generic [ref=e249]: ↹
+                    - cell "機台" [ref=e250]
+                    - cell "W2" [ref=e251]
+                    - cell "W3" [ref=e252]
+                    - cell "W4" [ref=e253]
+                    - cell "W5" [ref=e254]
+                    - cell "W6" [ref=e255]
+                    - cell "W7" [ref=e256]
+                    - cell "W8" [ref=e257]
+                    - cell "W9" [ref=e258]
+                    - cell "W10" [ref=e259]
+                    - cell "W11" [ref=e260]
+                    - cell "W12" [ref=e261]
+                    - cell "W13" [ref=e262]
+                    - cell "W14" [ref=e263]
+                    - cell "W15" [ref=e264]
+                    - cell "W16" [ref=e265]
+                    - cell "W17" [ref=e266]
+                    - cell "W18" [ref=e267]
+                    - cell "W19" [ref=e268]
+                  - 'row "L1 OD d-Lot: 1802617A D-Lot: 1812617A U-Lot: 1822617A 23" [ref=e269]':
+                    - cell "L1 OD" [ref=e270]
+                    - 'cell "d-Lot: 1802617A D-Lot: 1812617A U-Lot: 1822617A" [ref=e271]'
+                    - cell "23" [ref=e272]
+                    - cell [ref=e273]
+                    - cell [ref=e274]
+                    - cell [ref=e275]
+                    - cell [ref=e276]
+                    - cell [ref=e277]
+                    - cell [ref=e278]
+                    - cell [ref=e279]
+                    - cell [ref=e280]
+                    - cell [ref=e281]
+                    - cell [ref=e282]
+                    - cell [ref=e283]
+                    - cell [ref=e284]
+                    - cell [ref=e285]
+                    - cell [ref=e286]
+                    - cell [ref=e287]
+                    - cell [ref=e288]
+                    - cell [ref=e289]
+                    - cell [ref=e290]
+                  - 'row "d-Lot: 1802617A D-Lot: 1812617A U-Lot: 1822617B 23" [ref=e291]':
+                    - cell [ref=e292]
+                    - 'cell "d-Lot: 1802617A D-Lot: 1812617A U-Lot: 1822617B" [ref=e293]'
+                    - cell "23" [ref=e294]
+                    - cell [ref=e295]
+                    - cell [ref=e296]
+                    - cell [ref=e297]
+                    - cell [ref=e298]
+                    - cell [ref=e299]
+                    - cell [ref=e300]
+                    - cell [ref=e301]
+                    - cell [ref=e302]
+                    - cell [ref=e303]
+                    - cell [ref=e304]
+                    - cell [ref=e305]
+                    - cell [ref=e306]
+                    - cell [ref=e307]
+                    - cell [ref=e308]
+                    - cell [ref=e309]
+                    - cell [ref=e310]
+                    - cell [ref=e311]
+                    - cell [ref=e312]
+                  - 'row "d-Lot: 1802617B D-Lot: 1812617B U-Lot: 1822617C 23" [ref=e313]':
+                    - cell [ref=e314]
+                    - 'cell "d-Lot: 1802617B D-Lot: 1812617B U-Lot: 1822617C" [ref=e315]'
+                    - cell "23" [ref=e316]
+                    - cell [ref=e317]
+                    - cell [ref=e318]
+                    - cell [ref=e319]
+                    - cell [ref=e320]
+                    - cell [ref=e321]
+                    - cell [ref=e322]
+                    - cell [ref=e323]
+                    - cell [ref=e324]
+                    - cell [ref=e325]
+                    - cell [ref=e326]
+                    - cell [ref=e327]
+                    - cell [ref=e328]
+                    - cell [ref=e329]
+                    - cell [ref=e330]
+                    - cell [ref=e331]
+                    - cell [ref=e332]
+                    - cell [ref=e333]
+                    - cell [ref=e334]
+                  - 'row "d-Lot: 1802617B D-Lot: 1812617B U-Lot: 1822617D 23" [ref=e335]':
+                    - cell [ref=e336]
+                    - 'cell "d-Lot: 1802617B D-Lot: 1812617B U-Lot: 1822617D" [ref=e337]'
+                    - cell "23" [ref=e338]
+                    - cell [ref=e339]
+                    - cell [ref=e340]
+                    - cell [ref=e341]
+                    - cell [ref=e342]
+                    - cell [ref=e343]
+                    - cell [ref=e344]
+                    - cell [ref=e345]
+                    - cell [ref=e346]
+                    - cell [ref=e347]
+                    - cell [ref=e348]
+                    - cell [ref=e349]
+                    - cell [ref=e350]
+                    - cell [ref=e351]
+                    - cell [ref=e352]
+                    - cell [ref=e353]
+                    - cell [ref=e354]
+                    - cell [ref=e355]
+                    - cell [ref=e356]
+                  - 'row "d-Lot: 1802617A D-Lot: 1812617A U-Lot: 1822617A S1H1704070009" [ref=e357]':
+                    - cell [ref=e358]
+                    - 'cell "d-Lot: 1802617A D-Lot: 1812617A U-Lot: 1822617A" [ref=e359]'
+                    - cell "S1H1704070009" [ref=e360]
+                    - cell [ref=e361]
+                    - cell [ref=e362]
+                    - cell [ref=e363]
+                    - cell [ref=e364]
+                    - cell [ref=e365]
+                    - cell [ref=e366]
+                    - cell [ref=e367]
+                    - cell [ref=e368]
+                    - cell [ref=e369]
+                    - cell [ref=e370]
+                    - cell [ref=e371]
+                    - cell [ref=e372]
+                    - cell [ref=e373]
+                    - cell [ref=e374]
+                    - cell [ref=e375]
+                    - cell [ref=e376]
+                    - cell [ref=e377]
+                    - cell [ref=e378]
+                  - 'row "d-Lot: 1802617A D-Lot: 1812617A U-Lot: 1822617B S1H1704070009" [ref=e379]':
+                    - cell [ref=e380]
+                    - 'cell "d-Lot: 1802617A D-Lot: 1812617A U-Lot: 1822617B" [ref=e381]'
+                    - cell "S1H1704070009" [ref=e382]
+                    - cell [ref=e383]
+                    - cell [ref=e384]
+                    - cell [ref=e385]
+                    - cell [ref=e386]
+                    - cell [ref=e387]
+                    - cell [ref=e388]
+                    - cell [ref=e389]
+                    - cell [ref=e390]
+                    - cell [ref=e391]
+                    - cell [ref=e392]
+                    - cell [ref=e393]
+                    - cell [ref=e394]
+                    - cell [ref=e395]
+                    - cell [ref=e396]
+                    - cell [ref=e397]
+                    - cell [ref=e398]
+                    - cell [ref=e399]
+                    - cell [ref=e400]
+                  - 'row "d-Lot: 1802617B D-Lot: 1812617B U-Lot: 1822617C S1H1704070009" [ref=e401]':
+                    - cell [ref=e402]
+                    - 'cell "d-Lot: 1802617B D-Lot: 1812617B U-Lot: 1822617C" [ref=e403]'
+                    - cell "S1H1704070009" [ref=e404]
+                    - cell [ref=e405]
+                    - cell [ref=e406]
+                    - cell [ref=e407]
+                    - cell [ref=e408]
+                    - cell [ref=e409]
+                    - cell [ref=e410]
+                    - cell [ref=e411]
+                    - cell [ref=e412]
+                    - cell [ref=e413]
+                    - cell [ref=e414]
+                    - cell [ref=e415]
+                    - cell [ref=e416]
+                    - cell [ref=e417]
+                    - cell [ref=e418]
+                    - cell [ref=e419]
+                    - cell [ref=e420]
+                    - cell [ref=e421]
+                    - cell [ref=e422]
+                  - 'row "d-Lot: 1802617B D-Lot: 1812617B U-Lot: 1822617D S1H1704070009" [ref=e423]':
+                    - cell [ref=e424]
+                    - 'cell "d-Lot: 1802617B D-Lot: 1812617B U-Lot: 1822617D" [ref=e425]'
+                    - cell "S1H1704070009" [ref=e426]
+                    - cell [ref=e427]
+                    - cell [ref=e428]
+                    - cell [ref=e429]
+                    - cell [ref=e430]
+                    - cell [ref=e431]
+                    - cell [ref=e432]
+                    - cell [ref=e433]
+                    - cell [ref=e434]
+                    - cell [ref=e435]
+                    - cell [ref=e436]
+                    - cell [ref=e437]
+                    - cell [ref=e438]
+                    - cell [ref=e439]
+                    - cell [ref=e440]
+                    - cell [ref=e441]
+                    - cell [ref=e442]
+                    - cell [ref=e443]
+                    - cell [ref=e444]
+                  - 'row "L2 OD d-Lot: 1802617A D-Lot: 1812617A U-Lot: 1822617A S1H1704070009" [ref=e445]':
+                    - cell "L2 OD" [ref=e446]
+                    - 'cell "d-Lot: 1802617A D-Lot: 1812617A U-Lot: 1822617A" [ref=e447]'
+                    - cell "S1H1704070009" [ref=e448]
+                    - cell [ref=e449]
+                    - cell [ref=e450]
+                    - cell [ref=e451]
+                    - cell [ref=e452]
+                    - cell [ref=e453]
+                    - cell [ref=e454]
+                    - cell [ref=e455]
+                    - cell [ref=e456]
+                    - cell [ref=e457]
+                    - cell [ref=e458]
+                    - cell [ref=e459]
+                    - cell [ref=e460]
+                    - cell [ref=e461]
+                    - cell [ref=e462]
+                    - cell [ref=e463]
+                    - cell [ref=e464]
+                    - cell [ref=e465]
+                    - cell [ref=e466]
+                  - 'row "d-Lot: 1802617A D-Lot: 1812617A U-Lot: 1822617B S1H1704070009" [ref=e467]':
+                    - cell [ref=e468]
+                    - 'cell "d-Lot: 1802617A D-Lot: 1812617A U-Lot: 1822617B" [ref=e469]'
+                    - cell "S1H1704070009" [ref=e470]
+                    - cell [ref=e471]
+                    - cell [ref=e472]
+                    - cell [ref=e473]
+                    - cell [ref=e474]
+                    - cell [ref=e475]
+                    - cell [ref=e476]
+                    - cell [ref=e477]
+                    - cell [ref=e478]
+                    - cell [ref=e479]
+                    - cell [ref=e480]
+                    - cell [ref=e481]
+                    - cell [ref=e482]
+                    - cell [ref=e483]
+                    - cell [ref=e484]
+                    - cell [ref=e485]
+                    - cell [ref=e486]
+                    - cell [ref=e487]
+                    - cell [ref=e488]
+                  - 'row "d-Lot: 1802617B D-Lot: 1812617B U-Lot: 1822617C S1H1704070009" [ref=e489]':
+                    - cell [ref=e490]
+                    - 'cell "d-Lot: 1802617B D-Lot: 1812617B U-Lot: 1822617C" [ref=e491]'
+                    - cell "S1H1704070009" [ref=e492]
+                    - cell [ref=e493]
+                    - cell [ref=e494]
+                    - cell [ref=e495]
+                    - cell [ref=e496]
+                    - cell [ref=e497]
+                    - cell [ref=e498]
+                    - cell [ref=e499]
+                    - cell [ref=e500]
+                    - cell [ref=e501]
+                    - cell [ref=e502]
+                    - cell [ref=e503]
+                    - cell [ref=e504]
+                    - cell [ref=e505]
+                    - cell [ref=e506]
+                    - cell [ref=e507]
+                    - cell [ref=e508]
+                    - cell [ref=e509]
+                    - cell [ref=e510]
+                  - 'row "d-Lot: 1802617B D-Lot: 1812617B U-Lot: 1822617D S1H1704070009" [ref=e511]':
+                    - cell [ref=e512]
+                    - 'cell "d-Lot: 1802617B D-Lot: 1812617B U-Lot: 1822617D" [ref=e513]'
+                    - cell "S1H1704070009" [ref=e514]
+                    - cell [ref=e515]
+                    - cell [ref=e516]
+                    - cell [ref=e517]
+                    - cell [ref=e518]
+                    - cell [ref=e519]
+                    - cell [ref=e520]
+                    - cell [ref=e521]
+                    - cell [ref=e522]
+                    - cell [ref=e523]
+                    - cell [ref=e524]
+                    - cell [ref=e525]
+                    - cell [ref=e526]
+                    - cell [ref=e527]
+                    - cell [ref=e528]
+                    - cell [ref=e529]
+                    - cell [ref=e530]
+                    - cell [ref=e531]
+                    - cell [ref=e532]
+                  - 'row "d-Lot: 1802617A D-Lot: 1812617A U-Lot: 1822617A S1H1704070012" [ref=e533]':
+                    - cell [ref=e534]
+                    - 'cell "d-Lot: 1802617A D-Lot: 1812617A U-Lot: 1822617A" [ref=e535]'
+                    - cell "S1H1704070012" [ref=e536]
+                    - cell [ref=e537]
+                    - cell [ref=e538]
+                    - cell [ref=e539]
+                    - cell [ref=e540]
+                    - cell [ref=e541]
+                    - cell [ref=e542]
+                    - cell [ref=e543]
+                    - cell [ref=e544]
+                    - cell [ref=e545]
+                    - cell [ref=e546]
+                    - cell [ref=e547]
+                    - cell [ref=e548]
+                    - cell [ref=e549]
+                    - cell [ref=e550]
+                    - cell [ref=e551]
+                    - cell [ref=e552]
+                    - cell [ref=e553]
+                    - cell [ref=e554]
+                  - 'row "d-Lot: 1802617A D-Lot: 1812617A U-Lot: 1822617B S1H1704070012" [ref=e555]':
+                    - cell [ref=e556]
+                    - 'cell "d-Lot: 1802617A D-Lot: 1812617A U-Lot: 1822617B" [ref=e557]'
+                    - cell "S1H1704070012" [ref=e558]
+                    - cell [ref=e559]
+                    - cell [ref=e560]
+                    - cell [ref=e561]
+                    - cell [ref=e562]
+                    - cell [ref=e563]
+                    - cell [ref=e564]
+                    - cell [ref=e565]
+                    - cell [ref=e566]
+                    - cell [ref=e567]
+                    - cell [ref=e568]
+                    - cell [ref=e569]
+                    - cell [ref=e570]
+                    - cell [ref=e571]
+                    - cell [ref=e572]
+                    - cell [ref=e573]
+                    - cell [ref=e574]
+                    - cell [ref=e575]
+                    - cell [ref=e576]
+                  - 'row "d-Lot: 1802617B D-Lot: 1812617B U-Lot: 1822617C S1H1704070012" [ref=e577]':
+                    - cell [ref=e578]
+                    - 'cell "d-Lot: 1802617B D-Lot: 1812617B U-Lot: 1822617C" [ref=e579]'
+                    - cell "S1H1704070012" [ref=e580]
+                    - cell [ref=e581]
+                    - cell [ref=e582]
+                    - cell [ref=e583]
+                    - cell [ref=e584]
+                    - cell [ref=e585]
+                    - cell [ref=e586]
+                    - cell [ref=e587]
+                    - cell [ref=e588]
+                    - cell [ref=e589]
+                    - cell [ref=e590]
+                    - cell [ref=e591]
+                    - cell [ref=e592]
+                    - cell [ref=e593]
+                    - cell [ref=e594]
+                    - cell [ref=e595]
+                    - cell [ref=e596]
+                    - cell [ref=e597]
+                    - cell [ref=e598]
+                  - 'row "d-Lot: 1802617B D-Lot: 1812617B U-Lot: 1822617D S1H1704070012" [ref=e599]':
+                    - cell [ref=e600]
+                    - 'cell "d-Lot: 1802617B D-Lot: 1812617B U-Lot: 1822617D" [ref=e601]'
+                    - cell "S1H1704070012" [ref=e602]
+                    - cell [ref=e603]
+                    - cell [ref=e604]
+                    - cell [ref=e605]
+                    - cell [ref=e606]
+                    - cell [ref=e607]
+                    - cell [ref=e608]
+                    - cell [ref=e609]
+                    - cell [ref=e610]
+                    - cell [ref=e611]
+                    - cell [ref=e612]
+                    - cell [ref=e613]
+                    - cell [ref=e614]
+                    - cell [ref=e615]
+                    - cell [ref=e616]
+                    - cell [ref=e617]
+                    - cell [ref=e618]
+                    - cell [ref=e619]
+                    - cell [ref=e620]
+                  - 'row "N1 OD d-Lot: 1802617A D-Lot: 1812617A U-Lot: 1822617A" [ref=e621]':
+                    - cell "N1 OD" [ref=e622]
+                    - 'cell "d-Lot: 1802617A D-Lot: 1812617A U-Lot: 1822617A" [ref=e623]'
+                    - cell [ref=e624]
+                    - cell [ref=e625]
+                    - cell [ref=e626]
+                    - cell [ref=e627]
+                    - cell [ref=e628]
+                    - cell [ref=e629]
+                    - cell [ref=e630]
+                    - cell [ref=e631]
+                    - cell [ref=e632]
+                    - cell [ref=e633]
+                    - cell [ref=e634]
+                    - cell [ref=e635]
+                    - cell [ref=e636]
+                    - cell [ref=e637]
+                    - cell [ref=e638]
+                    - cell [ref=e639]
+                    - cell [ref=e640]
+                    - cell [ref=e641]
+                    - cell [ref=e642]
+                  - 'row "d-Lot: 1802617A D-Lot: 1812617A U-Lot: 1822617B" [ref=e643]':
+                    - cell [ref=e644]
+                    - 'cell "d-Lot: 1802617A D-Lot: 1812617A U-Lot: 1822617B" [ref=e645]'
+                    - cell [ref=e646]
+                    - cell [ref=e647]
+                    - cell [ref=e648]
+                    - cell [ref=e649]
+                    - cell [ref=e650]
+                    - cell [ref=e651]
+                    - cell [ref=e652]
+                    - cell [ref=e653]
+                    - cell [ref=e654]
+                    - cell [ref=e655]
+                    - cell [ref=e656]
+                    - cell [ref=e657]
+                    - cell [ref=e658]
+                    - cell [ref=e659]
+                    - cell [ref=e660]
+                    - cell [ref=e661]
+                    - cell [ref=e662]
+                    - cell [ref=e663]
+                    - cell [ref=e664]
+                  - 'row "d-Lot: 1802617B D-Lot: 1812617B U-Lot: 1822617C" [ref=e665]':
+                    - cell [ref=e666]
+                    - 'cell "d-Lot: 1802617B D-Lot: 1812617B U-Lot: 1822617C" [ref=e667]'
+                    - cell [ref=e668]
+                    - cell [ref=e669]
+                    - cell [ref=e670]
+                    - cell [ref=e671]
+                    - cell [ref=e672]
+                    - cell [ref=e673]
+                    - cell [ref=e674]
+                    - cell [ref=e675]
+                    - cell [ref=e676]
+                    - cell [ref=e677]
+                    - cell [ref=e678]
+                    - cell [ref=e679]
+                    - cell [ref=e680]
+                    - cell [ref=e681]
+                    - cell [ref=e682]
+                    - cell [ref=e683]
+                    - cell [ref=e684]
+                    - cell [ref=e685]
+                    - cell [ref=e686]
+                  - 'row "d-Lot: 1802617B D-Lot: 1812617B U-Lot: 1822617D" [ref=e687]':
+                    - cell [ref=e688]
+                    - 'cell "d-Lot: 1802617B D-Lot: 1812617B U-Lot: 1822617D" [ref=e689]'
+                    - cell [ref=e690]
+                    - cell [ref=e691]
+                    - cell [ref=e692]
+                    - cell [ref=e693]
+                    - cell [ref=e694]
+                    - cell [ref=e695]
+                    - cell [ref=e696]
+                    - cell [ref=e697]
+                    - cell [ref=e698]
+                    - cell [ref=e699]
+                    - cell [ref=e700]
+                    - cell [ref=e701]
+                    - cell [ref=e702]
+                    - cell [ref=e703]
+                    - cell [ref=e704]
+                    - cell [ref=e705]
+                    - cell [ref=e706]
+                    - cell [ref=e707]
+                    - cell [ref=e708]
+                  - 'row "d-Lot: 1802617A D-Lot: 1812617A U-Lot: 1822617A" [ref=e709]':
+                    - cell [ref=e710]
+                    - 'cell "d-Lot: 1802617A D-Lot: 1812617A U-Lot: 1822617A" [ref=e711]'
+                    - cell [ref=e712]
+                    - cell [ref=e713]
+                    - cell [ref=e714]
+                    - cell [ref=e715]
+                    - cell [ref=e716]
+                    - cell [ref=e717]
+                    - cell [ref=e718]
+                    - cell [ref=e719]
+                    - cell [ref=e720]
+                    - cell [ref=e721]
+                    - cell [ref=e722]
+                    - cell [ref=e723]
+                    - cell [ref=e724]
+                    - cell [ref=e725]
+                    - cell [ref=e726]
+                    - cell [ref=e727]
+                    - cell [ref=e728]
+                    - cell [ref=e729]
+                    - cell [ref=e730]
+                  - 'row "d-Lot: 1802617A D-Lot: 1812617A U-Lot: 1822617B" [ref=e731]':
+                    - cell [ref=e732]
+                    - 'cell "d-Lot: 1802617A D-Lot: 1812617A U-Lot: 1822617B" [ref=e733]'
+                    - cell [ref=e734]
+                    - cell [ref=e735]
+                    - cell [ref=e736]
+                    - cell [ref=e737]
+                    - cell [ref=e738]
+                    - cell [ref=e739]
+                    - cell [ref=e740]
+                    - cell [ref=e741]
+                    - cell [ref=e742]
+                    - cell [ref=e743]
+                    - cell [ref=e744]
+                    - cell [ref=e745]
+                    - cell [ref=e746]
+                    - cell [ref=e747]
+                    - cell [ref=e748]
+                    - cell [ref=e749]
+                    - cell [ref=e750]
+                    - cell [ref=e751]
+                    - cell [ref=e752]
+                  - 'row "d-Lot: 1802617B D-Lot: 1812617B U-Lot: 1822617C" [ref=e753]':
+                    - cell [ref=e754]
+                    - 'cell "d-Lot: 1802617B D-Lot: 1812617B U-Lot: 1822617C" [ref=e755]'
+                    - cell [ref=e756]
+                    - cell [ref=e757]
+                    - cell [ref=e758]
+                    - cell [ref=e759]
+                    - cell [ref=e760]
+                    - cell [ref=e761]
+                    - cell [ref=e762]
+                    - cell [ref=e763]
+                    - cell [ref=e764]
+                    - cell [ref=e765]
+                    - cell [ref=e766]
+                    - cell [ref=e767]
+                    - cell [ref=e768]
+                    - cell [ref=e769]
+                    - cell [ref=e770]
+                    - cell [ref=e771]
+                    - cell [ref=e772]
+                    - cell [ref=e773]
+                    - cell [ref=e774]
+                  - 'row "d-Lot: 1802617B D-Lot: 1812617B U-Lot: 1822617D" [ref=e775]':
+                    - cell [ref=e776]
+                    - 'cell "d-Lot: 1802617B D-Lot: 1812617B U-Lot: 1822617D" [ref=e777]'
+                    - cell [ref=e778]
+                    - cell [ref=e779]
+                    - cell [ref=e780]
+                    - cell [ref=e781]
+                    - cell [ref=e782]
+                    - cell [ref=e783]
+                    - cell [ref=e784]
+                    - cell [ref=e785]
+                    - cell [ref=e786]
+                    - cell [ref=e787]
+                    - cell [ref=e788]
+                    - cell [ref=e789]
+                    - cell [ref=e790]
+                    - cell [ref=e791]
+                    - cell [ref=e792]
+                    - cell [ref=e793]
+                    - cell [ref=e794]
+                    - cell [ref=e795]
+                    - cell [ref=e796]
+                  - 'row "N3 OD d-Lot: 1802617A D-Lot: 1812617A U-Lot: 1822617A" [ref=e797]':
+                    - cell "N3 OD" [ref=e798]
+                    - 'cell "d-Lot: 1802617A D-Lot: 1812617A U-Lot: 1822617A" [ref=e799]'
+                    - cell [ref=e800]
+                    - cell [ref=e801]
+                    - cell [ref=e802]
+                    - cell [ref=e803]
+                    - cell [ref=e804]
+                    - cell [ref=e805]
+                    - cell [ref=e806]
+                    - cell [ref=e807]
+                    - cell [ref=e808]
+                    - cell [ref=e809]
+                    - cell [ref=e810]
+                    - cell [ref=e811]
+                    - cell [ref=e812]
+                    - cell [ref=e813]
+                    - cell [ref=e814]
+                    - cell [ref=e815]
+                    - cell [ref=e816]
+                    - cell [ref=e817]
+                    - cell [ref=e818]
+                  - 'row "d-Lot: 1802617A D-Lot: 1812617A U-Lot: 1822617B" [ref=e819]':
+                    - cell [ref=e820]
+                    - 'cell "d-Lot: 1802617A D-Lot: 1812617A U-Lot: 1822617B" [ref=e821]'
+                    - cell [ref=e822]
+                    - cell [ref=e823]
+                    - cell [ref=e824]
+                    - cell [ref=e825]
+                    - cell [ref=e826]
+                    - cell [ref=e827]
+                    - cell [ref=e828]
+                    - cell [ref=e829]
+                    - cell [ref=e830]
+                    - cell [ref=e831]
+                    - cell [ref=e832]
+                    - cell [ref=e833]
+                    - cell [ref=e834]
+                    - cell [ref=e835]
+                    - cell [ref=e836]
+                    - cell [ref=e837]
+                    - cell [ref=e838]
+                    - cell [ref=e839]
+                    - cell [ref=e840]
+                  - 'row "d-Lot: 1802617B D-Lot: 1812617B U-Lot: 1822617C" [ref=e841]':
+                    - cell [ref=e842]
+                    - 'cell "d-Lot: 1802617B D-Lot: 1812617B U-Lot: 1822617C" [ref=e843]'
+                    - cell [ref=e844]
+                    - cell [ref=e845]
+                    - cell [ref=e846]
+                    - cell [ref=e847]
+                    - cell [ref=e848]
+                    - cell [ref=e849]
+                    - cell [ref=e850]
+                    - cell [ref=e851]
+                    - cell [ref=e852]
+                    - cell [ref=e853]
+                    - cell [ref=e854]
+                    - cell [ref=e855]
+                    - cell [ref=e856]
+                    - cell [ref=e857]
+                    - cell [ref=e858]
+                    - cell [ref=e859]
+                    - cell [ref=e860]
+                    - cell [ref=e861]
+                    - cell [ref=e862]
+                  - 'row "d-Lot: 1802617B D-Lot: 1812617B U-Lot: 1822617D" [ref=e863]':
+                    - cell [ref=e864]
+                    - 'cell "d-Lot: 1802617B D-Lot: 1812617B U-Lot: 1822617D" [ref=e865]'
+                    - cell [ref=e866]
+                    - cell [ref=e867]
+                    - cell [ref=e868]
+                    - cell [ref=e869]
+                    - cell [ref=e870]
+                    - cell [ref=e871]
+                    - cell [ref=e872]
+                    - cell [ref=e873]
+                    - cell [ref=e874]
+                    - cell [ref=e875]
+                    - cell [ref=e876]
+                    - cell [ref=e877]
+                    - cell [ref=e878]
+                    - cell [ref=e879]
+                    - cell [ref=e880]
+                    - cell [ref=e881]
+                    - cell [ref=e882]
+                    - cell [ref=e883]
+                    - cell [ref=e884]
+                  - 'row "d-Lot: 1802617A D-Lot: 1812617A U-Lot: 1822617A" [ref=e885]':
+                    - cell [ref=e886]
+                    - 'cell "d-Lot: 1802617A D-Lot: 1812617A U-Lot: 1822617A" [ref=e887]'
+                    - cell [ref=e888]
+                    - cell [ref=e889]
+                    - cell [ref=e890]
+                    - cell [ref=e891]
+                    - cell [ref=e892]
+                    - cell [ref=e893]
+                    - cell [ref=e894]
+                    - cell [ref=e895]
+                    - cell [ref=e896]
+                    - cell [ref=e897]
+                    - cell [ref=e898]
+                    - cell [ref=e899]
+                    - cell [ref=e900]
+                    - cell [ref=e901]
+                    - cell [ref=e902]
+                    - cell [ref=e903]
+                    - cell [ref=e904]
+                    - cell [ref=e905]
+                    - cell [ref=e906]
+                  - 'row "d-Lot: 1802617A D-Lot: 1812617A U-Lot: 1822617B" [ref=e907]':
+                    - cell [ref=e908]
+                    - 'cell "d-Lot: 1802617A D-Lot: 1812617A U-Lot: 1822617B" [ref=e909]'
+                    - cell [ref=e910]
+                    - cell [ref=e911]
+                    - cell [ref=e912]
+                    - cell [ref=e913]
+                    - cell [ref=e914]
+                    - cell [ref=e915]
+                    - cell [ref=e916]
+                    - cell [ref=e917]
+                    - cell [ref=e918]
+                    - cell [ref=e919]
+                    - cell [ref=e920]
+                    - cell [ref=e921]
+                    - cell [ref=e922]
+                    - cell [ref=e923]
+                    - cell [ref=e924]
+                    - cell [ref=e925]
+                    - cell [ref=e926]
+                    - cell [ref=e927]
+                    - cell [ref=e928]
+                  - 'row "d-Lot: 1802617B D-Lot: 1812617B U-Lot: 1822617C" [ref=e929]':
+                    - cell [ref=e930]
+                    - 'cell "d-Lot: 1802617B D-Lot: 1812617B U-Lot: 1822617C" [ref=e931]'
+                    - cell [ref=e932]
+                    - cell [ref=e933]
+                    - cell [ref=e934]
+                    - cell [ref=e935]
+                    - cell [ref=e936]
+                    - cell [ref=e937]
+                    - cell [ref=e938]
+                    - cell [ref=e939]
+                    - cell [ref=e940]
+                    - cell [ref=e941]
+                    - cell [ref=e942]
+                    - cell [ref=e943]
+                    - cell [ref=e944]
+                    - cell [ref=e945]
+                    - cell [ref=e946]
+                    - cell [ref=e947]
+                    - cell [ref=e948]
+                    - cell [ref=e949]
+                    - cell [ref=e950]
+                  - 'row "d-Lot: 1802617B D-Lot: 1812617B U-Lot: 1822617D" [ref=e951]':
+                    - cell [ref=e952]
+                    - 'cell "d-Lot: 1802617B D-Lot: 1812617B U-Lot: 1822617D" [ref=e953]'
+                    - cell [ref=e954]
+                    - cell [ref=e955]
+                    - cell [ref=e956]
+                    - cell [ref=e957]
+                    - cell [ref=e958]
+                    - cell [ref=e959]
+                    - cell [ref=e960]
+                    - cell [ref=e961]
+                    - cell [ref=e962]
+                    - cell [ref=e963]
+                    - cell [ref=e964]
+                    - cell [ref=e965]
+                    - cell [ref=e966]
+                    - cell [ref=e967]
+                    - cell [ref=e968]
+                    - cell [ref=e969]
+                    - cell [ref=e970]
+                    - cell [ref=e971]
+                    - cell [ref=e972]
+  - generic [ref=e973]: "-2"
+```
+
+# Test source
+
+```ts
+  1  | const { test } = require('@playwright/test');
+  2  | const BASE = 'http://localhost/qc-web/';
+  3  | 
+  4  | test('Click cell to edit, check if dirty and save enables', async ({ page }) => {
+  5  |   page.on('console', msg => { if (msg.type() === 'error') console.log('ERR:', msg.text()); });
+  6  |   page.on('pageerror', err => console.log('PAGE ERR:', err.message));
+  7  | 
+  8  |   await page.goto(BASE);
+  9  |   await page.waitForLoadState('networkidle');
+  10 | 
+  11 |   await page.locator('aside button', { hasText: 'IPQC 工作台' }).click();
+  12 |   await page.waitForSelector('text=原始數據', { timeout: 10000 });
+  13 |   await page.waitForTimeout(2000);
+  14 | 
+  15 |   await page.locator('select').first().selectOption('tCREA');
+  16 |   await page.waitForTimeout(2000);
+> 17 |   await page.locator('select').nth(1).selectOption('Z-PEY-PEUZ-PEY-PEX-PEW-PE');
+     |                                       ^ Error: locator.selectOption: Test timeout of 30000ms exceeded.
+  18 |   await page.waitForTimeout(3000);
+  19 | 
+  20 |   // Find a data cell (not header) and try to click it
+  21 |   const tds = page.locator('td');
+  22 |   const tdCount = await tds.count();
+  23 |   console.log('Total tds:', tdCount);
+  24 | 
+  25 |   // Try clicking cells starting from row 3+ (skip headers)
+  26 |   let clickedCell = false;
+  27 |   for (let i = 20; i < Math.min(tdCount, 50); i++) {
+  28 |     const td = tds.nth(i);
+  29 |     const text = await td.textContent();
+  30 |     const cls = await td.getAttribute('class');
+  31 |     if (i < 25) console.log('td[' + i + ']:', JSON.stringify(text?.trim()?.slice(0, 20)), 'class:', cls?.slice(0, 40));
+  32 |     
+  33 |     // Try clicking a data cell
+  34 |     if (text?.trim() === '' || text?.trim() === '—' || text === null) {
+  35 |       await td.click({ force: true });
+  36 |       await page.waitForTimeout(500);
+  37 |       
+  38 |       // Check if an input appeared
+  39 |       const inputs = await page.locator('input').count();
+  40 |       console.log('After click td[' + i + ']: inputs=' + inputs);
+  41 |       
+  42 |       if (inputs > 0) {
+  43 |         // Type a value
+  44 |         await page.locator('input').first().fill('0.123');
+  45 |         await page.waitForTimeout(300);
+  46 |         await page.keyboard.press('Tab');
+  47 |         await page.waitForTimeout(500);
+  48 |         
+  49 |         // Check save button
+  50 |         const saveDisabled = await page.locator('button', { hasText: '儲存' }).first().isDisabled();
+  51 |         console.log('After edit - save disabled:', saveDisabled);
+  52 |         
+  53 |         // Check dirty count
+  54 |         const body = await page.textContent('body');
+  55 |         const dirtyMatch = body.match(/(\d+)\s*筆未儲存/);
+  56 |         console.log('Dirty count text:', dirtyMatch ? dirtyMatch[0] : 'not found');
+  57 |         
+  58 |         clickedCell = true;
+  59 |         break;
+  60 |       }
+  61 |     }
+  62 |   }
+  63 | 
+  64 |   if (!clickedCell) {
+  65 |     console.log('Could not find editable cell');
+  66 |     // Check what the grid looks like
+  67 |     const rows = page.locator('tr');
+  68 |     const rowCount = await rows.count();
+  69 |     for (let i = 0; i < Math.min(rowCount, 5); i++) {
+  70 |       const text = await rows.nth(i).textContent();
+  71 |       console.log('row[' + i + ']:', text?.slice(0, 100));
+  72 |     }
+  73 |   }
+  74 | 
+  75 |   await page.screenshot({ path: '/tmp/test-cell-edit.png', fullPage: true });
+  76 | });
+  77 | 
+```

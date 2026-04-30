@@ -1,6 +1,6 @@
 const { test, expect } = require('@playwright/test');
 
-const BASE = 'http://localhost:5173/';
+const BASE = 'http://localhost/qc-web/';
 
 test('ALP: warning triangles fully visible, not clipped', async ({ page }) => {
   await page.goto(BASE);

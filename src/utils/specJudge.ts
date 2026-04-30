@@ -70,12 +70,16 @@ interface MeasuredValues {
   od_cv_n3?: string | null;
   rconc_cv_l1?: string | null;
   rconc_cv_l2?: string | null;
+  rconc_cv_l3?: string | null;
   rconc_cv_n1?: string | null;
   rconc_cv_n3?: string | null;
   mean_bias_l1?: string | null;
   mean_bias_l2?: string | null;
+  mean_bias_l3?: string | null;
   total_cv_l1?: string | null;
   total_cv_l2?: string | null;
+  total_cv_l3?: string | null;
+  initial_l3?: string | null;
 }
 
 function num(v: string | null | undefined): number | null {
@@ -127,6 +131,7 @@ export function judgeRecord(rec: MeasuredValues, spec: SpecRow | null): Judgment
     L2: parseSpecRange(spec.spec_l2_od),
     N1: parseSpecRange(spec.spec_n1_od),
   };
+  const l3ConcRange = parseSpecRange(spec.spec_l3);
 
   const batchChecks: boolean[] = [];
 
@@ -137,6 +142,14 @@ export function judgeRecord(rec: MeasuredValues, spec: SpecRow | null): Judgment
       batchChecks.push(ok);
       details.push(`OD Mean ${lv}: ${val!.toFixed(4)} ${ok ? 'in' : 'out of'} range ${odRanges[lv]!.min}-${odRanges[lv]!.max}`);
     }
+  }
+
+  // L3 concentration range check (uses all_batch conc mean)
+  const l3Mean = num(rec.initial_l3);
+  const l3RangeOk = checkWithinRange(l3Mean, l3ConcRange);
+  if (l3RangeOk !== null) {
+    batchChecks.push(l3RangeOk);
+    details.push(`Conc L3: ${l3Mean!.toFixed(2)} ${l3RangeOk ? 'in' : 'out of'} range ${l3ConcRange!.min}-${l3ConcRange!.max}`);
   }
 
   for (const [lv, field] of [['L1', 'od_cv_l1'], ['L2', 'od_cv_l2'], ['N1', 'od_cv_n1'], ['N3', 'od_cv_n3']] as const) {
@@ -150,7 +163,7 @@ export function judgeRecord(rec: MeasuredValues, spec: SpecRow | null): Judgment
     }
   }
 
-  for (const [lv, field] of [['L1', 'rconc_cv_l1'], ['L2', 'rconc_cv_l2'], ['N1', 'rconc_cv_n1'], ['N3', 'rconc_cv_n3']] as const) {
+  for (const [lv, field] of [['L1', 'rconc_cv_l1'], ['L2', 'rconc_cv_l2'], ['L3', 'rconc_cv_l3'], ['N1', 'rconc_cv_n1'], ['N3', 'rconc_cv_n3']] as const) {
     const val = num(rec[field]);
     if (val === null) continue;
     const th = getThreshold(cvTh, lv);
@@ -161,7 +174,7 @@ export function judgeRecord(rec: MeasuredValues, spec: SpecRow | null): Judgment
     }
   }
 
-  for (const [lv, field] of [['L1', 'mean_bias_l1'], ['L2', 'mean_bias_l2']] as const) {
+  for (const [lv, field] of [['L1', 'mean_bias_l1'], ['L2', 'mean_bias_l2'], ['L3', 'mean_bias_l3']] as const) {
     const val = num(rec[field]);
     if (val === null) continue;
     const th = getThreshold(biasTh, lv);
@@ -177,7 +190,7 @@ export function judgeRecord(rec: MeasuredValues, spec: SpecRow | null): Judgment
   let mergePass: boolean | null = null;
   if (batchPass === true) {
     const mergeChecks: boolean[] = [];
-    for (const [lv, field] of [['L1', 'total_cv_l1'], ['L2', 'total_cv_l2']] as const) {
+    for (const [lv, field] of [['L1', 'total_cv_l1'], ['L2', 'total_cv_l2'], ['L3', 'total_cv_l3']] as const) {
       const val = num(rec[field]);
       if (val === null) continue;
       const th = getThreshold(mergeCvTh, lv);

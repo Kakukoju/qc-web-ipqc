@@ -50,6 +50,7 @@ export interface SpecRow {
   init_l2_od: string | null;
   spec_l1_od: string | null;
   spec_l2_od: string | null;
+  spec_l3: string | null;
   spec_n1_od: string | null;
   well_config: string | null;
   dilution: string | null;

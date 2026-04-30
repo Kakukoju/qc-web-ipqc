@@ -215,7 +215,7 @@ export default function App() {
             >
               {activeView === 'dashboard' && <Dashboard onNavigate={setActiveView} onYearChange={setSharedYear} />}
               {activeView === 'qc' && <QCView sharedLot={sharedLot} onLotChange={setSharedLot} year={sharedYear} />}
-              {activeView === 'ipqc' && <IPQCWorkbench sharedLot={sharedLot} onLotChange={setSharedLot} />}
+              {activeView === 'ipqc' && <IPQCWorkbench sharedLot={sharedLot} onLotChange={setSharedLot} year={sharedYear} />}
               {activeView === 'settings' && <SettingsPage />}
               {activeView === 'monitor' && <TuttiPage />}
               {!['dashboard', 'qc', 'ipqc', 'settings', 'monitor'].includes(activeView) && (

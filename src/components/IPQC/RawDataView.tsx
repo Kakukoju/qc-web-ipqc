@@ -4,24 +4,35 @@
  */
 
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { Loader2, PlusCircle, X } from 'lucide-react';
+import { Loader2, PlusCircle, Trash2, X } from 'lucide-react';
 import RawDataGrid from './RawDataGrid';
 import {
   fetchRawdataMarkers, fetchRawdataSheets, fetchRawdata, updateRawdataRow, syncQcTables,
-  fetchBeadReagents, createSheet,
+  fetchBeadReagents, createSheet, deleteSheet,
   type RawDataRow, type ColMeta, type SheetCombo,
 } from '../../api/rawdata';
 
-// ── Sheet-name auto-generation (mirrors Python normalize_sheet_name) ─────────
-function autoSheetName(joined: string): string {
-  const n = joined.length;
-  if (n < 8 || n % 8 !== 0) return joined;
-  const chunks = Array.from({ length: n / 8 }, (_, i) => joined.slice(i * 8, (i + 1) * 8));
-  const yw = chunks[0].slice(3, 7);
-  if (/^\d{4}$/.test(yw) && chunks.every(c => c.slice(3, 7) === yw && /^[A-Za-z0-9]$/.test(c[7]))) {
-    return yw + chunks.map(c => c[7]).join('');
+// ── Sheet-name auto-generation for rawdata-created sheets ───────────────────
+function compressLotGroup(lots: string[]): string {
+  const clean = lots.map(s => s.trim()).filter(Boolean);
+  if (!clean.length) return '';
+  const stripped = clean.map(lot => lot.length > 3 ? lot.slice(3) : lot);
+  if (stripped.length === 1) return stripped[0];
+  let prefix = stripped[0];
+  for (const lot of stripped.slice(1)) {
+    while (prefix && !lot.startsWith(prefix)) prefix = prefix.slice(0, -1);
   }
-  return joined;
+  return prefix + stripped.map(lot => lot.slice(prefix.length)).join('');
+}
+
+function autoSheetName(groups: { d?: string[]; bigD?: string[]; u?: string[] }, nReagents: number): string {
+  const dPart = compressLotGroup(groups.d || []);
+  const bigDPart = compressLotGroup(groups.bigD || []);
+  const uPart = compressLotGroup(groups.u || []);
+
+  if (nReagents === 1) return dPart || bigDPart || uPart;
+  if (nReagents === 3) return [dPart, bigDPart && `D${bigDPart}`, uPart && `U${uPart}`].filter(Boolean).join('');
+  return [bigDPart || dPart, uPart && `U${uPart}`].filter(Boolean).join('');
 }
 
 // ── NewSheetModal ────────────────────────────────────────────────────────────
@@ -50,28 +61,25 @@ function NewSheetModal({
   // Auto-generate sheet name from lots
   useEffect(() => {
     if (userEditedSheet) return;
-    let joined = '';
+    let groups: { d?: string[]; bigD?: string[]; u?: string[] } = {};
     if (nReagents === 1) {
-      joined = lots1.split('\n').map(s => s.trim()).filter(Boolean).join('');
+      groups = { d: lots1.split('\n').map(s => s.trim()).filter(Boolean) };
     } else {
       const dl  = dLots.split('\n').map(s => s.trim()).filter(Boolean);
       const d2l = d2Lots.split('\n').map(s => s.trim()).filter(Boolean);
       const ul  = uLots.split('\n').map(s => s.trim()).filter(Boolean);
-      const n = nReagents === 3
-        ? Math.min(dl.length, d2l.length, ul.length)
-        : Math.min(dl.length, ul.length);
-      for (let i = 0; i < n; i++) {
-        joined += nReagents === 3 ? dl[i] + d2l[i] + ul[i] : dl[i] + ul[i];
-      }
+      groups = nReagents === 3
+        ? { d: dl, bigD: d2l, u: ul }
+        : { bigD: dl, u: ul };
     }
-    setSheetName(joined ? autoSheetName(joined) : '');
+    setSheetName(autoSheetName(groups, nReagents));
   }, [lots1, dLots, d2Lots, uLots, nReagents, userEditedSheet]);
 
   function buildCombos(): SheetCombo[] | null {
     if (nReagents === 1) {
       const lots = lots1.split('\n').map(s => s.trim()).filter(Boolean);
       if (!lots.length) return null;
-      return lots.map(l => ({ lot_id: l, ctrl_lot: null }));
+      return lots.map(l => ({ lot_id: l, d_lot: l, ctrl_lot: null }));
     }
     const dl  = dLots.split('\n').map(s => s.trim()).filter(Boolean);
     const d2l = d2Lots.split('\n').map(s => s.trim()).filter(Boolean);
@@ -80,12 +88,10 @@ function NewSheetModal({
       ? Math.min(dl.length, d2l.length, ul.length)
       : Math.min(dl.length, ul.length);
     if (!n) return null;
-    return Array.from({ length: n }, (_, i) => ({
-      lot_id: nReagents === 3
-        ? dl[i] + d2l[i] + ul[i]
-        : dl[i] + ul[i],
-      ctrl_lot: null,
-    }));
+    return Array.from({ length: n }, (_, i) => nReagents === 3
+      ? { lot_id: dl[i] + d2l[i] + ul[i], d_lot: dl[i], bigD_lot: d2l[i], u_lot: ul[i], ctrl_lot: null }
+      : { lot_id: dl[i] + ul[i], bigD_lot: dl[i], u_lot: ul[i], ctrl_lot: null }
+    );
   }
 
   async function handleCreate() {
@@ -104,7 +110,7 @@ function NewSheetModal({
   }
 
   const reagentLabels = nReagents === 3
-    ? ['D-Lot', 'D₂-Lot', 'U-Lot']
+    ? ['d-Lot', 'D-Lot', 'U-Lot']
     : nReagents === 2 ? ['D-Lot', 'U-Lot'] : ['Lot'];
 
   const textareaClass = 'bg-white border border-[#2A3754] text-[#0a1628] text-xs rounded px-2 py-1.5 w-full font-mono resize-none focus:outline-none focus:border-[#4DA3FF]';
@@ -203,7 +209,7 @@ const TABLE_TABS: { type: TableType; label: string }[] = [
   { type: 'all_batch',    label: '④ 全批次' },
 ];
 
-export default function RawDataView({ initMarker, initSheet, onSelectionChange }: { initMarker?: string; initSheet?: string; onSelectionChange?: (marker: string | null, sheet: string | null) => void }) {
+export default function RawDataView({ initMarker, initSheet, year, onSelectionChange }: { initMarker?: string; initSheet?: string; year?: string; onSelectionChange?: (marker: string | null, sheet: string | null) => void }) {
   const [markers, setMarkers] = useState<string[]>([]);
   const [selMarker, setSelMarker] = useState('');
   const [sheets, setSheets] = useState<string[]>([]);
@@ -228,7 +234,7 @@ export default function RawDataView({ initMarker, initSheet, onSelectionChange }
 
   // Load markers + bead-reagent map on mount
   useEffect(() => {
-    fetchRawdataMarkers().then(m => {
+    fetchRawdataMarkers(year).then(m => {
       setMarkers(m);
       const pick = initMarker && m.includes(initMarker) ? initMarker : m[0] || '';
       setSelMarker(pick);
@@ -236,7 +242,7 @@ export default function RawDataView({ initMarker, initSheet, onSelectionChange }
     fetchBeadReagents().then(data => {
       setReagentMap(new Map(data.map(d => [d.bead_name, d.n_reagents])));
     }).catch(() => {});
-  }, []); // eslint-disable-line
+  }, [year]); // eslint-disable-line
 
   // Marker changed → load sheets
   useEffect(() => {
@@ -244,12 +250,12 @@ export default function RawDataView({ initMarker, initSheet, onSelectionChange }
     setSelSheet('');
     setRows([]);
     setMeta([]);
-    fetchRawdataSheets(selMarker).then(s => {
+    fetchRawdataSheets(selMarker, year).then(s => {
       setSheets(s);
       const pick = selMarker === initMarker && initSheet && s.includes(initSheet) ? initSheet : s[0] || '';
       setSelSheet(pick);
     });
-  }, [selMarker]); // eslint-disable-line
+  }, [selMarker, year]); // eslint-disable-line
 
   // Sheet selected → load data
   useEffect(() => {
@@ -260,10 +266,10 @@ export default function RawDataView({ initMarker, initSheet, onSelectionChange }
   useEffect(() => {
     if (!selMarker || !selSheet) return;
     setLoading(true);
-    fetchRawdata(selMarker, selSheet)
+    fetchRawdata(selMarker, selSheet, year)
       .then(({ rows: r, meta: m }) => { setRows(r); setMeta(m); dirtyRef.current.clear(); setDirtyCount(0); })
       .finally(() => setLoading(false));
-  }, [selMarker, selSheet]);
+  }, [selMarker, selSheet, year]);
 
   // Called when a cell is changed locally
   const handleRowChange = useCallback((updated: RawDataRow) => {
@@ -294,23 +300,23 @@ export default function RawDataView({ initMarker, initSheet, onSelectionChange }
   const handleSheetCreated = useCallback(async (bead: string, sheet: string) => {
     setShowNewSheet(false);
     // Refresh markers (bead might be new)
-    const newMarkers = await fetchRawdataMarkers();
+    const newMarkers = await fetchRawdataMarkers(year);
     setMarkers(newMarkers);
     setSelMarker(bead);
     // Refresh sheets for this bead
-    const newSheets = await fetchRawdataSheets(bead);
+    const newSheets = await fetchRawdataSheets(bead, year);
     setSheets(newSheets);
     setSelSheet(sheet);
-  }, []);
+  }, [year]);
 
   // Refetch data for current marker+sheet (called after expanding combos)
   const handleRefresh = useCallback(() => {
     if (!selMarker || !selSheet) return;
     setLoading(true);
-    fetchRawdata(selMarker, selSheet)
+    fetchRawdata(selMarker, selSheet, year)
       .then(({ rows: r, meta: m }) => { setRows(r); setMeta(m); dirtyRef.current.clear(); setDirtyCount(0); })
       .finally(() => setLoading(false));
-  }, [selMarker, selSheet]);
+  }, [selMarker, selSheet, year]);
 
   // Save all dirty rows + sync to QC tables
   const handleSave = useCallback(async () => {
@@ -373,6 +379,23 @@ export default function RawDataView({ initMarker, initSheet, onSelectionChange }
           >
             <PlusCircle size={16} />
           </button>
+          {selSheet && (
+            <button
+              onClick={async () => {
+                if (!confirm(`確定刪除 ${selMarker} / ${selSheet} 的原始數據？`)) return;
+                try {
+                  await deleteSheet(selMarker, selSheet);
+                  const newSheets = await fetchRawdataSheets(selMarker, year);
+                  setSheets(newSheets);
+                  setSelSheet(newSheets[0] || '');
+                } catch (e) { alert('刪除失敗: ' + String(e)); }
+              }}
+              title="刪除 Sheet"
+              className="text-[#3A5070] hover:text-red-400 transition-colors"
+            >
+              <Trash2 size={16} />
+            </button>
+          )}
         </div>
 
         {/* 批號組合 summary: distinct combos for selected sheet */}

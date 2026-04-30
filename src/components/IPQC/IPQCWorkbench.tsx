@@ -13,9 +13,10 @@ type TabId = typeof TABS[number]['id'];
 
 interface LotSelection { marker: string; sheet: string }
 
-export default function IPQCWorkbench({ sharedLot, onLotChange }: {
+export default function IPQCWorkbench({ sharedLot, onLotChange, year }: {
   sharedLot?: LotSelection | null;
   onLotChange?: (lot: LotSelection | null) => void;
+  year?: string;
 }) {
   const [tab, setTab] = useState<TabId>('rawdata');
   const [rawKey, setRawKey] = useState(0);
@@ -72,7 +73,7 @@ export default function IPQCWorkbench({ sharedLot, onLotChange }: {
         ))}
       </div>
 
-      {tab === 'rawdata' && <RawDataView key={rawKey} initMarker={navTarget?.marker} initSheet={navTarget?.sheet} onSelectionChange={handleRawSelectionChange} />}
+      {tab === 'rawdata' && <RawDataView key={rawKey} initMarker={navTarget?.marker} initSheet={navTarget?.sheet} year={year} onSelectionChange={handleRawSelectionChange} />}
       {tab === 'inspection' && <PendingInspectionTab onActivated={handleActivated} />}
       {tab === 'schedule' && <ScheduleImport />}
     </div>

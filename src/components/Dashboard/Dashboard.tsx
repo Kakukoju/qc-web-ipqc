@@ -201,7 +201,8 @@ function TrendChart({ title, data, prefix, unit = '', limit, limitLabel, odRange
 // ── Dashboard ────────────────────────────────────────────────────────────
 export default function Dashboard({ onNavigate, onYearChange }: DashboardProps) {
   const [year, setYear] = useState(currentYear);
-  const [trendMarker, setTrendMarker] = useState('tCREA');
+  const [trendMarker, _setTrendMarker] = useState(() => localStorage.getItem('dashboard_marker') || 'tCREA');
+  const setTrendMarker = useCallback((m: string) => { localStorage.setItem('dashboard_marker', m); _setTrendMarker(m); }, []);
   const trendRef = useRef<HTMLDivElement>(null);
   const [cvLimit, setCvLimit] = useState<number | null>(null);
   const [biasLimit, setBiasLimit] = useState<number | null>(null);

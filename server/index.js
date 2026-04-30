@@ -11,6 +11,7 @@ import machinePnRoutes from './routes/machinePn.js';
 import ipqcwellRoutes from './routes/ipqcwell.js';
 import excelImportRoutes from './routes/excel-import.js';
 import tuttiRoutes from './routes/tutti.js';
+import personnelRoutes from './routes/personnel.js';
 
 dotenv.config();
 
@@ -27,6 +28,7 @@ app.use('/api/machine-pn', machinePnRoutes);
 app.use('/api/ipqcwell', ipqcwellRoutes);
 app.use('/api/excel-import', excelImportRoutes);
 app.use('/api/tutti', tuttiRoutes);
+app.use('/api/personnel', personnelRoutes);
 
 // ── Global search across drbeadinspection + posts ─────────────────────────
 import db from './db/sqlite.js';
@@ -95,4 +97,18 @@ app.get('/api/search', (req, res) => {
 })();
 
 const PORT = process.env.PORT || 3201;
-app.listen(PORT, () => console.log(`🚀 API server on http://localhost:${PORT}`));
+const server = app.listen(PORT, '127.0.0.1', () => {
+  const address = server.address();
+  const host = typeof address === 'object' && address ? address.address : 'localhost';
+  const port = typeof address === 'object' && address ? address.port : PORT;
+  console.log(`🚀 API server on http://${host}:${port}`);
+});
+
+server.on('error', (err) => {
+  console.error('[server] listen error:', err);
+  process.exit(1);
+});
+
+server.on('close', () => {
+  console.error('[server] listener closed unexpectedly');
+});

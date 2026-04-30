@@ -14,6 +14,155 @@ function yearLike(year) {
   return `${year}%`;
 }
 
+function fullYearFromShort(yy) {
+  const n = Number(yy);
+  if (!Number.isInteger(n)) return null;
+  return n >= 70 ? 1900 + n : 2000 + n;
+}
+
+function sheetYears(sheetName) {
+  const years = new Set();
+  const text = String(sheetName || '');
+  const re = /(^|[^0-9])(\d{2})(?=[A-Za-z]|\d{2}|$)/g;
+  let m;
+  while ((m = re.exec(text))) {
+    const full = fullYearFromShort(m[2]);
+    if (full && full >= 2020 && full <= 2040) years.add(String(full));
+  }
+  return years;
+}
+
+function dateYear(dateText) {
+  const m = String(dateText || '').match(/^(\d{4})/);
+  return m ? m[1] : null;
+}
+
+function rowMatchesYear(row, year) {
+  if (!year) return true;
+  const years = sheetYears(row.sheet_name);
+  if (years.size > 0) return years.has(year);
+  return [row.d_prod_date, row.bigD_prod_date, row.u_prod_date, row.insp_date]
+    .some(d => dateYear(d) === year);
+}
+
+function isoWeekDate(year, week) {
+  const jan4 = new Date(Date.UTC(year, 0, 4));
+  const day = jan4.getUTCDay() || 7;
+  const monday = new Date(jan4);
+  monday.setUTCDate(jan4.getUTCDate() - day + 1 + (week - 1) * 7);
+  return monday;
+}
+
+function sheetSortDate(row, preferredYear) {
+  const text = String(row.sheet_name || '');
+  const re = /(^|[^0-9])(\d{2})(\d{2})/g;
+  let fallback = null;
+  let m;
+  while ((m = re.exec(text))) {
+    const full = fullYearFromShort(m[2]);
+    const week = Number(m[3]);
+    if (!full || full < 2020 || full > 2040 || week < 1 || week > 53) continue;
+    const d = isoWeekDate(full, week);
+    if (String(full) === preferredYear) return d;
+    fallback ??= d;
+  }
+  const dateText = [row.d_prod_date, row.bigD_prod_date, row.u_prod_date, row.insp_date]
+    .filter(Boolean)
+    .sort()
+    .pop();
+  return dateText ? new Date(`${dateText}T00:00:00Z`) : fallback;
+}
+
+function sortSheetsNearToday(rows, year) {
+  const today = new Date();
+  return [...rows].sort((a, b) => {
+    const da = sheetSortDate(a, year);
+    const db = sheetSortDate(b, year);
+    const distA = da ? Math.abs(da.getTime() - today.getTime()) : Number.POSITIVE_INFINITY;
+    const distB = db ? Math.abs(db.getTime() - today.getTime()) : Number.POSITIVE_INFINITY;
+    if (distA !== distB) return distA - distB;
+    const dateA = String(a.insp_date || '');
+    const dateB = String(b.insp_date || '');
+    if (dateA !== dateB) return dateB.localeCompare(dateA);
+    return String(b.sheet_name).localeCompare(String(a.sheet_name));
+  });
+}
+
+function rawdataHasValues(sheetName, beadName) {
+  const row = db.prepare(`
+    SELECT 1
+    FROM rawdata
+    WHERE bead_name = ? AND sheet_name = ?
+      AND (
+        w2 IS NOT NULL OR w3 IS NOT NULL OR w4 IS NOT NULL OR w5 IS NOT NULL OR
+        w6 IS NOT NULL OR w7 IS NOT NULL OR w8 IS NOT NULL OR w9 IS NOT NULL OR
+        w10 IS NOT NULL OR w11 IS NOT NULL OR w12 IS NOT NULL OR w13 IS NOT NULL OR
+        w14 IS NOT NULL OR w15 IS NOT NULL OR w16 IS NOT NULL OR w17 IS NOT NULL OR
+        w18 IS NOT NULL OR w19 IS NOT NULL
+      )
+    LIMIT 1
+  `).get(beadName, sheetName);
+  return Boolean(row);
+}
+
+function rawdataSheetExists(sheetName, beadName) {
+  return Boolean(db.prepare(`
+    SELECT 1 FROM rawdata WHERE bead_name = ? AND sheet_name = ? LIMIT 1
+  `).get(beadName, sheetName));
+}
+
+function expectedLotsForSheet(beadName, sheetName) {
+  const rows = db.prepare(`
+    SELECT d_lot, bigD_lot, u_lot, batch_combo
+    FROM drbeadinspection
+    WHERE bead_name = ? AND sheet_name = ?
+  `).all(beadName, sheetName);
+  return new Set(rows.flatMap(r => [r.d_lot, r.bigD_lot, r.u_lot, r.batch_combo])
+    .filter(Boolean)
+    .map(v => String(v).replace(/\s+/g, '')));
+}
+
+function rawdataLotsForSheet(beadName, sheetName) {
+  const rows = db.prepare(`
+    SELECT lot_id, d_lot, bigD_lot, u_lot
+    FROM rawdata
+    WHERE bead_name = ? AND sheet_name = ?
+  `).all(beadName, sheetName);
+  return new Set(rows.flatMap(r => [r.lot_id, r.d_lot, r.bigD_lot, r.u_lot])
+    .filter(Boolean)
+    .map(v => String(v).replace(/\s+/g, '')));
+}
+
+function matchingLotCount(expectedLots, rawLots) {
+  let count = 0;
+  for (const lot of expectedLots) {
+    if (rawLots.has(lot)) count++;
+  }
+  return count;
+}
+
+function rawdataSheetCandidates(sheetName) {
+  const text = String(sheetName || '');
+  const candidates = [text];
+  if (/^\d{4,}/.test(text)) candidates.push(text.slice(4));
+  if (/^\d{3,}/.test(text)) candidates.push(text.slice(3));
+  if (/^\d{2,}/.test(text)) candidates.push(text.slice(2));
+  return [...new Set(candidates.filter(Boolean))];
+}
+
+function resolveRawdataSheetName(beadName, sheetName) {
+  if (rawdataHasValues(sheetName, beadName) || rawdataSheetExists(sheetName, beadName)) return sheetName;
+
+  const expectedLots = expectedLotsForSheet(beadName, sheetName);
+  let best = null;
+  for (const candidate of rawdataSheetCandidates(sheetName)) {
+    if (candidate === sheetName || !rawdataSheetExists(candidate, beadName)) continue;
+    const score = matchingLotCount(expectedLots, rawdataLotsForSheet(beadName, candidate));
+    if (score > 0 && (!best || score > best.score)) best = { sheetName: candidate, score };
+  }
+  return best?.sheetName || sheetName;
+}
+
 // GET /api/rawdata/p01pn — machine PN list for dropdown (reads from specDb)
 router.get('/p01pn', (_req, res) => {
   try {
@@ -30,51 +179,53 @@ router.get('/p01pn', (_req, res) => {
   }
 });
 
-// GET /api/rawdata/markers
+// GET /api/rawdata/markers — union of rawdata + posts bead_names
 router.get('/markers', (req, res) => {
   const year = normalizeYear(req.query.year);
-  const sql = year ? `
-    SELECT DISTINCT r.bead_name
-    FROM rawdata r
-    WHERE EXISTS (
-      SELECT 1
-      FROM drbeadinspection d
-      WHERE d.bead_name = r.bead_name
-        AND d.sheet_name = r.sheet_name
-        AND d.insp_date LIKE ?
+  const rows = db.prepare(`
+    WITH pairs AS (
+      SELECT bead_name, sheet_name FROM rawdata
+      UNION
+      SELECT bead_name, sheet_name FROM posts
     )
-    ORDER BY r.bead_name
-  ` : `
-    SELECT DISTINCT bead_name FROM rawdata ORDER BY bead_name
-  `;
-  const rows = year ? db.prepare(sql).all(yearLike(year)) : db.prepare(sql).all();
-  res.json(rows.map(r => r.bead_name));
+    SELECT p.bead_name, p.sheet_name,
+           MAX(d.insp_date) AS insp_date,
+           MAX(d.d_prod_date) AS d_prod_date,
+           MAX(d.bigD_prod_date) AS bigD_prod_date,
+           MAX(d.u_prod_date) AS u_prod_date
+    FROM pairs p
+    LEFT JOIN drbeadinspection d
+      ON d.bead_name = p.bead_name
+     AND d.sheet_name = p.sheet_name
+    GROUP BY p.bead_name, p.sheet_name
+  `).all();
+  const names = new Set(rows.filter(r => rowMatchesYear(r, year)).map(r => r.bead_name));
+  res.json([...names].sort());
 });
 
-// GET /api/rawdata/sheets?bead_name=X
+// GET /api/rawdata/sheets?bead_name=X — union of rawdata + posts sheets
 router.get('/sheets', (req, res) => {
   const { bead_name } = req.query;
   const year = normalizeYear(req.query.year);
   if (!bead_name) return res.status(400).json({ error: 'bead_name required' });
-  const sql = year ? `
-    SELECT DISTINCT r.sheet_name
-    FROM rawdata r
-    WHERE r.bead_name = ?
-      AND EXISTS (
-        SELECT 1
-        FROM drbeadinspection d
-        WHERE d.bead_name = r.bead_name
-          AND d.sheet_name = r.sheet_name
-          AND d.insp_date LIKE ?
-      )
-    ORDER BY r.sheet_name DESC
-  ` : `
-    SELECT DISTINCT sheet_name FROM rawdata WHERE bead_name = ? ORDER BY sheet_name DESC
-  `;
-  const rows = year
-    ? db.prepare(sql).all(bead_name, yearLike(year))
-    : db.prepare(sql).all(bead_name);
-  res.json(rows.map(r => r.sheet_name));
+  const rows = db.prepare(`
+    WITH sheets AS (
+      SELECT sheet_name FROM rawdata WHERE bead_name = ?
+      UNION
+      SELECT sheet_name FROM posts WHERE bead_name = ?
+    )
+    SELECT s.sheet_name,
+           MAX(d.insp_date) AS insp_date,
+           MAX(d.d_prod_date) AS d_prod_date,
+           MAX(d.bigD_prod_date) AS bigD_prod_date,
+           MAX(d.u_prod_date) AS u_prod_date
+    FROM sheets s
+    LEFT JOIN drbeadinspection d
+      ON d.bead_name = ?
+     AND d.sheet_name = s.sheet_name
+    GROUP BY s.sheet_name
+  `).all(bead_name, bead_name, bead_name);
+  res.json(sortSheetsNearToday(rows.filter(r => rowMatchesYear(r, year)), year).map(r => r.sheet_name));
 });
 
 // GET /api/rawdata/data?bead_name=X&sheet_name=Y
@@ -84,26 +235,32 @@ router.get('/data', (req, res) => {
   const year = normalizeYear(req.query.year);
   if (!bead_name || !sheet_name) return res.status(400).json({ error: 'bead_name and sheet_name required' });
 
-  const rowsSql = year ? `
-    SELECT *
-    FROM rawdata
-    WHERE bead_name = ? AND sheet_name = ?
-      AND EXISTS (
-        SELECT 1
-        FROM drbeadinspection d
-        WHERE d.bead_name = rawdata.bead_name
-          AND d.sheet_name = rawdata.sheet_name
-          AND d.insp_date LIKE ?
-      )
-    ORDER BY table_type, level, combo_idx
-  ` : `
+  if (year) {
+    const info = db.prepare(`
+      SELECT ? AS sheet_name,
+             MAX(insp_date) AS insp_date,
+             MAX(d_prod_date) AS d_prod_date,
+             MAX(bigD_prod_date) AS bigD_prod_date,
+             MAX(u_prod_date) AS u_prod_date
+      FROM drbeadinspection
+      WHERE bead_name = ? AND sheet_name = ?
+    `).get(sheet_name, bead_name, sheet_name);
+    if (!rowMatchesYear(info, year)) {
+      const meta = db.prepare(`
+        SELECT * FROM rawdata_meta
+        WHERE bead_name = ?
+        ORDER BY table_type, well
+      `).all(bead_name);
+      return res.json({ rows: [], meta });
+    }
+  }
+
+  const rawSheetName = resolveRawdataSheetName(bead_name, sheet_name);
+  const rows = db.prepare(`
     SELECT * FROM rawdata
     WHERE bead_name = ? AND sheet_name = ?
     ORDER BY table_type, level, combo_idx
-  `;
-  const rows = year
-    ? db.prepare(rowsSql).all(bead_name, sheet_name, yearLike(year))
-    : db.prepare(rowsSql).all(bead_name, sheet_name);
+  `).all(bead_name, rawSheetName);
 
   const meta = db.prepare(`
     SELECT * FROM rawdata_meta
@@ -199,6 +356,19 @@ router.post('/sheets', (req, res) => {
       }
     })();
     res.json({ ok: true, created });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// DELETE /api/rawdata/sheets — delete a sheet's rawdata rows
+// Body: { bead_name, sheet_name }
+router.delete('/sheets', (req, res) => {
+  const { bead_name, sheet_name } = req.body;
+  if (!bead_name || !sheet_name) return res.status(400).json({ error: 'bead_name and sheet_name required' });
+  try {
+    const info = db.prepare('DELETE FROM rawdata WHERE bead_name = ? AND sheet_name = ?').run(bead_name, sheet_name);
+    res.json({ ok: true, deleted: info.changes });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -301,13 +471,14 @@ router.post('/sync-qc', (req, res) => {
   if (!bead_name || !sheet_name) return res.status(400).json({ error: 'bead_name and sheet_name required' });
 
   try {
+    const rawSheetName = resolveRawdataSheetName(bead_name, sheet_name);
     // 1. Get marker wells from meta
     const meta = db.prepare(`SELECT well, row1 FROM rawdata_meta WHERE bead_name = ? AND table_type = 'well_od'`).all(bead_name);
     const markerWells = meta.filter(m => m.row1 && m.row1 !== 'Blank' && m.row1 !== 'Bllank').map(m => m.well.toLowerCase());
     if (!markerWells.length) return res.json({ ok: true, synced: 0 });
 
     // 2. Get all rawdata
-    const allRows = db.prepare(`SELECT * FROM rawdata WHERE bead_name = ? AND sheet_name = ?`).all(bead_name, sheet_name);
+    const allRows = db.prepare(`SELECT * FROM rawdata WHERE bead_name = ? AND sheet_name = ?`).all(bead_name, rawSheetName);
     const wellOd = allRows.filter(r => r.table_type === 'well_od');
     const indBatch = allRows.filter(r => r.table_type === 'ind_batch');
     const allBatch = allRows.filter(r => r.table_type === 'all_batch');
@@ -445,34 +616,35 @@ router.post('/sync-qc', (req, res) => {
     // 6. Write to drbeadinspection
     const drFields = [
       'od_slope','od_intercept',
-      'od_mean_l1','od_mean_l2','od_mean_n1','od_mean_n3',
-      'od_cvpct_l1','od_cvpct_l2','od_cvpct_n1','od_cvpct_n3',
-      'od_bias_l1','od_bias_l2','od_bias_n1','od_bias_n3',
-      'conc_mean_l1','conc_mean_l2','conc_cvpct_l1','conc_cvpct_l2',
-      'conc_tot_mean_l1','conc_tot_mean_l2','conc_tot_cvpct_l1','conc_tot_cvpct_l2',
-      'conc_tot_bias_l1','conc_tot_bias_l2',
+      'od_mean_l1','od_mean_l2','od_mean_l3','od_mean_n1','od_mean_n3',
+      'od_cvpct_l1','od_cvpct_l2','od_cvpct_l3','od_cvpct_n1','od_cvpct_n3',
+      'od_bias_l1','od_bias_l2','od_bias_l3','od_bias_n1','od_bias_n3',
+      'conc_mean_l1','conc_mean_l2','conc_mean_l3','conc_cvpct_l1','conc_cvpct_l2','conc_cvpct_l3',
+      'conc_tot_mean_l1','conc_tot_mean_l2','conc_tot_mean_l3',
+      'conc_tot_cvpct_l1','conc_tot_cvpct_l2','conc_tot_cvpct_l3',
+      'conc_tot_bias_l1','conc_tot_bias_l2','conc_tot_bias_l3',
     ];
     // mapping: drbeadinspection field → comboResult key
     const drMap = {
       od_slope: 'slope', od_intercept: 'intercept',
-      od_mean_l1: 'od_mean_l1', od_mean_l2: 'od_mean_l2', od_mean_n1: 'od_mean_n1', od_mean_n3: 'od_mean_n3',
-      od_cvpct_l1: 'od_cv_l1', od_cvpct_l2: 'od_cv_l2', od_cvpct_n1: 'od_cv_n1', od_cvpct_n3: 'od_cv_n3',
-      od_bias_l1: 'od_bias_l1', od_bias_l2: 'od_bias_l2', od_bias_n1: 'od_bias_n1', od_bias_n3: 'od_bias_n3',
-      conc_mean_l1: 'sb_conc_mean_l1', conc_mean_l2: 'sb_conc_mean_l2',
-      conc_cvpct_l1: 'sb_conc_cv_l1', conc_cvpct_l2: 'sb_conc_cv_l2',
-      conc_tot_mean_l1: 'fb_conc_mean_l1', conc_tot_mean_l2: 'fb_conc_mean_l2',
-      conc_tot_cvpct_l1: 'fb_conc_cv_l1', conc_tot_cvpct_l2: 'fb_conc_cv_l2',
-      conc_tot_bias_l1: 'fb_bias_l1', conc_tot_bias_l2: 'fb_bias_l2',
+      od_mean_l1: 'od_mean_l1', od_mean_l2: 'od_mean_l2', od_mean_l3: 'od_mean_l3', od_mean_n1: 'od_mean_n1', od_mean_n3: 'od_mean_n3',
+      od_cvpct_l1: 'od_cv_l1', od_cvpct_l2: 'od_cv_l2', od_cvpct_l3: 'od_cv_l3', od_cvpct_n1: 'od_cv_n1', od_cvpct_n3: 'od_cv_n3',
+      od_bias_l1: 'od_bias_l1', od_bias_l2: 'od_bias_l2', od_bias_l3: 'od_bias_l3', od_bias_n1: 'od_bias_n1', od_bias_n3: 'od_bias_n3',
+      conc_mean_l1: 'sb_conc_mean_l1', conc_mean_l2: 'sb_conc_mean_l2', conc_mean_l3: 'sb_conc_mean_l3',
+      conc_cvpct_l1: 'sb_conc_cv_l1', conc_cvpct_l2: 'sb_conc_cv_l2', conc_cvpct_l3: 'sb_conc_cv_l3',
+      conc_tot_mean_l1: 'fb_conc_mean_l1', conc_tot_mean_l2: 'fb_conc_mean_l2', conc_tot_mean_l3: 'fb_conc_mean_l3',
+      conc_tot_cvpct_l1: 'fb_conc_cv_l1', conc_tot_cvpct_l2: 'fb_conc_cv_l2', conc_tot_cvpct_l3: 'fb_conc_cv_l3',
+      conc_tot_bias_l1: 'fb_bias_l1', conc_tot_bias_l2: 'fb_bias_l2', conc_tot_bias_l3: 'fb_bias_l3',
     };
 
     const postFields = [
       'slope','intercept',
-      'od_mean_l1','od_mean_l2','od_mean_n1','od_mean_n3',
-      'od_cv_l1','od_cv_l2','od_cv_n1','od_cv_n3',
-      'od_bias_l1','od_bias_l2','od_bias_n1','od_bias_n3',
-      'sb_conc_mean_l1','sb_conc_mean_l2','sb_conc_cv_l1','sb_conc_cv_l2',
-      'fb_conc_mean_l1','fb_conc_mean_l2','fb_conc_cv_l1','fb_conc_cv_l2',
-      'fb_bias_l1','fb_bias_l2',
+      'od_mean_l1','od_mean_l2','od_mean_l3','od_mean_n1','od_mean_n3',
+      'od_cv_l1','od_cv_l2','od_cv_l3','od_cv_n1','od_cv_n3',
+      'od_bias_l1','od_bias_l2','od_bias_l3','od_bias_n1','od_bias_n3',
+      'sb_conc_mean_l1','sb_conc_mean_l2','sb_conc_mean_l3','sb_conc_cv_l1','sb_conc_cv_l2','sb_conc_cv_l3',
+      'fb_conc_mean_l1','fb_conc_mean_l2','fb_conc_mean_l3','fb_conc_cv_l1','fb_conc_cv_l2','fb_conc_cv_l3',
+      'fb_bias_l1','fb_bias_l2','fb_bias_l3',
     ];
 
     // ── Helper: build update sets for a comboResult ──
@@ -486,10 +658,10 @@ router.post('/sync-qc', (req, res) => {
       // Also write to the display fields used by DriedBeadsPage
       const displayMap = {
         od_cv_l1: 'od_cv_l1', od_cv_l2: 'od_cv_l2', od_cv_n1: 'od_cv_n1', od_cv_n3: 'od_cv_n3',
-        rconc_cv_l1: 'sb_conc_cv_l1', rconc_cv_l2: 'sb_conc_cv_l2', rconc_cv_n1: 'sb_conc_cv_n1', rconc_cv_n3: 'sb_conc_cv_n3',
-        mean_bias_l1: 'fb_bias_l1', mean_bias_l2: 'fb_bias_l2',
-        total_cv_l1: 'fb_conc_cv_l1', total_cv_l2: 'fb_conc_cv_l2',
-        initial_l1: 'fb_conc_mean_l1', initial_l2: 'fb_conc_mean_l2',
+        rconc_cv_l1: 'sb_conc_cv_l1', rconc_cv_l2: 'sb_conc_cv_l2', rconc_cv_l3: 'sb_conc_cv_l3', rconc_cv_n1: 'sb_conc_cv_n1', rconc_cv_n3: 'sb_conc_cv_n3',
+        mean_bias_l1: 'fb_bias_l1', mean_bias_l2: 'fb_bias_l2', mean_bias_l3: 'fb_bias_l3',
+        total_cv_l1: 'fb_conc_cv_l1', total_cv_l2: 'fb_conc_cv_l2', total_cv_l3: 'fb_conc_cv_l3',
+        initial_l1: 'fb_conc_mean_l1', initial_l2: 'fb_conc_mean_l2', initial_l3: 'fb_conc_mean_l3',
       };
       for (const [dbCol, srcKey] of Object.entries(displayMap)) {
         const val = cr[srcKey];

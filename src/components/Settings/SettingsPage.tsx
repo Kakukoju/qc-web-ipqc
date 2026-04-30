@@ -2,12 +2,13 @@ import { useState, Suspense, lazy } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   FileSpreadsheet, Grid3x3, Beaker, Cpu,
-  Database, Info, ChevronLeft,
+  Database, Info, ChevronLeft, Users,
 } from 'lucide-react';
 import SpecManager from './SpecManager';
 const CsManager = lazy(() => import('./CsManager'));
 const MachineManager = lazy(() => import('./MachineManager'));
 const WellManager = lazy(() => import('./WellManager'));
+const PersonnelManager = lazy(() => import('./PersonnelManager'));
 
 interface CardDef {
   id: string;
@@ -44,6 +45,13 @@ const cards: CardDef[] = [
     icon: <Cpu size={28} />,
     label: '機台 P/N 管理',
     desc: '管理各機台 (P01 / Tutti) part number 清單，供下拉選單使用',
+    ready: true,
+  },
+  {
+    id: 'personnel',
+    icon: <Users size={28} />,
+    label: '人員設定',
+    desc: '管理 QC 人員與建線人員資料，支援 Excel 匯入、新增、修改、刪除',
     ready: true,
   },
   {
@@ -86,6 +94,7 @@ export default function SettingsPage() {
           {activeCard === 'cs' && <Suspense fallback={<div className="p-6 text-[#93A4C3] text-sm">載入中…</div>}><CsManager /></Suspense>}
           {activeCard === 'pn' && <Suspense fallback={<div className="p-6 text-[#93A4C3] text-sm">載入中…</div>}><MachineManager /></Suspense>}
           {activeCard === 'well' && <Suspense fallback={<div className="p-6 text-[#93A4C3] text-sm">載入中…</div>}><WellManager /></Suspense>}
+          {activeCard === 'personnel' && <Suspense fallback={<div className="p-6 text-[#93A4C3] text-sm">載入中…</div>}><PersonnelManager /></Suspense>}
         </div>
       </div>
     );

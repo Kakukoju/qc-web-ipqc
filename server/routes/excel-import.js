@@ -298,6 +298,455 @@ const postsExistsStmt = db.prepare('SELECT 1 FROM posts WHERE bead_name=? AND sh
 const drDeleteStmt = db.prepare('DELETE FROM drbeadinspection WHERE bead_name=? AND sheet_name=?');
 const postsDeleteStmt = db.prepare('DELETE FROM posts WHERE bead_name=? AND sheet_name=?');
 
+function normalizedLots(rows) {
+  return new Set(rows.flatMap(r => [r.d_lot, r.bigD_lot, r.u_lot, r.batch_combo, r.lot_id])
+    .filter(Boolean)
+    .map(v => String(v).replace(/\s+/g, '')));
+}
+
+function matchingLotCount(expectedLots, rawLots) {
+  let count = 0;
+  for (const lot of expectedLots) if (rawLots.has(lot)) count++;
+  return count;
+}
+
+function rawSheetCandidates(sheetName) {
+  const text = String(sheetName || '');
+  const candidates = [text];
+  if (/^\d{4,}/.test(text)) candidates.push(text.slice(4));
+  if (/^\d{3,}/.test(text)) candidates.push(text.slice(3));
+  if (/^\d{2,}/.test(text)) candidates.push(text.slice(2));
+  return [...new Set(candidates.filter(Boolean))];
+}
+
+function rawdataHasValues(beadName, sheetName) {
+  return Boolean(db.prepare(`
+    SELECT 1 FROM rawdata
+    WHERE bead_name = ? AND sheet_name = ?
+      AND (
+        w2 IS NOT NULL OR w3 IS NOT NULL OR w4 IS NOT NULL OR w5 IS NOT NULL OR
+        w6 IS NOT NULL OR w7 IS NOT NULL OR w8 IS NOT NULL OR w9 IS NOT NULL OR
+        w10 IS NOT NULL OR w11 IS NOT NULL OR w12 IS NOT NULL OR w13 IS NOT NULL OR
+        w14 IS NOT NULL OR w15 IS NOT NULL OR w16 IS NOT NULL OR w17 IS NOT NULL OR
+        w18 IS NOT NULL OR w19 IS NOT NULL
+      )
+    LIMIT 1
+  `).get(beadName, sheetName));
+}
+
+function rawdataHasRows(beadName, sheetName) {
+  return Boolean(db.prepare(`
+    SELECT 1 FROM rawdata WHERE bead_name = ? AND sheet_name = ? LIMIT 1
+  `).get(beadName, sheetName));
+}
+
+function rawdataValuePredicateSql() {
+  return `
+    w2 IS NOT NULL OR w3 IS NOT NULL OR w4 IS NOT NULL OR w5 IS NOT NULL OR
+    w6 IS NOT NULL OR w7 IS NOT NULL OR w8 IS NOT NULL OR w9 IS NOT NULL OR
+    w10 IS NOT NULL OR w11 IS NOT NULL OR w12 IS NOT NULL OR w13 IS NOT NULL OR
+    w14 IS NOT NULL OR w15 IS NOT NULL OR w16 IS NOT NULL OR w17 IS NOT NULL OR
+    w18 IS NOT NULL OR w19 IS NOT NULL
+  `;
+}
+
+function deleteEmptyRawdataSheet(beadName, sheetName) {
+  db.prepare(`
+    DELETE FROM rawdata
+    WHERE bead_name = ? AND sheet_name = ?
+      AND NOT (${rawdataValuePredicateSql()})
+  `).run(beadName, sheetName);
+}
+
+function alignRawdataSheetName(beadName, sheetName, importedRows) {
+  if (rawdataHasValues(beadName, sheetName)) return false;
+
+  const expectedLots = normalizedLots(importedRows);
+  if (expectedLots.size === 0) return false;
+
+  let best = null;
+  for (const candidate of rawSheetCandidates(sheetName)) {
+    if (candidate === sheetName) continue;
+    const rawRows = db.prepare(`
+      SELECT lot_id, d_lot, bigD_lot, u_lot
+      FROM rawdata
+      WHERE bead_name = ? AND sheet_name = ?
+    `).all(beadName, candidate);
+    if (rawRows.length === 0) continue;
+    const score = matchingLotCount(expectedLots, normalizedLots(rawRows));
+    if (score > 0 && (!best || score > best.score)) best = { sheetName: candidate, score };
+  }
+
+  if (!best) return false;
+
+  deleteEmptyRawdataSheet(beadName, sheetName);
+
+  const info = db.prepare(`
+    UPDATE rawdata
+    SET sheet_name = ?
+    WHERE bead_name = ? AND sheet_name = ?
+  `).run(sheetName, beadName, best.sheetName);
+  return info.changes > 0;
+}
+
+const RAWDATA_TABLE_DEFS = [
+  { type: 'well_od',      levels: ['L1 OD', 'L2 OD', 'N1 OD', 'N3 OD'] },
+  { type: 'od_corrected', levels: ['L1 OD', 'L2 OD', 'N1 OD', 'N3 OD'] },
+  { type: 'ind_batch',    levels: ['L1 Conc.', 'L2 Conc.', 'N1 Conc.', 'N3 Conc.'] },
+  { type: 'all_batch',    levels: ['L1 Conc.', 'L2 Conc.', 'N1 Conc.', 'N3 Conc.'] },
+];
+const RAWDATA_WELLS = ['w2','w3','w4','w5','w6','w7','w8','w9','w10','w11','w12','w13','w14','w15','w16','w17','w18','w19'];
+
+function levelMachine(row, level) {
+  if (level.startsWith('L1')) return row.machine_L1 || row.control_ref_l1 || null;
+  if (level.startsWith('L2')) return row.machine_L2 || row.control_ref_l2 || null;
+  if (level.startsWith('N1')) return row.machine_N1 || null;
+  if (level.startsWith('N3')) return row.machine_N3 || null;
+  return null;
+}
+
+function comboKey(row) {
+  return [row.d_lot, row.bigD_lot, row.u_lot, row.batch_combo, row.lot_d, row.lot_bigD, row.lot_u]
+    .filter(Boolean)
+    .join('|');
+}
+
+function rawdataCombosFromImportedRows(rows) {
+  const combos = [];
+  const seen = new Set();
+  for (const row of rows) {
+    const dLot = row.d_lot || row.lot_d || null;
+    const bigDLot = row.bigD_lot || row.lot_bigD || null;
+    const uLot = row.u_lot || row.lot_u || null;
+    const lotId = [dLot, bigDLot, uLot].filter(Boolean).join('') || row.batch_combo || null;
+    const key = comboKey(row) || lotId;
+    if (!key || seen.has(key)) continue;
+    seen.add(key);
+    combos.push({ source: row, lot_id: lotId, d_lot: dLot, bigD_lot: bigDLot, u_lot: uLot });
+  }
+  return combos;
+}
+
+function ensureRawdataSkeleton(beadName, sheetName, importedRows) {
+  if (rawdataHasValues(beadName, sheetName)) return false;
+  deleteEmptyRawdataSheet(beadName, sheetName);
+  if (rawdataHasRows(beadName, sheetName)) return false;
+
+  const combos = rawdataCombosFromImportedRows(importedRows);
+  if (!combos.length) return false;
+
+  const insert = db.prepare(`
+    INSERT OR IGNORE INTO rawdata
+      (bead_name, sheet_name, table_type, level, combo_idx, lot_id, ctrl_lot, d_lot, bigD_lot, u_lot)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+  `);
+
+  let created = 0;
+  for (const { type, levels } of RAWDATA_TABLE_DEFS) {
+    for (const level of levels) {
+      combos.forEach((combo, idx) => {
+        const info = insert.run(
+          beadName, sheetName, type, level, idx,
+          combo.lot_id, levelMachine(combo.source, level),
+          combo.d_lot, combo.bigD_lot, combo.u_lot
+        );
+        created += info.changes;
+      });
+    }
+  }
+  return created > 0;
+}
+
+function wellFieldFromHeader(value) {
+  const m = String(value || '').trim().match(/^W(1?\d)$/i);
+  if (!m) return null;
+  const n = Number(m[1]);
+  return n >= 2 && n <= 19 ? `w${n}` : null;
+}
+
+function parseRawdataOdRows(ws, beadName) {
+  const rows = [];
+  const wellCols = [];
+  for (let col = 14; col <= 31; col++) {
+    const field = wellFieldFromHeader(cv(ws, addr(169, col)));
+    if (field) wellCols.push({ col, field });
+  }
+
+  const comboByLevel = new Map();
+  let currentLevel = null;
+  for (let row = 170; row <= 197; row++) {
+    const levelCell = cv(ws, addr(row, 11));
+    if (levelCell && /OD$/i.test(levelCell)) currentLevel = levelCell;
+    if (!currentLevel) continue;
+
+    const lotId = cv(ws, addr(row, 12));
+    const ctrlLot = cv(ws, addr(row, 13));
+    const values = Object.fromEntries(RAWDATA_WELLS.map(w => [w, null]));
+    let hasValue = false;
+
+    for (const { col, field } of wellCols) {
+      const value = cvn(ws, addr(row, col));
+      if (value == null || values[field] != null) continue;
+      values[field] = Number(value);
+      hasValue = true;
+    }
+
+    if (!lotId && !ctrlLot && !hasValue) continue;
+
+    const comboIdx = comboByLevel.get(currentLevel) || 0;
+    comboByLevel.set(currentLevel, comboIdx + 1);
+    rows.push({
+      bead_name: beadName,
+      sheet_name: ws['!sheetname'] || '',
+      table_type: 'well_od',
+      level: currentLevel,
+      combo_idx: comboIdx,
+      lot_id: lotId,
+      ctrl_lot: ctrlLot,
+      ...values,
+    });
+  }
+  return rows;
+}
+
+function upsertRawdataRows(beadName, sheetName, rawRows) {
+  if (!rawRows.length) return 0;
+  const insert = db.prepare(`
+    INSERT INTO rawdata
+      (bead_name, sheet_name, table_type, level, combo_idx, lot_id, ctrl_lot, ${RAWDATA_WELLS.join(',')})
+    VALUES
+      (@bead_name, @sheet_name, @table_type, @level, @combo_idx, @lot_id, @ctrl_lot, ${RAWDATA_WELLS.map(w => '@' + w).join(',')})
+  `);
+  const update = db.prepare(`
+    UPDATE rawdata
+    SET lot_id = @lot_id,
+        ctrl_lot = @ctrl_lot,
+        ${RAWDATA_WELLS.map(w => `${w} = @${w}`).join(',\n        ')}
+    WHERE bead_name = @bead_name
+      AND sheet_name = @sheet_name
+      AND table_type = @table_type
+      AND level = @level
+      AND combo_idx = @combo_idx
+  `);
+
+  let changed = 0;
+  for (const row of rawRows) {
+    const params = {
+      bead_name: beadName,
+      sheet_name: sheetName,
+      table_type: row.table_type,
+      level: row.level,
+      combo_idx: row.combo_idx,
+      lot_id: row.lot_id ?? null,
+      ctrl_lot: row.ctrl_lot ?? null,
+    };
+    for (const well of RAWDATA_WELLS) params[well] = row[well] ?? null;
+
+    const info = update.run(params);
+    if (info.changes) changed += info.changes;
+    else changed += insert.run(params).changes;
+  }
+  return changed;
+}
+
+function mean(arr) {
+  return arr.length ? arr.reduce((a, b) => a + b, 0) / arr.length : null;
+}
+
+function round6(value) {
+  return Math.round(value * 1e6) / 1e6;
+}
+
+function rowKey(row) {
+  return `${row.lot_id || ''}|${row.combo_idx}`;
+}
+
+function getFinite(row, field) {
+  const value = row[field];
+  return value !== null && value !== undefined && Number.isFinite(Number(value)) ? Number(value) : null;
+}
+
+function linReg2(x1, y1, x2, y2) {
+  if (Math.abs(x2 - x1) < 1e-15) return null;
+  const m = (y2 - y1) / (x2 - x1);
+  return { m, b: y1 - m * x1 };
+}
+
+function linRegN(points) {
+  const n = points.length;
+  if (n < 2) return null;
+  let sx = 0, sy = 0, sxx = 0, sxy = 0;
+  for (const p of points) {
+    sx += p.x;
+    sy += p.y;
+    sxx += p.x * p.x;
+    sxy += p.x * p.y;
+  }
+  const d = n * sxx - sx * sx;
+  if (Math.abs(d) < 1e-15) return null;
+  const m = (n * sxy - sx * sy) / d;
+  return { m, b: (sy - m * sx) / n };
+}
+
+function markerMatchKey(name) {
+  return String(name || '')
+    .trim()
+    .toUpperCase()
+    .replace(/^TGLU$/, 'GLU')
+    .replace(/^TCPK$/, 'CPK')
+    .replace(/-[A-Z]$/, '')
+    .replace(/^[TNGQ](?=[A-Z])/, '');
+}
+
+function findCsRow(beadName) {
+  const target = markerMatchKey(beadName);
+  return db.prepare('SELECT * FROM csassign').all()
+    .find(row => markerMatchKey(row.Marker) === target);
+}
+
+function findCsConc(level, csRow) {
+  const m = String(level || '').match(/^([A-Z]\d+)\s+OD$/i);
+  if (!m || !csRow) return null;
+  const prefix = m[1].toUpperCase();
+  for (const [col, value] of Object.entries(csRow)) {
+    if (col === 'id' || col === 'Marker') continue;
+    if (!col.toUpperCase().startsWith(`${prefix}_`)) continue;
+    const n = Number(value);
+    return Number.isFinite(n) ? n : null;
+  }
+  return null;
+}
+
+function levelPairs(odLevels, csRow) {
+  const groups = new Map();
+  for (const level of odLevels) {
+    const m = String(level || '').match(/^([A-Z])(\d+)\s+OD$/i);
+    if (!m) continue;
+    const conc = findCsConc(level, csRow);
+    if (conc === null) continue;
+    const prefix = m[1].toUpperCase();
+    if (!groups.has(prefix)) groups.set(prefix, []);
+    groups.get(prefix).push({ level, num: Number(m[2]), conc });
+  }
+
+  const pairs = [];
+  for (const items of groups.values()) {
+    if (items.length < 2) continue;
+    items.sort((a, b) => a.num - b.num);
+    pairs.push({
+      odA: items[0].level,
+      odB: items[1].level,
+      concA: items[0].level.replace(' OD', ' Conc.'),
+      concB: items[1].level.replace(' OD', ' Conc.'),
+      knownA: items[0].conc,
+      knownB: items[1].conc,
+    });
+  }
+  return pairs;
+}
+
+function applyConcentrationRows(beadName, sheetName) {
+  const allRows = db.prepare(`
+    SELECT * FROM rawdata
+    WHERE bead_name = ? AND sheet_name = ?
+  `).all(beadName, sheetName);
+  const wellOd = allRows.filter(r => r.table_type === 'well_od');
+  const indBatch = allRows.filter(r => r.table_type === 'ind_batch');
+  const allBatch = allRows.filter(r => r.table_type === 'all_batch');
+  if (!wellOd.length || (!indBatch.length && !allBatch.length)) return 0;
+
+  const updates = new Map();
+  const merge = (row, field, value) => {
+    const current = updates.get(row.id) || { id: row.id };
+    current[field] = round6(value);
+    updates.set(row.id, current);
+  };
+
+  const fixedSlope = { K: { m: 11.9, b: -3.43 }, Na: { m: 0.00859, b: -0.21 } }[beadName];
+  if (fixedSlope) {
+    for (const odRow of wellOd) {
+      const concLevel = odRow.level.replace(' OD', ' Conc.');
+      const key = rowKey(odRow);
+      const targets = [
+        indBatch.find(r => r.level === concLevel && rowKey(r) === key),
+        allBatch.find(r => r.level === concLevel && rowKey(r) === key),
+      ].filter(Boolean);
+      for (const field of RAWDATA_WELLS) {
+        const x = getFinite(odRow, field);
+        if (x === null) continue;
+        for (const target of targets) merge(target, field, fixedSlope.m * x + fixedSlope.b);
+      }
+    }
+  } else {
+    const csRow = findCsRow(beadName);
+    const pairs = levelPairs([...new Set(wellOd.map(r => r.level))], csRow);
+
+    for (const pair of pairs) {
+      const rowsA = wellOd.filter(r => r.level === pair.odA);
+      const rowsB = wellOd.filter(r => r.level === pair.odB);
+      const mapA = new Map(rowsA.map(r => [rowKey(r), r]));
+      const mapB = new Map(rowsB.map(r => [rowKey(r), r]));
+      const indA = new Map(indBatch.filter(r => r.level === pair.concA).map(r => [rowKey(r), r]));
+      const indB = new Map(indBatch.filter(r => r.level === pair.concB).map(r => [rowKey(r), r]));
+      const abA = new Map(allBatch.filter(r => r.level === pair.concA).map(r => [rowKey(r), r]));
+      const abB = new Map(allBatch.filter(r => r.level === pair.concB).map(r => [rowKey(r), r]));
+
+      for (const [key, odA] of mapA) {
+        const odB = mapB.get(key);
+        if (!odB) continue;
+        for (const field of RAWDATA_WELLS) {
+          const x1 = getFinite(odA, field);
+          const x2 = getFinite(odB, field);
+          if (x1 === null || x2 === null) continue;
+          const reg = linReg2(x1, pair.knownA, x2, pair.knownB);
+          if (!reg) continue;
+          const targetA = indA.get(key);
+          const targetB = indB.get(key);
+          if (targetA) merge(targetA, field, reg.m * x1 + reg.b);
+          if (targetB) merge(targetB, field, reg.m * x2 + reg.b);
+        }
+      }
+
+      for (const field of RAWDATA_WELLS) {
+        const points = [];
+        for (const row of rowsA) {
+          const x = getFinite(row, field);
+          if (x !== null) points.push({ x, y: pair.knownA });
+        }
+        for (const row of rowsB) {
+          const x = getFinite(row, field);
+          if (x !== null) points.push({ x, y: pair.knownB });
+        }
+        const reg = linRegN(points);
+        if (!reg) continue;
+        for (const [key, odA] of mapA) {
+          const x = getFinite(odA, field);
+          const target = abA.get(key);
+          if (x !== null && target) merge(target, field, reg.m * x + reg.b);
+        }
+        for (const [key, odB] of mapB) {
+          const x = getFinite(odB, field);
+          const target = abB.get(key);
+          if (x !== null && target) merge(target, field, reg.m * x + reg.b);
+        }
+      }
+    }
+  }
+
+  const update = db.prepare(`
+    UPDATE rawdata
+    SET ${RAWDATA_WELLS.map(w => `${w} = @${w}`).join(', ')}
+    WHERE id = @id
+  `);
+  let changed = 0;
+  for (const row of updates.values()) {
+    const params = { id: row.id };
+    for (const field of RAWDATA_WELLS) params[field] = row[field] ?? null;
+    changed += update.run(params).changes;
+  }
+  return changed;
+}
+
 function safeParams(cols, obj) {
   const p = {};
   for (const c of cols) p[c] = obj[c] ?? null;
@@ -312,10 +761,12 @@ router.post('/upload-batch', upload.array('files', 100), (req, res) => {
   const files = req.files || [];
   if (!files.length) return res.status(400).json({ error: 'no files' });
 
-  const summary = { total_files: 0, imported_files: 0, total_sheets: 0, skipped_sheets: 0, results: [] };
+  const summary = { total_files: 0, imported_files: 0, total_sheets: 0, skipped_sheets: 0, rawdata_renamed: 0, rawdata_created: 0, rawdata_od_rows: 0, rawdata_conc_rows: 0, results: [] };
 
   const allT1Rows = [], allT2Rows = [];
   const deleteKeys = new Set();
+  const importedByKey = new Map();
+  const rawdataByKey = new Map();
 
   for (const file of files) {
     const originalName = file.originalname || '';
@@ -343,12 +794,15 @@ router.post('/upload-batch', upload.array('files', 100), (req, res) => {
       const t1Rows = isDataSheet(ws) ? parseTable1(ws, beadName, originalName) : [];
       const t2Rows = isPostsSheet(ws) ? parseTable2(ws, beadName, originalName) : [];
       if (!t1Rows.length && !t2Rows.length) continue;
+      const rawRows = parseRawdataOdRows(ws, beadName);
 
       // Mark for delete-before-insert (upsert)
       deleteKeys.add(key);
 
       allT1Rows.push(...t1Rows);
       allT2Rows.push(...t2Rows);
+      importedByKey.set(key, [...(importedByKey.get(key) || []), ...t1Rows, ...t2Rows]);
+      rawdataByKey.set(key, [...(rawdataByKey.get(key) || []), ...rawRows]);
       fileResult.imported++;
       summary.total_sheets++;
     }
@@ -367,6 +821,13 @@ router.post('/upload-batch', upload.array('files', 100), (req, res) => {
       }
       for (const row of allT1Rows) drInsert.run(safeParams(drCols, row));
       for (const row of allT2Rows) postInsert.run(safeParams(postCols, row));
+      for (const [key, rows] of importedByKey) {
+        const [bead, sheet] = key.split('\x00');
+        if (alignRawdataSheetName(bead, sheet, rows)) summary.rawdata_renamed++;
+        else if (ensureRawdataSkeleton(bead, sheet, rows)) summary.rawdata_created++;
+        summary.rawdata_od_rows += upsertRawdataRows(bead, sheet, rawdataByKey.get(key) || []);
+        summary.rawdata_conc_rows += applyConcentrationRows(bead, sheet);
+      }
     })();
     res.json(summary);
   } catch (err) {

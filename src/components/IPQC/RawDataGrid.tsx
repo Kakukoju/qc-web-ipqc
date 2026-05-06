@@ -17,10 +17,9 @@
  */
 
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { Settings, Upload } from 'lucide-react';
+import { Upload } from 'lucide-react';
 import type { RawDataRow, ColMeta } from '../../api/rawdata';
 import { fetchCalRules, fetchCsAssign, fetchP01PN, type CalRule, type CsAssignRow } from '../../api/rawdata';
-import WellConfigModal from './WellConfigModal';
 import LoadCsvModal from './LoadCsvModal';
 
 // ── Constants ──────────────────────────────────────────────────────────────
@@ -98,7 +97,6 @@ function fmtCell(v: string | number | null | undefined): string {
 // ── Component ──────────────────────────────────────────────────────────────
 
 export default function RawDataGrid({ tableType, rows, meta, beadName, nReagents, onRowChange, onBatchChange, onMetaChange, onRefresh, saving, dirtyCount, onSave }: Props) {
-  const [showWellConfig, setShowWellConfig] = useState(false);
   const [showLoadCsv, setShowLoadCsv] = useState(false);
   const [calRules, setCalRules] = useState<CalRule[]>([]);
   const [csData, setCsData] = useState<CsAssignRow[]>([]);
@@ -502,13 +500,6 @@ export default function RawDataGrid({ tableType, rows, meta, beadName, nReagents
           {dirtyCount > 0 && (
             <span className="text-xs text-[#FFB84D]">{dirtyCount} 筆已修改</span>
           )}
-          <button
-            onClick={() => setShowWellConfig(true)}
-            className="flex items-center gap-1 px-2.5 py-1 rounded text-xs font-medium transition-colors
-              bg-[#4DA3FF]/10 border border-[#4DA3FF]/30 text-[#4DA3FF] hover:bg-[#4DA3FF]/20"
-          >
-            <Settings size={11} /> 修改 Well 配置
-          </button>
           {/* Load CSV: only on well_od for normal markers, only on od_corrected for tCREA */}
           {((beadName === 'tCREA' && tableType === 'od_corrected') ||
             (beadName !== 'tCREA' && tableType === 'well_od')) && (
@@ -640,14 +631,7 @@ export default function RawDataGrid({ tableType, rows, meta, beadName, nReagents
           </tbody>
         </table>
       </div>
-      {showWellConfig && (
-        <WellConfigModal
-          beadName={beadName}
-          meta={meta}
-          onSaved={newMeta => onMetaChange?.(newMeta)}
-          onClose={() => setShowWellConfig(false)}
-        />
-      )}
+
       {showLoadCsv && (
         <LoadCsvModal
           levels={[...levelOrder.keys()]}

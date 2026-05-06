@@ -1,7 +1,7 @@
 export type MarkerName = string;
 
 export interface MarkerConfig {
-  colIndex: number; // 對應 CSV 欄位索引（0-based）
+  colIndex: number; // well N → colIndex = N（CSV col 0 是 row label，well N 在 col N）
   name: MarkerName; // 例如 ALP / TBIL / DBIL / Ca / GLU / Na
   nm1: number; // marker_nm1
   nm2: number; // marker_nm2

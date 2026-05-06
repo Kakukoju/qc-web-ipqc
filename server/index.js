@@ -12,6 +12,7 @@ import ipqcwellRoutes from './routes/ipqcwell.js';
 import excelImportRoutes from './routes/excel-import.js';
 import tuttiRoutes from './routes/tutti.js';
 import personnelRoutes from './routes/personnel.js';
+import templateRoutes from './routes/template.js';
 
 dotenv.config();
 
@@ -29,6 +30,7 @@ app.use('/api/ipqcwell', ipqcwellRoutes);
 app.use('/api/excel-import', excelImportRoutes);
 app.use('/api/tutti', tuttiRoutes);
 app.use('/api/personnel', personnelRoutes);
+app.use('/api/template', templateRoutes);
 
 // ── Global search across drbeadinspection + posts ─────────────────────────
 import db from './db/sqlite.js';

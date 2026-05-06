@@ -372,6 +372,26 @@ function fmtSpec(v: string | null): string {
   });
 }
 
+/** Check if a value exceeds spec. Supports formats: "<7%", "< 0.07", "2~3", "±5%" */
+function isOverSpec(value: number | null, specText: string | null): boolean {
+  if (value === null || !specText) return false;
+  // Range format: "2~3" or "2-3"
+  const rangeMatch = specText.match(/([\d.]+)\s*[-~]\s*([\d.]+)/);
+  if (rangeMatch) {
+    const min = parseFloat(rangeMatch[1]);
+    const max = parseFloat(rangeMatch[2]);
+    return value < min || value > max;
+  }
+  // Threshold format: "<7%", "< 0.07", "≤ 8%"
+  const thMatch = specText.match(/[<≤]\s*[±]?\s*([\d.]+)\s*(%?)/);
+  if (thMatch) {
+    let th = parseFloat(thMatch[1]);
+    if (thMatch[2] === '%') th = th / 100;
+    return Math.abs(value) > th;
+  }
+  return false;
+}
+
 function InspectionFormModal({
   records,
   spec,
@@ -406,10 +426,16 @@ function InspectionFormModal({
     </>
   );
 
-  // Numeric % cells (assay measurements) — multiply raw decimal × 100, 1 d.p.
-  const numCells = (getter: (r: DrBeadRecord) => string | null, rowIdx: number) => (
+  // Numeric % cells (assay measurements) — multiply raw decimal × 100, 1 d.p. + over-spec red
+  const numCells = (getter: (r: DrBeadRecord) => string | null, rowIdx: number, specText?: string | null) => (
     <>
-      {records.map((rec, i) => <td key={i} style={td}>{fmtPct(getter(rec))}</td>)}
+      {records.map((rec, i) => {
+        const raw = getter(rec);
+        const n = raw ? parseFloat(raw) : null;
+        const display = fmtPct(raw);
+        const overSpec = isOverSpec(n, specText ?? null);
+        return <td key={i} style={{ ...td, ...(overSpec ? { color: '#dc2626', fontWeight: 700 } : {}) }}>{display}</td>;
+      })}
       {Array(empty).fill(0).map((_, i) => <td key={`n${rowIdx}_${i}`} style={td}></td>)}
     </>
   );
@@ -613,7 +639,7 @@ function InspectionFormModal({
                 {ri === 0 && <td rowSpan={arr.length} style={{ ...th, verticalAlign: 'middle' }}>☑OD CV</td>}
                 <td style={td}>{row.lv}</td>
                 <td style={{ ...td, fontSize: 10, color: '#555' }}>{fmtSpec(row.sp ?? null)}</td>
-                {numCells(row.g, 10 + ri)}
+                {numCells(row.g, 10 + ri, row.sp)}
               </tr>
             ))}
             {/* Conc.CV — show rows that have data */}
@@ -627,7 +653,7 @@ function InspectionFormModal({
                 {ri === 0 && <td rowSpan={arr.length} style={{ ...th, verticalAlign: 'middle' }}>☑Conc.CV</td>}
                 <td style={td}>{row.lv}</td>
                 <td style={{ ...td, fontSize: 10, color: '#555' }}>{fmtSpec(row.sp ?? null)}</td>
-                {numCells(row.g, 20 + ri)}
+                {numCells(row.g, 20 + ri, row.sp)}
               </tr>
             ))}
             {/* Mean Bias */}
@@ -639,7 +665,7 @@ function InspectionFormModal({
                 {ri === 0 && <td rowSpan={2} style={{ ...th, verticalAlign: 'middle' }}>Mean Bias</td>}
                 <td style={td}>{row.lv}</td>
                 <td style={{ ...td, fontSize: 10, color: '#555' }}>{fmtSpec(row.sp ?? null)}</td>
-                {numCells(row.g, 30 + ri)}
+                {numCells(row.g, 30 + ri, row.sp)}
               </tr>
             ))}
             {/* 全批次CV */}
@@ -651,7 +677,7 @@ function InspectionFormModal({
                 {ri === 0 && <td rowSpan={2} style={{ ...th, verticalAlign: 'middle' }}>全批次CV</td>}
                 <td style={td}>{row.lv}</td>
                 <td style={{ ...td, fontSize: 10, color: '#555' }}>{fmtSpec(row.sp ?? null)}</td>
-                {numCells(row.g, 40 + ri)}
+                {numCells(row.g, 40 + ri, row.sp)}
               </tr>
             ))}
             {/* 起始值 */}
@@ -662,8 +688,16 @@ function InspectionFormModal({
               <tr key={`ic${ri}`}>
                 {ri === 0 && <td rowSpan={2} style={{ ...th, verticalAlign: 'middle' }}>起始值</td>}
                 <td style={td}>{row.lv}</td>
-                <td style={{ ...td, fontSize: 10, color: '#555' }}>{fmtSpec(row.sp ?? null)}</td>
-                {numCells(row.g, 50 + ri)}
+                <td style={{ ...td, fontSize: 10, color: '#555' }}>{row.sp || '—'}</td>
+                {/* 起始值是 OD 值，不需 *100 轉 % */}
+                {records.map((rec, i) => {
+                  const v = row.g(rec);
+                  const n = v ? parseFloat(v) : null;
+                  const display = n !== null && !isNaN(n) ? n.toFixed(4) : (v || '');
+                  const overSpec = isOverSpec(n, row.sp ?? null);
+                  return <td key={i} style={{ ...td, ...(overSpec ? { color: '#dc2626', fontWeight: 700 } : {}) }}>{display}</td>;
+                })}
+                {Array(empty).fill(0).map((_, i) => <td key={`e50${ri}_${i}`} style={td}></td>)}
               </tr>
             ))}
             {/* 併批判定 */}

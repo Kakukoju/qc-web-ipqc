@@ -114,6 +114,16 @@ export async function deleteSheet(bead_name: string, sheet_name: string): Promis
   return res.json();
 }
 
+export async function renameSheet(bead_name: string, old_name: string, new_name: string): Promise<{ ok: boolean }> {
+  const res = await fetch(`${BASE}/sheets/rename`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ bead_name, old_name, new_name }),
+  });
+  if (!res.ok) throw new Error(`renameSheet ${res.status}`);
+  return res.json();
+}
+
 export async function syncQcTables(bead_name: string, sheet_name: string): Promise<{ ok: boolean; synced: number }> {
   const res = await fetch(`${BASE}/sync-qc`, {
     method: 'POST',
@@ -151,8 +161,8 @@ export interface WellUpdate {
   row3: string | null;
 }
 
-export function updateRawdataMeta(bead_name: string, wells: WellUpdate[]): Promise<ColMeta[]> {
-  return put<ColMeta[]>('/meta', { bead_name, wells });
+export function updateRawdataMeta(bead_name: string, wells: WellUpdate[], sheet_name?: string): Promise<ColMeta[]> {
+  return put<ColMeta[]>('/meta', { bead_name, wells, sheet_name });
 }
 
 // ── CS Assign (concentration targets) ──────────────────────────────────

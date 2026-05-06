@@ -15,6 +15,7 @@ import {
   fetchWellTemplates, saveWellTemplate, deleteWellTemplate,
   type CalRule, type ColMeta, type WellUpdate, type WellTemplate,
 } from '../../api/rawdata';
+import { fetchTemplates, saveTemplate, deleteTemplate, type TestTemplate } from '../../api/template';
 
 const WELLS = ['W2','W3','W4','W5','W6','W7','W8','W9','W10','W11','W12','W13','W14','W15','W16','W17','W18','W19'];
 
@@ -48,15 +49,22 @@ export default function WellConfigModal({ beadName, meta, onSaved, onClose }: Pr
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
-  // template controls
+  // well-position template controls
   const [selTemplate, setSelTemplate] = useState('');
   const [newTplName, setNewTplName] = useState('');
   const [showSaveInput, setShowSaveInput] = useState(false);
 
+  // measurement (test) template controls
+  const [testTemplates, setTestTemplates] = useState<TestTemplate[]>([]);
+  const [selTestTpl, setSelTestTpl] = useState('');
+  const [newTestTplName, setNewTestTplName] = useState('');
+  const [showTestSaveInput, setShowTestSaveInput] = useState(false);
+
   useEffect(() => {
-    Promise.all([fetchCalRules(), fetchWellTemplates()]).then(([r, t]) => {
+    Promise.all([fetchCalRules(), fetchWellTemplates(), fetchTemplates()]).then(([r, t, tt]) => {
       setRules(r);
       setTemplates(t);
+      setTestTemplates(tt);
       initFromMeta(meta);
       setLoading(false);
     });
@@ -124,6 +132,67 @@ export default function WellConfigModal({ beadName, meta, onSaved, onClose }: Pr
     }
   };
 
+  // ── Test (measurement) template actions ────────────────────────────────
+
+  /** Extract marker assignments from current wellRows for measurement_templates */
+  function wellRowsToTestTemplate(): { markers: string[]; wells: { wellNum: number; assignment: string }[] } {
+    const wells: { wellNum: number; assignment: string }[] = [];
+    for (const w of wellRows) {
+      if (!w.row1) continue;
+      const wellNum = parseInt(w.well.replace(/\D/g, ''), 10);
+      wells.push({ wellNum, assignment: w.row1 === 'Blank' ? 'Blank' : w.row1 });
+    }
+    const markers = [...new Set(wells.map(w => w.assignment).filter(a => a && a !== 'Blank'))];
+    return { markers, wells };
+  }
+
+  /** Load a test template into the well grid */
+  const handleLoadTestTemplate = (tplId: string) => {
+    setSelTestTpl(tplId);
+    if (!tplId) return;
+    const tpl = testTemplates.find(t => String(t.id) === tplId);
+    if (!tpl) return;
+    // Build assignment map: wellNum → marker name
+    const assignMap = new Map(tpl.wells.map(w => [w.wellNum, w.assignment]));
+    setWellRows(prev => prev.map(w => {
+      const wellNum = parseInt(w.well.replace(/\D/g, ''), 10);
+      const assignment = assignMap.get(wellNum) || '';
+      const { row2, row3 } = assignment ? computeRow2Row3(assignment, rules) : { row2: '', row3: '' };
+      return { well: w.well, row1: assignment, row2, row3 };
+    }));
+  };
+
+  const handleSaveTestTemplate = async () => {
+    const name = newTestTplName.trim();
+    if (!name) return;
+    const { markers, wells } = wellRowsToTestTemplate();
+    if (markers.length < 2) { alert('測試模板需要至少 2 個不同 marker'); return; }
+    try {
+      await saveTemplate(name, markers, wells);
+      const tt = await fetchTemplates();
+      setTestTemplates(tt);
+      setNewTestTplName('');
+      setShowTestSaveInput(false);
+    } catch (e: any) {
+      alert('儲存測試模板失敗: ' + e.message);
+    }
+  };
+
+  const handleDeleteTestTemplate = async (tpl: TestTemplate) => {
+    if (!confirm(`確定刪除測試模板「${tpl.name}」？`)) return;
+    try {
+      await deleteTemplate(tpl.id);
+      const tt = await fetchTemplates();
+      setTestTemplates(tt);
+      if (selTestTpl === String(tpl.id)) setSelTestTpl('');
+    } catch (e: any) {
+      alert('刪除失敗: ' + e.message);
+    }
+  };
+
+  // Derived: current markers summary for test template preview
+  const currentTestMarkers = wellRowsToTestTemplate().markers;
+
   // ── Save to rawdata_meta ──────────────────────────────────────────────
 
   const handleSave = async () => {
@@ -152,30 +221,26 @@ export default function WellConfigModal({ beadName, meta, onSaved, onClose }: Pr
           <button onClick={onClose} className="text-[#556A88] hover:text-[#EAF2FF]"><X size={16} /></button>
         </div>
 
-        {/* Template bar */}
+        {/* Template bar — well-position templates */}
         <div className="flex items-center gap-2 px-4 py-2 border-b border-[#1E3050] bg-[#0B1220]">
-          <span className="text-[10px] text-[#556A88]">模板</span>
+          <span className="text-[10px] text-[#556A88]">Well 模板</span>
           <select value={selTemplate} onChange={e => handleLoadTemplate(e.target.value)}
-            className="bg-[#0d1f3a] border border-[#2A3754] text-[#D4E8FF] text-xs rounded px-2 py-1 focus:outline-none focus:border-[#4DA3FF] min-w-[140px]">
-            <option value="">— 選擇模板 —</option>
+            className="bg-[#0d1f3a] border border-[#2A3754] text-[#D4E8FF] text-xs rounded px-2 py-1 focus:outline-none focus:border-[#4DA3FF] min-w-[120px]">
+            <option value="">— 選擇 —</option>
             {templates.map(t => <option key={t.id} value={String(t.id)}>{t.name}</option>)}
           </select>
-
           {selTemplate && (
             <button onClick={() => { const tpl = templates.find(t => String(t.id) === selTemplate); if (tpl) handleDeleteTemplate(tpl); }}
               className="flex items-center gap-0.5 px-1.5 py-1 text-[10px] text-[#FF5C73] hover:bg-[#FF5C73]/10 rounded"
-              title="刪除此模板">
-              <Trash2 size={10} />
-            </button>
+              title="刪除此模板"><Trash2 size={10} /></button>
           )}
-
-          <div className="ml-auto flex items-center gap-1">
+          <div className="flex items-center gap-1">
             {showSaveInput ? (
               <>
                 <input value={newTplName} onChange={e => setNewTplName(e.target.value)}
                   placeholder="模板名稱" autoFocus
                   onKeyDown={e => { if (e.key === 'Enter') handleSaveTemplate(); if (e.key === 'Escape') setShowSaveInput(false); }}
-                  className="bg-[#0d1f3a] border border-[#4DA3FF] text-[#D4E8FF] text-xs rounded px-2 py-1 w-32 focus:outline-none" />
+                  className="bg-[#0d1f3a] border border-[#4DA3FF] text-[#D4E8FF] text-xs rounded px-2 py-1 w-28 focus:outline-none" />
                 <button onClick={handleSaveTemplate} disabled={!newTplName.trim()}
                   className="flex items-center gap-0.5 px-2 py-1 text-[10px] font-medium rounded bg-[#4DA3FF]/20 text-[#4DA3FF] hover:bg-[#4DA3FF]/30 disabled:opacity-40">
                   <Save size={10} /> 存
@@ -190,7 +255,62 @@ export default function WellConfigModal({ beadName, meta, onSaved, onClose }: Pr
               </button>
             )}
           </div>
+
+          {/* Separator */}
+          <div className="w-px h-5 bg-[#2A3754] mx-1" />
+
+          {/* Test (measurement) template controls */}
+          <span className="text-[10px] text-[#A78BFA]">測試模板</span>
+          <select value={selTestTpl} onChange={e => handleLoadTestTemplate(e.target.value)}
+            className="bg-[#0d1f3a] border border-[#A78BFA]/40 text-[#D4E8FF] text-xs rounded px-2 py-1 focus:outline-none focus:border-[#A78BFA] min-w-[120px]">
+            <option value="">— 選擇 —</option>
+            {testTemplates.map(t => <option key={t.id} value={String(t.id)}>{t.name} ({t.markers.join(',')})</option>)}
+          </select>
+          {selTestTpl && (
+            <button onClick={() => { const tpl = testTemplates.find(t => String(t.id) === selTestTpl); if (tpl) handleDeleteTestTemplate(tpl); }}
+              className="flex items-center gap-0.5 px-1.5 py-1 text-[10px] text-[#FF5C73] hover:bg-[#FF5C73]/10 rounded"
+              title="刪除此測試模板"><Trash2 size={10} /></button>
+          )}
+          <div className="flex items-center gap-1 ml-auto">
+            {showTestSaveInput ? (
+              <>
+                <input value={newTestTplName} onChange={e => setNewTestTplName(e.target.value)}
+                  placeholder="測試模板名稱" autoFocus
+                  onKeyDown={e => { if (e.key === 'Enter') handleSaveTestTemplate(); if (e.key === 'Escape') setShowTestSaveInput(false); }}
+                  className="bg-[#0d1f3a] border border-[#A78BFA] text-[#D4E8FF] text-xs rounded px-2 py-1 w-28 focus:outline-none" />
+                <button onClick={handleSaveTestTemplate} disabled={!newTestTplName.trim()}
+                  className="flex items-center gap-0.5 px-2 py-1 text-[10px] font-medium rounded bg-[#A78BFA]/20 text-[#A78BFA] hover:bg-[#A78BFA]/30 disabled:opacity-40">
+                  <Save size={10} /> 存
+                </button>
+                <button onClick={() => setShowTestSaveInput(false)}
+                  className="px-1.5 py-1 text-[10px] text-[#556A88] hover:text-[#EAF2FF]">取消</button>
+              </>
+            ) : (
+              <button onClick={() => { setShowTestSaveInput(true); setNewTestTplName(''); }}
+                disabled={currentTestMarkers.length < 2}
+                className="flex items-center gap-1 px-2 py-1 text-[10px] font-medium rounded bg-[#A78BFA]/10 border border-[#A78BFA]/30 text-[#A78BFA] hover:bg-[#A78BFA]/20 disabled:opacity-30"
+                title={currentTestMarkers.length < 2 ? '需要至少 2 個不同 marker' : ''}>
+                <Download size={10} /> 另存測試模板
+              </button>
+            )}
+          </div>
         </div>
+
+        {/* Test template markers preview */}
+        {currentTestMarkers.length >= 2 && (
+          <div className="flex items-center gap-2 px-4 py-1 border-b border-[#1E3050] bg-[#0B1220]/50">
+            <span className="text-[9px] text-[#A78BFA]/60">測試模板預覽:</span>
+            {currentTestMarkers.map(m => {
+              const mWells = wellRows.filter(w => w.row1 === m).map(w => w.well).join(',');
+              return (
+                <span key={m} className="text-[9px]">
+                  <span className="text-[#A78BFA] font-medium">{m}</span>
+                  <span className="text-[#556A88]">({mWells})</span>
+                </span>
+              );
+            })}
+          </div>
+        )}
 
         {/* Body */}
         <div className="flex-1 overflow-auto p-4">

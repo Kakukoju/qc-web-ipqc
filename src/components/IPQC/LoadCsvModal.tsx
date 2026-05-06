@@ -76,7 +76,7 @@ function buildMarkerConfigs(meta: ColMeta[], calRules: CalRule[]): MarkerConfig[
     const marker = normalizeMarkerName(rule.marker);
     const wellNum = parseInt(m.well.replace(/\D/g, ''), 10);
     configs.push({
-      colIndex: wellNum - 1,
+      colIndex: wellNum,
       name: marker,
       nm1: Number(rule['主波 (CH)']) || 0,
       nm2: Number(rule['副波 (CH)']) || 0,
@@ -160,7 +160,7 @@ export default function LoadCsvModal({ levels, meta, calRules, csData, rows, tab
       for (const m of meta.filter(m => m.table_type === 'well_od')) {
         const wn = parseInt(m.well.replace(/\D/g, ''), 10);
         const fi = wn - 2;
-        if (fi >= 0 && fi < WELL_FIELDS.length) wellFieldMap.set(wn - 1, WELL_FIELDS[fi]);
+        if (fi >= 0 && fi < WELL_FIELDS.length) wellFieldMap.set(wn, WELL_FIELDS[fi]);
       }
 
       // ── Step 1: Calculate OD from CSV files ──

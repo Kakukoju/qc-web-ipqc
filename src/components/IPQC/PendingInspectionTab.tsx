@@ -1,7 +1,7 @@
 import { useState } from 'react';
-import { CheckCircle, AlertCircle, Loader2, Save } from 'lucide-react';
+import { CheckCircle, AlertCircle, Loader2, Save, Trash2 } from 'lucide-react';
 import { useFetch } from '../../api/useFetch';
-import { fetchPendingInspection, activateInspection, type PendingInspection as PI } from '../../api/schedule';
+import { fetchPendingInspection, activateInspection, deletePendingInspection, type PendingInspection as PI } from '../../api/schedule';
 
 const VISUAL_OPTIONS = ['PASS', 'NG'] as const;
 
@@ -115,11 +115,23 @@ export default function PendingInspectionTab({ onActivated }: { onActivated?: (b
                       <Select value={d.color} onChange={v => setField(item.id, 'color', v)} />
                     </td>
                     <td className="px-2 py-2 text-center">
-                      <button onClick={() => handleSave(item)} disabled={isSaving}
-                        className="flex items-center gap-1 px-2 py-1 rounded bg-[#00D4AA]/20 text-[#00D4AA] text-[10px] hover:bg-[#00D4AA]/30 disabled:opacity-50 mx-auto">
-                        {isSaving ? <Loader2 size={10} className="animate-spin" /> : <Save size={10} />}
-                        儲存
-                      </button>
+                      <div className="flex items-center gap-1 justify-center">
+                        <button onClick={() => handleSave(item)} disabled={isSaving}
+                          className="flex items-center gap-1 px-2 py-1 rounded bg-[#00D4AA]/20 text-[#00D4AA] text-[10px] hover:bg-[#00D4AA]/30 disabled:opacity-50">
+                          {isSaving ? <Loader2 size={10} className="animate-spin" /> : <Save size={10} />}
+                          儲存
+                        </button>
+                        <button onClick={async () => {
+                          if (!confirm(`確定刪除 ${item.bead_name} 待檢驗項目？`)) return;
+                          try {
+                            await deletePendingInspection(item.id);
+                            refresh();
+                          } catch (e: any) { alert('刪除失敗: ' + e.message); }
+                        }}
+                          className="flex items-center gap-0.5 px-1.5 py-1 rounded bg-[#FF5C73]/10 text-[#FF5C73] text-[10px] hover:bg-[#FF5C73]/20">
+                          <Trash2 size={10} />
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 );

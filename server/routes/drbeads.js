@@ -383,7 +383,9 @@ router.get('/kpi', (req, res) => {
     FROM drbeadinspection
   `;
   const t1 = year ? db.prepare(t1Sql).get(yearLike(year)) : db.prepare(t1Sql).get();
-  const t2Sql = year ? `SELECT COUNT(*) AS total FROM posts WHERE insp_date LIKE ?` : `SELECT COUNT(*) AS total FROM posts`;
+  const t2Sql = year
+    ? `SELECT COUNT(DISTINCT bead_name || '|' || sheet_name || '|' || COALESCE(lot_bigD,'') || COALESCE(lot_u,'')) AS total FROM posts WHERE insp_date LIKE ?`
+    : `SELECT COUNT(DISTINCT bead_name || '|' || sheet_name || '|' || COALESCE(lot_bigD,'') || COALESCE(lot_u,'')) AS total FROM posts`;
   const t2 = year ? db.prepare(t2Sql).get(yearLike(year)) : db.prepare(t2Sql).get();
   res.json({
     total_batches: t1.total_batches || 0,
@@ -464,6 +466,41 @@ router.get('/anomalies', (req, res) => {
   `;
   const rows = year ? db.prepare(sql).all(yearLike(year)) : db.prepare(sql).all();
   res.json(rows);
+});
+
+// GET /api/drbeads/notifications — today's NG/Fail/Hold items for notification bell
+router.get('/notifications', (_req, res) => {
+  const today = new Date().toISOString().slice(0, 10);
+  const sql = `
+    SELECT bead_name, sheet_name, insp_date, final_decision AS reason, 'drbeads' AS source
+    FROM drbeadinspection
+    WHERE insp_date LIKE ? AND (
+      UPPER(COALESCE(final_decision,'')) LIKE '%FAIL%'
+      OR UPPER(COALESCE(final_decision,'')) LIKE '%NG%'
+      OR UPPER(COALESCE(final_decision,'')) LIKE '%REJECT%'
+      OR UPPER(COALESCE(final_decision,'')) LIKE '%HOLD%'
+      OR UPPER(COALESCE(final_decision,'')) LIKE '%不可%'
+    )
+    UNION ALL
+    SELECT bead_name, sheet_name, insp_date, COALESCE(final_judge, fb_initial_judge, sb_judge_result) AS reason, 'posts' AS source
+    FROM posts
+    WHERE insp_date LIKE ? AND (
+      UPPER(COALESCE(final_judge,'')) LIKE '%FAIL%'
+      OR UPPER(COALESCE(final_judge,'')) LIKE '%NG%'
+      OR UPPER(COALESCE(final_judge,'')) LIKE '%HOLD%'
+      OR UPPER(COALESCE(final_judge,'')) LIKE '%不可%'
+      OR UPPER(COALESCE(fb_initial_judge,'')) LIKE '%FAIL%'
+      OR UPPER(COALESCE(sb_judge_result,'')) LIKE '%FAIL%'
+    )
+    ORDER BY insp_date DESC
+    LIMIT 20
+  `;
+  try {
+    const rows = db.prepare(sql).all(today + '%', today + '%');
+    res.json(rows);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
 // GET /api/drbeads/ng-lots — lots where final_decision is NG/FAIL/Reject

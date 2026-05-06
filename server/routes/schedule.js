@@ -432,6 +432,8 @@ router.post('/import', (req, res) => {
   function compressLots(lots, stripPrefix) {
     lots = lots.filter(l => l && l.trim());
     if (!lots.length) return '';
+    // Sort ascending so sheet name digits are in order (e.g. 1234 not 4321)
+    lots.sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
     if (lots.length === 1) return stripPrefix ? lots[0].slice(3) : lots[0];
     let prefix = lots[0];
     for (let i = 1; i < lots.length; i++) {
@@ -697,6 +699,17 @@ router.post('/activate', (req, res) => {
     }
 
     // 4. Create skeleton rawdata rows from ALL records' lots
+    // Sort by lot last char: 1~9 then A~Z
+    const lotSortKey = (rec) => {
+      const lot = rec.bigD_lot || rec.d_lot || rec.u_lot || '';
+      const lastChar = lot.slice(-1);
+      if (lastChar >= '0' && lastChar <= '9') return lastChar.charCodeAt(0) - 48;
+      if (lastChar >= 'A' && lastChar <= 'Z') return lastChar.charCodeAt(0) - 55;
+      if (lastChar >= 'a' && lastChar <= 'z') return lastChar.charCodeAt(0) - 87;
+      return 999;
+    };
+    allRecords.sort((a, b) => lotSortKey(a) - lotSortKey(b));
+
     // 每個 combo record 存個別 d_lot, bigD_lot, u_lot
     const insertRaw = db.prepare(`
       INSERT OR IGNORE INTO rawdata
@@ -747,6 +760,19 @@ router.get('/sync', async (_req, res) => {
   await syncScheduleCache();
   const count = db.prepare('SELECT COUNT(*) AS n FROM schedule_cache').get();
   res.json({ synced: count.n, lastSync: new Date(lastSyncTime).toISOString() });
+});
+
+// ── DELETE /api/schedule/pending-inspection/:id ── delete pending inspection item
+router.delete('/pending-inspection/:id', (req, res) => {
+  try {
+    const { id } = req.params;
+    const row = db.prepare('SELECT bead_name, sheet_name FROM drbeadinspection WHERE id = ?').get(id);
+    if (!row) return res.status(404).json({ error: 'Not found' });
+    db.prepare('DELETE FROM drbeadinspection WHERE bead_name = ? AND sheet_name = ?').run(row.bead_name, row.sheet_name);
+    res.json({ ok: true, deleted: row.bead_name });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
 export default router;

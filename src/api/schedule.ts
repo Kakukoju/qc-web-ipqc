@@ -88,3 +88,11 @@ export async function activateInspection(
   }
   return res.json();
 }
+
+export async function deletePendingInspection(id: number): Promise<void> {
+  const res = await fetch(`${BASE}/pending-inspection/${id}`, { method: 'DELETE' });
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}));
+    throw new Error(body.error || `API ${res.status}`);
+  }
+}

@@ -226,9 +226,9 @@ export function loadTransposedRuleBook(
     const moving = num(movingRow?.[col]);
     const secondWaveMultiplier = num(swmRow?.[col]);
 
-    // well number: "well 3" → 3, 用 0-based colIndex = wellNumber - 1
+    // well number: "well 3" → 3, CSV col 0 is row label so well N is at col index N
     const wellNum = parseInt(wellRaw.replace(/\D/g, ""), 10);
-    const colIndex = Number.isFinite(wellNum) ? wellNum - 1 : col;
+    const colIndex = Number.isFinite(wellNum) ? wellNum : col;
 
     configs.push({
       colIndex,
@@ -294,7 +294,7 @@ export function buildConfigsFromWellAssignments(
     }
 
     configs.push({
-      colIndex: a.wellNumber - 1,
+      colIndex: a.wellNumber,
       name: normalized,
       nm1: rule.nm1,
       nm2: rule.nm2,

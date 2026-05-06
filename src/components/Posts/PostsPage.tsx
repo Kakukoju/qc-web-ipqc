@@ -46,16 +46,29 @@ function fmtN(v: string | null): string {
   return n.toFixed(4);
 }
 
-function warnCv(v: string | null): string {
+function warnCv(v: string | null, spec?: SpecRow | null): string {
   if (!v) return 'text-[#EAF2FF]';
   const n = Math.abs(parseFloat(v));
-  return !isNaN(n) && n > 0.07 ? 'text-[#FF5C73] font-semibold' : 'text-[#EAF2FF]';
+  if (isNaN(n)) return 'text-[#EAF2FF]';
+  // Parse threshold from spec
+  let th = 0.07; // default fallback
+  if (spec?.single_cv) {
+    const m = spec.single_cv.match(/[<≤]\s*[±]?\s*([\d.]+)\s*(%?)/);
+    if (m) th = m[2] === '%' ? parseFloat(m[1]) / 100 : parseFloat(m[1]);
+  }
+  return n > th ? 'text-[#FF5C73] font-semibold' : 'text-[#EAF2FF]';
 }
 
-function warnBias(v: string | null): string {
+function warnBias(v: string | null, spec?: SpecRow | null): string {
   if (!v) return 'text-[#EAF2FF]';
   const n = Math.abs(parseFloat(v));
-  return !isNaN(n) && n > 0.05 ? 'text-[#FF5C73] font-semibold' : 'text-[#EAF2FF]';
+  if (isNaN(n)) return 'text-[#EAF2FF]';
+  let th = 0.05;
+  if (spec?.merge_bias) {
+    const m = spec.merge_bias.match(/[<≤]\s*[±]?\s*([\d.]+)\s*(%?)/);
+    if (m) th = m[2] === '%' ? parseFloat(m[1]) / 100 : parseFloat(m[1]);
+  }
+  return n > th ? 'text-[#FF5C73] font-semibold' : 'text-[#EAF2FF]';
 }
 
 /** Map PostRecord fields to MeasuredValues for judgeRecord */
@@ -453,28 +466,28 @@ function SheetDetail({ records, spec, csMeta, onSaved }: {
                   <td className="px-1 py-2 text-center text-[#EAF2FF] text-[11px]">{fmtN(rec.od_mean_n1)}</td>
                   <td className="px-1 py-2 text-center text-[#EAF2FF] text-[11px]">{fmtN(rec.od_mean_n3)}</td>
                   <td className="px-1 py-2 text-center text-[11px]">
-                    <span className={warnCv(rec.od_cv_l1)}>{pct(rec.od_cv_l1)}</span>
+                    <span className={warnCv(rec.od_cv_l1, spec)}>{pct(rec.od_cv_l1)}</span>
                   </td>
                   <td className="px-1 py-2 text-center text-[11px]">
-                    <span className={warnCv(rec.od_cv_l2)}>{pct(rec.od_cv_l2)}</span>
+                    <span className={warnCv(rec.od_cv_l2, spec)}>{pct(rec.od_cv_l2)}</span>
                   </td>
                   <td className="px-1 py-2 text-center text-[11px]">
-                    <span className={warnCv(rec.od_cv_n1)}>{pct(rec.od_cv_n1)}</span>
+                    <span className={warnCv(rec.od_cv_n1, spec)}>{pct(rec.od_cv_n1)}</span>
                   </td>
                   <td className="px-1 py-2 text-center text-[11px]">
-                    <span className={warnCv(rec.od_cv_n3)}>{pct(rec.od_cv_n3)}</span>
+                    <span className={warnCv(rec.od_cv_n3, spec)}>{pct(rec.od_cv_n3)}</span>
                   </td>
                   <td className="px-1 py-2 text-center text-[11px]">
-                    <span className={warnBias(rec.od_bias_l1)}>{pct(rec.od_bias_l1)}</span>
+                    <span className={warnBias(rec.od_bias_l1, spec)}>{pct(rec.od_bias_l1)}</span>
                   </td>
                   <td className="px-1 py-2 text-center text-[11px]">
-                    <span className={warnBias(rec.od_bias_l2)}>{pct(rec.od_bias_l2)}</span>
+                    <span className={warnBias(rec.od_bias_l2, spec)}>{pct(rec.od_bias_l2)}</span>
                   </td>
                   <td className="px-1 py-2 text-center text-[11px]">
-                    <span className={warnBias(rec.od_bias_n1)}>{pct(rec.od_bias_n1)}</span>
+                    <span className={warnBias(rec.od_bias_n1, spec)}>{pct(rec.od_bias_n1)}</span>
                   </td>
                   <td className="px-1 py-2 text-center text-[11px]">
-                    <span className={warnBias(rec.od_bias_n3)}>{pct(rec.od_bias_n3)}</span>
+                    <span className={warnBias(rec.od_bias_n3, spec)}>{pct(rec.od_bias_n3)}</span>
                   </td>
                   <td className="px-2 py-2 text-center">
                     <JudgeChip value={(() => {
@@ -551,24 +564,24 @@ function SheetDetail({ records, spec, csMeta, onSaved }: {
                   <td className="px-1 py-2 text-center text-[#EAF2FF] text-[11px]">{fmtN(rec.sb_conc_mean_l1)}</td>
                   <td className="px-1 py-2 text-center text-[#EAF2FF] text-[11px]">{fmtN(rec.sb_conc_mean_l2)}</td>
                   <td className="px-1 py-2 text-center text-[11px]">
-                    <span className={warnCv(rec.sb_conc_cv_l1)}>{pct(rec.sb_conc_cv_l1)}</span>
+                    <span className={warnCv(rec.sb_conc_cv_l1, spec)}>{pct(rec.sb_conc_cv_l1)}</span>
                   </td>
                   <td className="px-1 py-2 text-center text-[11px]">
-                    <span className={warnCv(rec.sb_conc_cv_l2)}>{pct(rec.sb_conc_cv_l2)}</span>
+                    <span className={warnCv(rec.sb_conc_cv_l2, spec)}>{pct(rec.sb_conc_cv_l2)}</span>
                   </td>
                   <td className="px-1 py-2 text-center text-[#EAF2FF] text-[11px]">{fmtN(rec.fb_conc_mean_l1)}</td>
                   <td className="px-1 py-2 text-center text-[#EAF2FF] text-[11px]">{fmtN(rec.fb_conc_mean_l2)}</td>
                   <td className="px-1 py-2 text-center text-[11px]">
-                    <span className={warnCv(rec.fb_conc_cv_l1)}>{pct(rec.fb_conc_cv_l1)}</span>
+                    <span className={warnCv(rec.fb_conc_cv_l1, spec)}>{pct(rec.fb_conc_cv_l1)}</span>
                   </td>
                   <td className="px-1 py-2 text-center text-[11px]">
-                    <span className={warnCv(rec.fb_conc_cv_l2)}>{pct(rec.fb_conc_cv_l2)}</span>
+                    <span className={warnCv(rec.fb_conc_cv_l2, spec)}>{pct(rec.fb_conc_cv_l2)}</span>
                   </td>
                   <td className="px-1 py-2 text-center text-[11px]">
-                    <span className={warnBias(rec.fb_bias_l1)}>{pct(rec.fb_bias_l1)}</span>
+                    <span className={warnBias(rec.fb_bias_l1, spec)}>{pct(rec.fb_bias_l1)}</span>
                   </td>
                   <td className="px-1 py-2 text-center text-[11px]">
-                    <span className={warnBias(rec.fb_bias_l2)}>{pct(rec.fb_bias_l2)}</span>
+                    <span className={warnBias(rec.fb_bias_l2, spec)}>{pct(rec.fb_bias_l2)}</span>
                   </td>
                   <td className="px-2 py-2 text-center"><JudgeSelect recId={rec.id} field="sb_judge_result" value={rec.sb_judge_result} autoValue={(() => { const j = judgeRecord(toMeasured(rec), spec); return j.batchLabel === '—' ? null : j.batchLabel; })()} onSaved={onSaved} /></td>
                   <td className="px-2 py-2 text-center"><JudgeSelect recId={rec.id} field="fb_initial_judge" value={rec.fb_initial_judge} autoValue={(() => { const j = judgeRecord(toMeasured(rec), spec); return j.mergeLabel === '—' ? null : j.mergeLabel; })()} onSaved={onSaved} /></td>

@@ -2,11 +2,13 @@ import { useState, useCallback, useEffect, useRef } from 'react';
 import RawDataView from './RawDataView';
 import PendingInspectionTab from './PendingInspectionTab';
 import ScheduleImport from './ScheduleImport';
+import TemplateScheduleImport from './TemplateScheduleImport';
 
 const TABS = [
   { id: 'rawdata',    label: '原始數據' },
   { id: 'inspection', label: '待檢驗' },
   { id: 'schedule',   label: '排產匯入' },
+  { id: 'tmpl-sched', label: '模組計算' },
 ] as const;
 
 type TabId = typeof TABS[number]['id'];
@@ -76,6 +78,7 @@ export default function IPQCWorkbench({ sharedLot, onLotChange, year }: {
       {tab === 'rawdata' && <RawDataView key={rawKey} initMarker={navTarget?.marker} initSheet={navTarget?.sheet} year={year} onSelectionChange={handleRawSelectionChange} />}
       {tab === 'inspection' && <PendingInspectionTab onActivated={handleActivated} />}
       {tab === 'schedule' && <ScheduleImport />}
+      {tab === 'tmpl-sched' && <TemplateScheduleImport />}
     </div>
   );
 }

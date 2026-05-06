@@ -180,8 +180,22 @@ router.get('/p01pn', (_req, res) => {
 });
 
 // GET /api/rawdata/markers — union of rawdata + posts bead_names
+// If sheet_name query param is provided, return markers sharing that sheet
 router.get('/markers', (req, res) => {
   const year = normalizeYear(req.query.year);
+  const sheetFilter = req.query.sheet_name;
+
+  if (sheetFilter) {
+    // Template mode: find all markers sharing this sheet_name
+    const rows = db.prepare(`
+      SELECT DISTINCT bead_name FROM rawdata WHERE sheet_name = ?
+      UNION
+      SELECT DISTINCT bead_name FROM posts WHERE sheet_name = ?
+      ORDER BY bead_name
+    `).all(sheetFilter, sheetFilter);
+    return res.json(rows.map(r => r.bead_name));
+  }
+
   const rows = db.prepare(`
     WITH pairs AS (
       SELECT bead_name, sheet_name FROM rawdata
@@ -248,7 +262,7 @@ router.get('/data', (req, res) => {
     if (!rowMatchesYear(info, year)) {
       const meta = db.prepare(`
         SELECT * FROM rawdata_meta
-        WHERE bead_name = ?
+        WHERE bead_name = ? AND sheet_name IS NULL
         ORDER BY table_type, well
       `).all(bead_name);
       return res.json({ rows: [], meta });
@@ -262,11 +276,20 @@ router.get('/data', (req, res) => {
     ORDER BY table_type, level, combo_idx
   `).all(bead_name, rawSheetName);
 
-  const meta = db.prepare(`
-    SELECT * FROM rawdata_meta
-    WHERE bead_name = ?
-    ORDER BY table_type, well
-  `).all(bead_name);
+  const meta = (() => {
+    // Prefer sheet-specific meta, fallback to default (sheet_name IS NULL)
+    const sheetMeta = db.prepare(`
+      SELECT * FROM rawdata_meta
+      WHERE bead_name = ? AND sheet_name = ?
+      ORDER BY table_type, well
+    `).all(bead_name, rawSheetName);
+    if (sheetMeta.length > 0) return sheetMeta;
+    return db.prepare(`
+      SELECT * FROM rawdata_meta
+      WHERE bead_name = ? AND sheet_name IS NULL
+      ORDER BY table_type, well
+    `).all(bead_name);
+  })();
 
   res.json({ rows, meta });
 });
@@ -361,31 +384,55 @@ router.post('/sheets', (req, res) => {
   }
 });
 
-// DELETE /api/rawdata/sheets — delete a sheet's rawdata rows
+// DELETE /api/rawdata/sheets — delete a sheet's rawdata rows + drbeadinspection + posts
 // Body: { bead_name, sheet_name }
 router.delete('/sheets', (req, res) => {
   const { bead_name, sheet_name } = req.body;
   if (!bead_name || !sheet_name) return res.status(400).json({ error: 'bead_name and sheet_name required' });
   try {
-    const info = db.prepare('DELETE FROM rawdata WHERE bead_name = ? AND sheet_name = ?').run(bead_name, sheet_name);
-    res.json({ ok: true, deleted: info.changes });
+    let deleted = 0;
+    db.transaction(() => {
+      deleted += db.prepare('DELETE FROM rawdata WHERE bead_name = ? AND sheet_name = ?').run(bead_name, sheet_name).changes;
+      deleted += db.prepare('DELETE FROM drbeadinspection WHERE bead_name = ? AND sheet_name = ?').run(bead_name, sheet_name).changes;
+      deleted += db.prepare('DELETE FROM posts WHERE bead_name = ? AND sheet_name = ?').run(bead_name, sheet_name).changes;
+    })();
+    res.json({ ok: true, deleted });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// POST /api/rawdata/sheets/rename — rename a sheet across rawdata, drbeadinspection, posts
+// Body: { bead_name, old_name, new_name }
+router.post('/sheets/rename', (req, res) => {
+  const { bead_name, old_name, new_name } = req.body;
+  if (!bead_name || !old_name || !new_name) return res.status(400).json({ error: 'bead_name, old_name, new_name required' });
+  try {
+    db.transaction(() => {
+      db.prepare('UPDATE rawdata SET sheet_name = ? WHERE bead_name = ? AND sheet_name = ?').run(new_name, bead_name, old_name);
+      db.prepare('UPDATE drbeadinspection SET sheet_name = ? WHERE bead_name = ? AND sheet_name = ?').run(new_name, bead_name, old_name);
+      db.prepare('UPDATE posts SET sheet_name = ? WHERE bead_name = ? AND sheet_name = ?').run(new_name, bead_name, old_name);
+    })();
+    res.json({ ok: true });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
 
 // PUT /api/rawdata/meta — bulk update rawdata_meta for a bead_name
-// Body: { bead_name, wells: [{ well, row1, row2, row3 }, ...] }
+// Body: { bead_name, sheet_name?, wells: [{ well, row1, row2, row3 }, ...] }
 router.put('/meta', (req, res) => {
-  const { bead_name, wells } = req.body;
+  const { bead_name, sheet_name, wells } = req.body;
   if (!bead_name || !Array.isArray(wells)) return res.status(400).json({ error: 'bead_name and wells required' });
 
+  const sn = sheet_name || null; // NULL = default config
+
   const upsert = db.prepare(`
-    INSERT INTO rawdata_meta (bead_name, table_type, well, row1, row2, row3)
-    VALUES (?, ?, ?, ?, ?, ?)
-    ON CONFLICT(bead_name, table_type, well) DO UPDATE SET row1=excluded.row1, row2=excluded.row2, row3=excluded.row3
+    INSERT INTO rawdata_meta (bead_name, table_type, well, row1, row2, row3, sheet_name)
+    VALUES (?, ?, ?, ?, ?, ?, ?)
+    ON CONFLICT(bead_name, table_type, well, sheet_name) DO UPDATE SET row1=excluded.row1, row2=excluded.row2, row3=excluded.row3
   `);
-  const del = db.prepare(`DELETE FROM rawdata_meta WHERE bead_name = ? AND table_type = ? AND well = ?`);
+  const del = db.prepare(`DELETE FROM rawdata_meta WHERE bead_name = ? AND table_type = ? AND well = ? AND sheet_name IS ?`);
 
   const TABLE_TYPES = ['well_od', 'od_corrected', 'ind_batch', 'all_batch'];
 
@@ -394,15 +441,17 @@ router.put('/meta', (req, res) => {
       for (const w of wells) {
         for (const tt of TABLE_TYPES) {
           if (w.row1 === null && w.row2 === null && w.row3 === null) {
-            del.run(bead_name, tt, w.well);
+            del.run(bead_name, tt, w.well, sn);
           } else {
-            upsert.run(bead_name, tt, w.well, w.row1, w.row2, w.row3);
+            upsert.run(bead_name, tt, w.well, w.row1, w.row2, w.row3, sn);
           }
         }
       }
     })();
 
-    const meta = db.prepare(`SELECT * FROM rawdata_meta WHERE bead_name = ? ORDER BY table_type, well`).all(bead_name);
+    const meta = sn
+      ? db.prepare(`SELECT * FROM rawdata_meta WHERE bead_name = ? AND sheet_name = ? ORDER BY table_type, well`).all(bead_name, sn)
+      : db.prepare(`SELECT * FROM rawdata_meta WHERE bead_name = ? AND sheet_name IS NULL ORDER BY table_type, well`).all(bead_name);
     res.json(meta);
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -535,12 +584,27 @@ router.post('/sync-qc', (req, res) => {
       });
     }
 
-    // 5. Group by lot_id (= combo)
+    // 5. Group by combo_idx (not lot_id) to correctly handle multi-reagent beads
+    //    where lot_id is a concatenation of d_lot+bigD_lot+u_lot
+    const comboIdxSet = [...new Set(wellOd.map(r => r.combo_idx))].sort((a, b) => a - b);
     const lots = [...new Set(wellOd.map(r => r.lot_id))].filter(Boolean);
     const comboResults = [];
 
-    for (const lot of lots) {
-      const result = { lot_id: lot };
+    for (const ci of comboIdxSet) {
+      // Get representative row for this combo to extract lot fields
+      const repRow = wellOd.find(r => r.combo_idx === ci && r.lot_id);
+      if (!repRow) continue;
+      // Check if this combo has any actual well data
+      const hasData = wellOd.filter(r => r.combo_idx === ci).some(r => markerWells.some(w => r[w] !== null && r[w] !== undefined));
+      if (!hasData) continue;
+
+      const result = {
+        lot_id: repRow.lot_id,
+        combo_idx: ci,
+        d_lot: repRow.d_lot,
+        bigD_lot: repRow.bigD_lot,
+        u_lot: repRow.u_lot,
+      };
 
       for (const pair of levelPairs) {
         const pfx = pair.odA.match(/^([A-Z])(\d+)/i);
@@ -548,9 +612,9 @@ router.post('/sync-qc', (req, res) => {
         const pfxB = pair.odB.match(/^([A-Z])(\d+)/i);
         const pB = pfxB[1].toUpperCase() + pfxB[0].match(/\d+/)[0];
 
-        // OD values for this lot, both levels
-        const odRowA = wellOd.find(r => r.lot_id === lot && r.level === pair.odA);
-        const odRowB = wellOd.find(r => r.lot_id === lot && r.level === pair.odB);
+        // OD values for this combo_idx, both levels
+        const odRowA = wellOd.find(r => r.combo_idx === ci && r.level === pair.odA);
+        const odRowB = wellOd.find(r => r.combo_idx === ci && r.level === pair.odB);
         const valsA = odRowA ? wellVals(odRowA, markerWells) : [];
         const valsB = odRowB ? wellVals(odRowB, markerWells) : [];
 
@@ -561,9 +625,6 @@ router.post('/sync-qc', (req, res) => {
         result[`od_cv_${pA.toLowerCase()}`] = cv(valsA);
         result[`od_cv_${pB.toLowerCase()}`] = cv(valsB);
 
-        // Slope/intercept (individual batch: 2-point from this lot's means)
-        // For markers with CS concentrations → compute from OD means
-        // For ISE markers (Na, K, etc.) without CS → use fixed slope from DB
         if (meanA !== null && meanB !== null && pair.knownA !== null && pair.knownB !== null) {
           const reg = linReg2(meanA, pair.knownA, meanB, pair.knownB);
           if (reg) {
@@ -576,8 +637,8 @@ router.post('/sync-qc', (req, res) => {
         }
 
         // ind_batch conc values
-        const indRowA = indBatch.find(r => r.lot_id === lot && r.level === pair.concA);
-        const indRowB = indBatch.find(r => r.lot_id === lot && r.level === pair.concB);
+        const indRowA = indBatch.find(r => r.combo_idx === ci && r.level === pair.concA);
+        const indRowB = indBatch.find(r => r.combo_idx === ci && r.level === pair.concB);
         const concValsA = indRowA ? wellVals(indRowA, markerWells) : [];
         const concValsB = indRowB ? wellVals(indRowB, markerWells) : [];
         result[`sb_conc_mean_${pA.toLowerCase()}`] = mean(concValsA);
@@ -586,8 +647,8 @@ router.post('/sync-qc', (req, res) => {
         result[`sb_conc_cv_${pB.toLowerCase()}`] = cv(concValsB);
 
         // all_batch conc values
-        const abRowA = allBatch.find(r => r.lot_id === lot && r.level === pair.concA);
-        const abRowB = allBatch.find(r => r.lot_id === lot && r.level === pair.concB);
+        const abRowA = allBatch.find(r => r.combo_idx === ci && r.level === pair.concA);
+        const abRowB = allBatch.find(r => r.combo_idx === ci && r.level === pair.concB);
         const abValsA = abRowA ? wellVals(abRowA, markerWells) : [];
         const abValsB = abRowB ? wellVals(abRowB, markerWells) : [];
         result[`fb_conc_mean_${pA.toLowerCase()}`] = mean(abValsA);
@@ -595,13 +656,12 @@ router.post('/sync-qc', (req, res) => {
         result[`fb_conc_cv_${pA.toLowerCase()}`] = cv(abValsA);
         result[`fb_conc_cv_${pB.toLowerCase()}`] = cv(abValsB);
 
-        // Bias = (fb_conc_mean - known) / known
         const fbMeanA = mean(abValsA);
         const fbMeanB = mean(abValsB);
         if (fbMeanA !== null && pair.knownA) result[`fb_bias_${pA.toLowerCase()}`] = (fbMeanA - pair.knownA) / pair.knownA;
         if (fbMeanB !== null && pair.knownB) result[`fb_bias_${pB.toLowerCase()}`] = (fbMeanB - pair.knownB) / pair.knownB;
 
-        // OD bias (all_batch OD mean across all lots vs this lot)
+        // OD bias (all combos OD mean vs this combo)
         const allLotsValsA = wellOd.filter(r => r.level === pair.odA).flatMap(r => wellVals(r, markerWells));
         const allLotsValsB = wellOd.filter(r => r.level === pair.odB).flatMap(r => wellVals(r, markerWells));
         const totalMeanA = mean(allLotsValsA);
@@ -701,11 +761,23 @@ router.post('/sync-qc', (req, res) => {
       if (rows.length) return rows;
       return [];
     }
-    function findPostRows(lotId) {
-      // Try direct lot match
+    function findPostRows(cr) {
+      const lotId = cr.lot_id;
+      const dLot = cr.d_lot;
+      const bigDLot = cr.bigD_lot;
+      const uLot = cr.u_lot;
+      // Try matching by individual lot fields first (handles multi-reagent beads)
+      if (dLot || bigDLot || uLot) {
+        const parts = [dLot, bigDLot, uLot].filter(Boolean);
+        for (const p of parts) {
+          const rows = db.prepare(`SELECT * FROM posts WHERE bead_name = ? AND sheet_name = ? AND (lot_d = ? OR lot_bigD = ? OR lot_u = ?)`).all(bead_name, sheet_name, p, p, p);
+          if (rows.length) return rows;
+        }
+      }
+      // Fallback: try concatenated lot_id
       let rows = db.prepare(`SELECT * FROM posts WHERE bead_name = ? AND sheet_name = ? AND (lot_d = ? OR lot_bigD = ? OR lot_u = ?)`).all(bead_name, sheet_name, lotId, lotId, lotId);
       if (rows.length) return rows;
-      // lot_id is concatenated d+D+U lots; match by combo_idx from drbeadinspection
+      // Fallback: match by combo_idx from drbeadinspection
       const drRows = findDrRows(lotId);
       if (drRows.length) {
         rows = db.prepare(`SELECT * FROM posts WHERE bead_name = ? AND sheet_name = ? AND combo_idx = ?`).all(bead_name, sheet_name, drRows[0].batch_col - 16);
@@ -794,9 +866,17 @@ router.post('/sync-qc', (req, res) => {
           }
         }
 
-        // posts: find by lot fields
-        let postRow = db.prepare(`SELECT id FROM posts WHERE bead_name = ? AND sheet_name = ? AND (lot_d = ? OR lot_bigD = ? OR lot_u = ?)`).get(bead_name, sheet_name, cr.lot_id, cr.lot_id, cr.lot_id)
-          || db.prepare(`SELECT id FROM posts WHERE bead_name = ? AND sheet_name = ? AND combo_idx = ?`).get(bead_name, sheet_name, lots.indexOf(cr.lot_id) + 1);
+        // posts: find by individual lot fields, then fallback to combo_idx
+        const postLots = [cr.d_lot, cr.bigD_lot, cr.u_lot].filter(Boolean);
+        let postRow = null;
+        for (const pl of postLots) {
+          postRow = db.prepare(`SELECT id FROM posts WHERE bead_name = ? AND sheet_name = ? AND (lot_d = ? OR lot_bigD = ? OR lot_u = ?)`).get(bead_name, sheet_name, pl, pl, pl);
+          if (postRow) break;
+        }
+        if (!postRow) {
+          postRow = db.prepare(`SELECT id FROM posts WHERE bead_name = ? AND sheet_name = ? AND (lot_d = ? OR lot_bigD = ? OR lot_u = ?)`).get(bead_name, sheet_name, cr.lot_id, cr.lot_id, cr.lot_id)
+            || db.prepare(`SELECT id FROM posts WHERE bead_name = ? AND sheet_name = ? AND combo_idx = ?`).get(bead_name, sheet_name, lots.indexOf(cr.lot_id) + 1);
+        }
         if (postRow) {
           const { sets, params } = buildPostSets(cr);
           params.id = postRow.id;

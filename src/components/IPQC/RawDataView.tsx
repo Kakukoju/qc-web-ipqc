@@ -4,18 +4,22 @@
  */
 
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { Loader2, PlusCircle, Trash2, X } from 'lucide-react';
+import { Loader2, Trash2, X, Edit3 } from 'lucide-react';
 import RawDataGrid from './RawDataGrid';
 import {
   fetchRawdataMarkers, fetchRawdataSheets, fetchRawdata, updateRawdataRow, syncQcTables,
-  fetchBeadReagents, createSheet, deleteSheet,
-  type RawDataRow, type ColMeta, type SheetCombo,
+  fetchBeadReagents, deleteSheet, renameSheet,
+  type RawDataRow, type ColMeta,
 } from '../../api/rawdata';
+import { apiUrl } from '../../api/base';
+
 
 // ── Sheet-name auto-generation for rawdata-created sheets ───────────────────
 function compressLotGroup(lots: string[]): string {
   const clean = lots.map(s => s.trim()).filter(Boolean);
   if (!clean.length) return '';
+  // Sort lots ascending so sheet name digits are in order (e.g. 1234 not 4321)
+  clean.sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
   const stripped = clean.map(lot => lot.length > 3 ? lot.slice(3) : lot);
   if (stripped.length === 1) return stripped[0];
   let prefix = stripped[0];
@@ -33,171 +37,6 @@ function autoSheetName(groups: { d?: string[]; bigD?: string[]; u?: string[] }, 
   if (nReagents === 1) return dPart || bigDPart || uPart;
   if (nReagents === 3) return [dPart, bigDPart && `D${bigDPart}`, uPart && `U${uPart}`].filter(Boolean).join('');
   return [bigDPart || dPart, uPart && `U${uPart}`].filter(Boolean).join('');
-}
-
-// ── NewSheetModal ────────────────────────────────────────────────────────────
-function NewSheetModal({
-  defaultBead, nReagents, allMarkers,
-  onClose, onCreated,
-}: {
-  defaultBead: string;
-  nReagents: number;
-  allMarkers: string[];
-  onClose: () => void;
-  onCreated: (bead: string, sheet: string) => void;
-}) {
-  const [beadName, setBeadName]   = useState(defaultBead);
-  const [sheetName, setSheetName] = useState('');
-  const [userEditedSheet, setUserEditedSheet] = useState(false);
-  const [saving, setSaving] = useState(false);
-
-  // For n=1: one textarea (lots, one per line) — prefill with example
-  const [lots1, setLots1] = useState(nReagents === 1 ? '2352614W\n2352614X\n2352614Y\n2352614Z' : '');
-  // For n=2/3: separate columns — prefill with example
-  const [dLots,  setDLots]  = useState(nReagents >= 2 ? 'D-Lot1\nD-Lot2' : '');
-  const [d2Lots, setD2Lots] = useState(nReagents === 3 ? 'D2-Lot1\nD2-Lot2' : '');
-  const [uLots,  setULots]  = useState(nReagents >= 2 ? 'U-Lot1\nU-Lot2' : '');
-
-  // Auto-generate sheet name from lots
-  useEffect(() => {
-    if (userEditedSheet) return;
-    let groups: { d?: string[]; bigD?: string[]; u?: string[] } = {};
-    if (nReagents === 1) {
-      groups = { d: lots1.split('\n').map(s => s.trim()).filter(Boolean) };
-    } else {
-      const dl  = dLots.split('\n').map(s => s.trim()).filter(Boolean);
-      const d2l = d2Lots.split('\n').map(s => s.trim()).filter(Boolean);
-      const ul  = uLots.split('\n').map(s => s.trim()).filter(Boolean);
-      groups = nReagents === 3
-        ? { d: dl, bigD: d2l, u: ul }
-        : { bigD: dl, u: ul };
-    }
-    setSheetName(autoSheetName(groups, nReagents));
-  }, [lots1, dLots, d2Lots, uLots, nReagents, userEditedSheet]);
-
-  function buildCombos(): SheetCombo[] | null {
-    if (nReagents === 1) {
-      const lots = lots1.split('\n').map(s => s.trim()).filter(Boolean);
-      if (!lots.length) return null;
-      return lots.map(l => ({ lot_id: l, d_lot: l, ctrl_lot: null }));
-    }
-    const dl  = dLots.split('\n').map(s => s.trim()).filter(Boolean);
-    const d2l = d2Lots.split('\n').map(s => s.trim()).filter(Boolean);
-    const ul  = uLots.split('\n').map(s => s.trim()).filter(Boolean);
-    const n = nReagents === 3
-      ? Math.min(dl.length, d2l.length, ul.length)
-      : Math.min(dl.length, ul.length);
-    if (!n) return null;
-    return Array.from({ length: n }, (_, i) => nReagents === 3
-      ? { lot_id: dl[i] + d2l[i] + ul[i], d_lot: dl[i], bigD_lot: d2l[i], u_lot: ul[i], ctrl_lot: null }
-      : { lot_id: dl[i] + ul[i], bigD_lot: dl[i], u_lot: ul[i], ctrl_lot: null }
-    );
-  }
-
-  async function handleCreate() {
-    if (!beadName.trim() || !sheetName.trim()) return;
-    const combos = buildCombos();
-    if (!combos) { alert('請至少輸入一筆 Lot'); return; }
-    setSaving(true);
-    try {
-      await createSheet(beadName.trim(), sheetName.trim(), combos);
-      onCreated(beadName.trim(), sheetName.trim());
-    } catch (e) {
-      alert('建立失敗: ' + String(e));
-    } finally {
-      setSaving(false);
-    }
-  }
-
-  const reagentLabels = nReagents === 3
-    ? ['d-Lot', 'D-Lot', 'U-Lot']
-    : nReagents === 2 ? ['D-Lot', 'U-Lot'] : ['Lot'];
-
-  const textareaClass = 'bg-white border border-[#2A3754] text-[#0a1628] text-xs rounded px-2 py-1.5 w-full font-mono resize-none focus:outline-none focus:border-[#4DA3FF]';
-  const inputClass    = 'bg-white border border-[#2A3754] text-[#0a1628] text-xs rounded px-2 py-1 w-full font-mono focus:outline-none focus:border-[#4DA3FF]';
-  const sheetInputClass = 'bg-white border border-[#4DA3FF] text-[#0a1628] text-xs rounded px-2 py-1 w-full font-mono focus:outline-none focus:border-[#2070D0] focus:ring-1 focus:ring-[#4DA3FF]';
-  const labelClass    = 'text-[10px] text-[#556A88] mb-1 block';
-
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60" onClick={onClose}>
-      <div className="bg-[#0d1f3a] border border-[#2A3754] rounded-lg w-[480px] shadow-2xl"
-           onClick={e => e.stopPropagation()}>
-        {/* Header */}
-        <div className="flex items-center justify-between px-4 py-3 border-b border-[#1E3050]">
-          <span className="text-sm font-medium text-[#D4E8FF]">新增 Sheet</span>
-          <button onClick={onClose} className="text-[#556A88] hover:text-[#93A4C3]"><X size={14} /></button>
-        </div>
-
-        <div className="px-4 py-3 flex flex-col gap-3">
-          {/* Bead name */}
-          <div>
-            <label className={labelClass}>Marker (Bead Name)</label>
-            <input
-              list="bead-list"
-              value={beadName}
-              onChange={e => setBeadName(e.target.value)}
-              className={inputClass}
-              placeholder="e.g. QPHOS"
-            />
-            <datalist id="bead-list">
-              {allMarkers.map(m => <option key={m} value={m} />)}
-            </datalist>
-          </div>
-
-          {/* Lot inputs */}
-          {nReagents === 1 ? (
-            <div>
-              <label className={labelClass}>Lots（每行一筆，依生產順序）</label>
-              <textarea rows={5} value={lots1} onChange={e => { setLots1(e.target.value); setUserEditedSheet(false); }}
-                className={textareaClass} onFocus={e => e.target.select()} />
-            </div>
-          ) : (
-            <div className={`grid gap-2 ${nReagents === 3 ? 'grid-cols-3' : 'grid-cols-2'}`}>
-              {reagentLabels.map((lbl, idx) => {
-                const vals = [dLots, d2Lots, uLots][idx];
-                const setters = [setDLots, setD2Lots, setULots][idx];
-                return (
-                  <div key={lbl}>
-                    <label className={labelClass}>{lbl}（每行一筆）</label>
-                    <textarea rows={5} value={vals} onChange={e => { setters(e.target.value); setUserEditedSheet(false); }}
-                      className={textareaClass} onFocus={e => e.target.select()} />
-                  </div>
-                );
-              })}
-            </div>
-          )}
-
-          {/* Sheet name */}
-          <div>
-            <label className={labelClass}>
-              Sheet Name
-              {!userEditedSheet && (
-                <span className="ml-1 text-[#3A5070]">（自動產生，可修改）</span>
-              )}
-            </label>
-            <input
-              value={sheetName}
-              onChange={e => { setSheetName(e.target.value); setUserEditedSheet(true); }}
-              className={sheetInputClass}
-              onFocus={e => e.target.select()}
-            />
-          </div>
-        </div>
-
-        {/* Footer */}
-        <div className="flex justify-end gap-2 px-4 py-3 border-t border-[#1E3050]">
-          <button onClick={onClose}
-            className="px-3 py-1 text-xs text-[#556A88] hover:text-[#93A4C3] border border-[#2A3754] rounded">
-            取消
-          </button>
-          <button onClick={handleCreate} disabled={saving || !beadName.trim() || !sheetName.trim()}
-            className="px-3 py-1 text-xs bg-[#1A5BB5] text-white rounded hover:bg-[#2070D0] disabled:opacity-40">
-            {saving ? '建立中…' : '建立'}
-          </button>
-        </div>
-      </div>
-    </div>
-  );
 }
 
 type TableType = 'well_od' | 'od_corrected' | 'ind_batch' | 'all_batch';
@@ -225,7 +64,8 @@ export default function RawDataView({ initMarker, initSheet, year, onSelectionCh
   const [meta, setMeta]   = useState<ColMeta[]>([]);
   const [loading, setLoading] = useState(false);
   const [reagentMap, setReagentMap] = useState<Map<string, number>>(new Map());
-  const [showNewSheet, setShowNewSheet] = useState(false);
+  const [editingSheetName, setEditingSheetName] = useState(false);
+  const [sheetDraft, setSheetDraft] = useState('');
 
   // dirty rows: id → latest full row
   const dirtyRef = useRef<Map<number, RawDataRow>>(new Map());
@@ -257,7 +97,7 @@ export default function RawDataView({ initMarker, initSheet, year, onSelectionCh
     });
   }, [selMarker, year]); // eslint-disable-line
 
-  // Sheet selected → load data
+  // Sheet selected → notify parent
   useEffect(() => {
     onSelectionChange?.(selMarker || null, selSheet || null);
   }, [selMarker, selSheet]); // eslint-disable-line
@@ -296,18 +136,6 @@ export default function RawDataView({ initMarker, initSheet, year, onSelectionCh
     });
   }, []);
 
-  // Called after NewSheetModal creates a sheet
-  const handleSheetCreated = useCallback(async (bead: string, sheet: string) => {
-    setShowNewSheet(false);
-    // Refresh markers (bead might be new)
-    const newMarkers = await fetchRawdataMarkers(year);
-    setMarkers(newMarkers);
-    setSelMarker(bead);
-    // Refresh sheets for this bead
-    const newSheets = await fetchRawdataSheets(bead, year);
-    setSheets(newSheets);
-    setSelSheet(sheet);
-  }, [year]);
 
   // Refetch data for current marker+sheet (called after expanding combos)
   const handleRefresh = useCallback(() => {
@@ -365,20 +193,46 @@ export default function RawDataView({ initMarker, initSheet, year, onSelectionCh
         {/* Sheet select */}
         <div className="flex items-center gap-2">
           <span className="text-xs text-[#556A88]">Sheet</span>
-          <select
-            value={selSheet}
-            onChange={e => setSelSheet(e.target.value)}
-            className="bg-[#0d1f3a] border border-[#2A3754] text-[#D4E8FF] text-xs rounded px-2 py-1 focus:outline-none focus:border-[#4DA3FF] max-w-50"
-          >
-            {sheets.map(s => <option key={s} value={s}>{s}</option>)}
-          </select>
-          <button
-            onClick={() => setShowNewSheet(true)}
-            title="新增 Sheet"
-            className="text-[#3A5070] hover:text-[#4DA3FF] transition-colors"
-          >
-            <PlusCircle size={16} />
-          </button>
+          {editingSheetName ? (
+            <form onSubmit={async e => {
+              e.preventDefault();
+              const newName = sheetDraft.trim();
+              if (!newName || newName === selSheet) { setEditingSheetName(false); return; }
+              try {
+                await renameSheet(selMarker, selSheet, newName);
+                const newSheets = await fetchRawdataSheets(selMarker, year);
+                setSheets(newSheets);
+                setSelSheet(newName);
+              } catch (err) { alert('重新命名失敗: ' + String(err)); }
+              setEditingSheetName(false);
+            }} className="flex items-center gap-1">
+              <input
+                autoFocus
+                value={sheetDraft}
+                onChange={e => setSheetDraft(e.target.value)}
+                onBlur={() => setEditingSheetName(false)}
+                onKeyDown={e => { if (e.key === 'Escape') setEditingSheetName(false); }}
+                className="bg-[#0d1f3a] border border-[#4DA3FF] text-[#D4E8FF] text-xs rounded px-2 py-1 focus:outline-none w-40"
+              />
+            </form>
+          ) : (
+            <select
+              value={selSheet}
+              onChange={e => setSelSheet(e.target.value)}
+              className="bg-[#0d1f3a] border border-[#2A3754] text-[#D4E8FF] text-xs rounded px-2 py-1 focus:outline-none focus:border-[#4DA3FF] max-w-50"
+            >
+              {sheets.map(s => <option key={s} value={s}>{s}</option>)}
+            </select>
+          )}
+          {selSheet && !editingSheetName && (
+            <button
+              onClick={() => { setSheetDraft(selSheet); setEditingSheetName(true); }}
+              title="重新命名 Sheet"
+              className="text-[#3A5070] hover:text-[#4DA3FF] transition-colors"
+            >
+              <Edit3 size={14} />
+            </button>
+          )}
           {selSheet && (
             <button
               onClick={async () => {
@@ -398,10 +252,9 @@ export default function RawDataView({ initMarker, initSheet, year, onSelectionCh
           )}
         </div>
 
-        {/* 批號組合 summary: distinct combos for selected sheet */}
+        {/* 批號組合 summary */}
         {!loading && rows.length > 0 && (() => {
           const n = reagentMap.get(selMarker) ?? 1;
-          // Get unique (combo_idx, lot_id) from well_od level L1
           const combos = rows
             .filter(r => r.table_type === 'well_od' && r.level !== '' && r.combo_idx !== undefined)
             .reduce((acc, r) => {
@@ -455,17 +308,6 @@ export default function RawDataView({ initMarker, initSheet, year, onSelectionCh
           </button>
         ))}
       </div>
-
-      {/* New Sheet Modal */}
-      {showNewSheet && (
-        <NewSheetModal
-          defaultBead={selMarker}
-          nReagents={reagentMap.get(selMarker) ?? 1}
-          allMarkers={markers}
-          onClose={() => setShowNewSheet(false)}
-          onCreated={handleSheetCreated}
-        />
-      )}
 
       {/* Grid area */}
       <div className="flex-1 overflow-hidden p-3">

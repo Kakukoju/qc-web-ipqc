@@ -13,6 +13,23 @@ import db from '../db/sqlite.js';
 const router = Router();
 const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 50 * 1024 * 1024 } });
 
+/** Filter out invalid decision values (pure numbers, single digits) */
+function sanitizeDecision(val) {
+  if (!val) return null;
+  const s = String(val).trim();
+  if (!s || s === '-') return null;
+  if (/^\d+(\.\d+)?$/.test(s)) return null; // pure number = invalid
+  return s;
+}
+
+/** Check if a lot already exists in another sheet for the same bead */
+function lotExistsInOtherSheet(beadName, sheetName, lot) {
+  if (!lot) return false;
+  return Boolean(db.prepare(
+    `SELECT 1 FROM drbeadinspection WHERE bead_name = ? AND sheet_name != ? AND (bigD_lot = ? OR u_lot = ? OR d_lot = ? OR batch_combo = ?) LIMIT 1`
+  ).get(beadName, sheetName, lot, lot, lot, lot));
+}
+
 const XLSX_READ_OPTS = {
   type:        'buffer',
   cellStyles:  false,
@@ -176,7 +193,7 @@ function parseTable1(ws, beadName, fileName) {
       mean_bias_l1: c(49, col), mean_bias_l2: c(50, col),
       total_cv_spec: totalCvSpec, total_cv_l1: c(51, col), total_cv_l2: c(52, col),
       initial_spec: initialSpec, initial_l1: c(53, col), initial_l2: c(54, col),
-      batch_decision: c(55, col), final_decision: c(57, col),
+      batch_decision: sanitizeDecision(c(55, col)), final_decision: sanitizeDecision(c(57, col)),
       defect_desc: c(59, col), remarks: c(61, col),
       // OD per batch
       od_slope: od.slope, od_intercept: od.intercept,
@@ -819,7 +836,14 @@ router.post('/upload-batch', upload.array('files', 100), (req, res) => {
         drDeleteStmt.run(bead, sheet);
         postsDeleteStmt.run(bead, sheet);
       }
-      for (const row of allT1Rows) drInsert.run(safeParams(drCols, row));
+      for (const row of allT1Rows) {
+        const lot = row.bigD_lot || row.u_lot || row.d_lot || row.batch_combo;
+        if (lotExistsInOtherSheet(row.bead_name, row.sheet_name, lot)) {
+          summary.skipped_duplicate_lots = (summary.skipped_duplicate_lots || 0) + 1;
+          continue;
+        }
+        drInsert.run(safeParams(drCols, row));
+      }
       for (const row of allT2Rows) postInsert.run(safeParams(postCols, row));
       for (const [key, rows] of importedByKey) {
         const [bead, sheet] = key.split('\x00');

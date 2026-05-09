@@ -4,40 +4,13 @@
  */
 
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { Loader2, Trash2, X, Edit3 } from 'lucide-react';
+import { Loader2, Trash2, Edit3 } from 'lucide-react';
 import RawDataGrid from './RawDataGrid';
 import {
   fetchRawdataMarkers, fetchRawdataSheets, fetchRawdata, updateRawdataRow, syncQcTables,
   fetchBeadReagents, deleteSheet, renameSheet,
   type RawDataRow, type ColMeta,
 } from '../../api/rawdata';
-import { apiUrl } from '../../api/base';
-
-
-// ── Sheet-name auto-generation for rawdata-created sheets ───────────────────
-function compressLotGroup(lots: string[]): string {
-  const clean = lots.map(s => s.trim()).filter(Boolean);
-  if (!clean.length) return '';
-  // Sort lots ascending so sheet name digits are in order (e.g. 1234 not 4321)
-  clean.sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
-  const stripped = clean.map(lot => lot.length > 3 ? lot.slice(3) : lot);
-  if (stripped.length === 1) return stripped[0];
-  let prefix = stripped[0];
-  for (const lot of stripped.slice(1)) {
-    while (prefix && !lot.startsWith(prefix)) prefix = prefix.slice(0, -1);
-  }
-  return prefix + stripped.map(lot => lot.slice(prefix.length)).join('');
-}
-
-function autoSheetName(groups: { d?: string[]; bigD?: string[]; u?: string[] }, nReagents: number): string {
-  const dPart = compressLotGroup(groups.d || []);
-  const bigDPart = compressLotGroup(groups.bigD || []);
-  const uPart = compressLotGroup(groups.u || []);
-
-  if (nReagents === 1) return dPart || bigDPart || uPart;
-  if (nReagents === 3) return [dPart, bigDPart && `D${bigDPart}`, uPart && `U${uPart}`].filter(Boolean).join('');
-  return [bigDPart || dPart, uPart && `U${uPart}`].filter(Boolean).join('');
-}
 
 type TableType = 'well_od' | 'od_corrected' | 'ind_batch' | 'all_batch';
 

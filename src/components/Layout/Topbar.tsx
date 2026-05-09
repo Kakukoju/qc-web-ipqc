@@ -16,7 +16,7 @@ interface TopbarProps {
   onNavigate?: (marker: string, sheet: string) => void;
 }
 
-export default function Topbar({ title = 'Automatic Baseline Assignment', onNavigate }: TopbarProps) {
+export default function Topbar({ title = 'IPQC 管理儀表', onNavigate }: TopbarProps) {
   const [showNotify, setShowNotify] = useState(false);
   const [notifications, setNotifications] = useState<Notification[]>([]);
 

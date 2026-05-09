@@ -96,7 +96,7 @@ function fmtCell(v: string | number | null | undefined): string {
 
 // ── Component ──────────────────────────────────────────────────────────────
 
-export default function RawDataGrid({ tableType, rows, meta, beadName, nReagents, onRowChange, onBatchChange, onMetaChange, onRefresh, saving, dirtyCount, onSave }: Props) {
+export default function RawDataGrid({ tableType, rows, meta, beadName, nReagents, onRowChange, onBatchChange, onRefresh, saving, dirtyCount, onSave }: Props) {
   const [showLoadCsv, setShowLoadCsv] = useState(false);
   const [calRules, setCalRules] = useState<CalRule[]>([]);
   const [csData, setCsData] = useState<CsAssignRow[]>([]);

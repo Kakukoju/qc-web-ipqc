@@ -11,6 +11,7 @@ interface NavItem {
   icon: React.ReactNode;
   label: string;
   id: string;
+  href?: string;
   badge?: number;
 }
 
@@ -37,7 +38,7 @@ export default function Sidebar({ activeView, onNavigate }: SidebarProps) {
     { icon: <Activity size={18} />, label: '生產管理', id: 'production' },
     { icon: <FlaskConical size={18} />, label: 'IPQC 管理', id: 'qc' },
     { icon: <Microscope size={18} />, label: 'IPQC 工作台', id: 'ipqc', badge: pendingCount || undefined },
-    { icon: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="3" y1="20" x2="3" y2="4" /><line x1="3" y1="20" x2="21" y2="20" /><path d="M4 16 Q10 4 20 6" /></svg>, label: 'Tutti-Beads 預建線', id: 'monitor' },
+    { icon: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="3" y1="20" x2="3" y2="4" /><line x1="3" y1="20" x2="21" y2="20" /><path d="M4 16 Q10 4 20 6" /></svg>, label: 'Tutti-Beads 預建線', id: 'monitor', href: 'https://52-192-28-39.sslip.io/qc-web/pre-assignment/' },
     { icon: <AlertTriangle size={18} />, label: '異常管理', id: 'anomaly' },
     { icon: <BarChart3 size={18} />, label: '報表分析', id: 'reports' },
     { icon: <Settings size={18} />, label: '系統設定', id: 'settings' },
@@ -73,7 +74,7 @@ export default function Sidebar({ activeView, onNavigate }: SidebarProps) {
             exit={{ opacity: 0 }}
             className="text-sm font-semibold text-[#EAF2FF] leading-tight"
           >
-            Automatic Baseline<br />Assignment
+            IPQC 管理儀表
           </motion.span>
         )}
       </div>
@@ -86,7 +87,13 @@ export default function Sidebar({ activeView, onNavigate }: SidebarProps) {
             <motion.button
               key={item.id}
               whileHover={{ x: 2 }}
-              onClick={() => onNavigate(item.id)}
+              onClick={() => {
+                if (item.href) {
+                  window.location.href = item.href;
+                  return;
+                }
+                onNavigate(item.id);
+              }}
               className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors relative ${
                 isActive
                   ? 'bg-[#00D4AA]/10 text-[#00D4AA]'

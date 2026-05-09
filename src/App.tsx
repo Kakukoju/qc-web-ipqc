@@ -201,7 +201,7 @@ export default function App() {
       <Sidebar activeView={activeView} onNavigate={setActiveView} />
 
       <div className="flex flex-col flex-1 overflow-hidden">
-        <Topbar title={viewTitles[activeView] || 'Automatic Baseline Assignment'} onNavigate={(marker, sheet) => { setSharedLot({ marker, sheet }); setActiveView('qc'); }} />
+        <Topbar title={viewTitles[activeView] || 'IPQC 管理儀表'} onNavigate={(marker, sheet) => { setSharedLot({ marker, sheet }); setActiveView('qc'); }} />
 
         <main className="flex-1 overflow-hidden">
           <AnimatePresence mode="wait">

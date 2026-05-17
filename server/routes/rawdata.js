@@ -721,8 +721,13 @@ router.post('/sync-qc', (req, res) => {
         rconc_cv_l1: 'sb_conc_cv_l1', rconc_cv_l2: 'sb_conc_cv_l2', rconc_cv_l3: 'sb_conc_cv_l3', rconc_cv_n1: 'sb_conc_cv_n1', rconc_cv_n3: 'sb_conc_cv_n3',
         mean_bias_l1: 'fb_bias_l1', mean_bias_l2: 'fb_bias_l2', mean_bias_l3: 'fb_bias_l3',
         total_cv_l1: 'fb_conc_cv_l1', total_cv_l2: 'fb_conc_cv_l2', total_cv_l3: 'fb_conc_cv_l3',
-        initial_l1: 'fb_conc_mean_l1', initial_l2: 'fb_conc_mean_l2', initial_l3: 'fb_conc_mean_l3',
       };
+      // Only write initial_l1/l2/l3 if the marker has init spec in bead_ipqc_spec
+      const specRow = specDb.prepare(
+        `SELECT init_l1_od, init_l2_od FROM bead_ipqc_spec WHERE marker LIKE ? OR marker LIKE ? LIMIT 1`
+      ).get(`%${bead_name}%`, `%${normKey(bead_name)}%`);
+      if (specRow?.init_l1_od) displayMap.initial_l1 = 'fb_conc_mean_l1';
+      if (specRow?.init_l2_od) displayMap.initial_l2 = 'fb_conc_mean_l2';
       for (const [dbCol, srcKey] of Object.entries(displayMap)) {
         const val = cr[srcKey];
         if (val !== undefined && val !== null) { sets.push(`${dbCol} = @${dbCol}`); params[dbCol] = val; }

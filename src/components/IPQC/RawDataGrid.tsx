@@ -603,6 +603,8 @@ export default function RawDataGrid({ tableType, rows, meta, beadName, nReagents
                           value={editVal}
                           onChange={e => setEditVal(e.target.value)}
                           onKeyDown={handleInputKeyDown}
+                          onMouseDown={e => e.stopPropagation()}
+                          onClick={e => e.stopPropagation()}
                           onBlur={() => commitEdit(false)}
                           style={{
                             width: '100%',

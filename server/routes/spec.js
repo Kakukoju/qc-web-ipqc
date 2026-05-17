@@ -304,6 +304,15 @@ router.get('/marker/:name', (req, res) => {
 // GET /api/spec/lookup/:bead_name — smart match bead_name to spec
 // 兩劑 (ALP-D, ALP-U) 共用同一個 spec
 // 三劑 CREA: tCREA / tCREA-d / tCREA-D / tCREA-U 都對到 tCREA spec
+// NAME_MAP reverse: CPK→CK, tGlu→GLU, tCREA→tCre, etc.
+const REVERSE_NAME_MAP = {
+  'CPK': 'CK',
+  'tGlu': 'GLU',
+  'tCREA': 'tCre',
+  'tASTi': 'tAsti',
+  'Cl': 'ClH',
+};
+
 router.get('/lookup/:bead_name', (req, res) => {
   const name = req.params.bead_name.trim();
   const allSpecs = specDb.prepare('SELECT * FROM bead_ipqc_spec').all();
@@ -352,6 +361,9 @@ router.get('/lookup/:bead_name', (req, res) => {
 
   function findBest(specs) {
     const wanted = new Set(extractMarkerTokens(name));
+    // Also add reverse NAME_MAP aliases (CPK→CK, tGlu→GLU, etc.)
+    const rev = REVERSE_NAME_MAP[name];
+    if (rev) extractMarkerTokens(rev).forEach(t => wanted.add(t));
     // 1. Exact / normalized marker field
     let hit = specs.find(s => wanted.has(clean(s.marker)) || wanted.has(core(s.marker)));
     if (hit) return hit;

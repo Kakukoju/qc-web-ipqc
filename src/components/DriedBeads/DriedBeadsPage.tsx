@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
-import { motion } from 'framer-motion';
-import { ChevronRight, RefreshCw, CheckCircle, XCircle, Printer, X, Trash2, Upload } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { ChevronRight, ChevronDown, RefreshCw, CheckCircle, XCircle, Printer, X, Trash2, Upload } from 'lucide-react';
 import { useFetch } from '../../api/useFetch';
 import {
   fetchBeadMarkers, fetchBeadSheets, fetchBeadRecords, fetchBeadStats, deleteBeadSheet,
@@ -62,8 +62,43 @@ function StatsGrid({ selected, onSelect, onImported, year }: { selected: string 
     }
   };
 
+  const [expandedGroup, setExpandedGroup] = useState<'p01' | 'tutti' | null>(null);
+
   if (loading && !uploading) return <div className="text-[#93A4C3] text-sm p-4">載入中…</div>;
   const displayYear = year || new Date().getFullYear().toString();
+
+  const isQBead = (name: string) => /^Q/i.test(name);
+  const tuttiBeads = (stats || []).filter(s => isQBead(s.bead_name));
+  const p01Beads = (stats || []).filter(s => !isQBead(s.bead_name));
+
+  const renderGrid = (items: BeadStat[]) => (
+    <div className="grid grid-cols-4 gap-2 sm:grid-cols-6 lg:grid-cols-9">
+      {items.map(s => (
+        <div key={s.bead_name}
+          onClick={() => onSelect(s.bead_name)}
+          className={`rounded-lg p-2 flex flex-col gap-0.5 cursor-pointer transition-all duration-150
+            hover:bg-[#243352] hover:scale-[1.04] hover:shadow-lg hover:shadow-[#4DA3FF]/10 hover:border-[#4DA3FF]/30
+            border active:scale-[0.97]
+            ${selected === s.bead_name
+              ? 'bg-[#1A2D50] border-[#4DA3FF]/50 ring-1 ring-[#4DA3FF]/30'
+              : 'bg-[#1A2438] border-transparent'}`}>
+          <span className="text-[11px] font-bold text-[#4DA3FF]">{s.bead_name}</span>
+          <span className="text-[10px] text-[#EAF2FF]">已檢 {s.sheets} 批</span>
+          <div className="flex flex-wrap gap-x-2 gap-y-0 text-[10px]">
+            {s.failed > 0 && <span className="text-[#FF5C73]">NG {s.failed}</span>}
+            {s.hold > 0 && <span className="text-[#FFB84D]">Hold {s.hold}</span>}
+            {s.pending > 0 && <span className="text-[#93A4C3]">待判 {s.pending}</span>}
+            {s.pending_insp > 0 && <span className="text-[#A78BFA]">待檢 {s.pending_insp}</span>}
+            {s.failed === 0 && s.hold === 0 && s.pending === 0 && s.pending_insp === 0 && <span className="text-[#00D4AA]">ALL PASS</span>}
+          </div>
+          <span className="text-[9px] text-[#3A5070]">{s.last_insp_date?.slice(0, 10) ?? '—'}</span>
+        </div>
+      ))}
+    </div>
+  );
+
+  const appBase = import.meta.env.VITE_APP_BASE || '/';
+
   return (
     <div>
       <div className="flex items-center gap-3 mb-2 flex-wrap">
@@ -94,29 +129,56 @@ function StatsGrid({ selected, onSelect, onImported, year }: { selected: string 
           </span>
         )}
       </div>
-      <div className="grid grid-cols-4 gap-2 mb-4 sm:grid-cols-6 lg:grid-cols-9">
-        {(stats || []).map(s => (
-          <div key={s.bead_name}
-            onClick={() => onSelect(s.bead_name)}
-            className={`rounded-lg p-2 flex flex-col gap-0.5 cursor-pointer transition-all duration-150
-              hover:bg-[#243352] hover:scale-[1.04] hover:shadow-lg hover:shadow-[#4DA3FF]/10 hover:border-[#4DA3FF]/30
-              border active:scale-[0.97]
-              ${selected === s.bead_name
-                ? 'bg-[#1A2D50] border-[#4DA3FF]/50 ring-1 ring-[#4DA3FF]/30'
-                : 'bg-[#1A2438] border-transparent'}`}>
-            <span className="text-[11px] font-bold text-[#4DA3FF]">{s.bead_name}</span>
-            <span className="text-[10px] text-[#EAF2FF]">已檢 {s.sheets} 批</span>
-            <div className="flex flex-wrap gap-x-2 gap-y-0 text-[10px]">
-              {s.failed > 0 && <span className="text-[#FF5C73]">NG {s.failed}</span>}
-              {s.hold > 0 && <span className="text-[#FFB84D]">Hold {s.hold}</span>}
-              {s.pending > 0 && <span className="text-[#93A4C3]">待判 {s.pending}</span>}
-              {s.pending_insp > 0 && <span className="text-[#A78BFA]">待檢 {s.pending_insp}</span>}
-              {s.failed === 0 && s.hold === 0 && s.pending === 0 && s.pending_insp === 0 && <span className="text-[#00D4AA]">ALL PASS</span>}
+
+      {/* Machine group cards */}
+      <div className="flex gap-3 mb-3">
+        {p01Beads.length > 0 && (
+          <div
+            onClick={() => setExpandedGroup(expandedGroup === 'p01' ? null : 'p01')}
+            className={`cursor-pointer rounded-xl border overflow-hidden transition-all hover:shadow-lg hover:shadow-[#4DA3FF]/10
+              ${expandedGroup === 'p01' ? 'border-[#4DA3FF]/50 ring-1 ring-[#4DA3FF]/30' : 'border-[#2A3754] hover:border-[#4DA3FF]/30'}`}
+          >
+            <div className="flex items-center gap-3 px-3 py-2 bg-[#111C30]">
+              <img src={`${appBase}assets/solution.png`} alt="P01" className="h-10 w-10 object-contain rounded" />
+              <div className="flex-1 min-w-0">
+                <div className="text-xs font-semibold text-[#EAF2FF]">P01 機台</div>
+                <div className="text-[10px] text-[#93A4C3]">{p01Beads.length} markers</div>
+              </div>
+              {expandedGroup === 'p01' ? <ChevronDown size={14} className="text-[#4DA3FF]" /> : <ChevronRight size={14} className="text-[#93A4C3]" />}
             </div>
-            <span className="text-[9px] text-[#3A5070]">{s.last_insp_date?.slice(0, 10) ?? '—'}</span>
           </div>
-        ))}
+        )}
+        {tuttiBeads.length > 0 && (
+          <div
+            onClick={() => setExpandedGroup(expandedGroup === 'tutti' ? null : 'tutti')}
+            className={`cursor-pointer rounded-xl border overflow-hidden transition-all hover:shadow-lg hover:shadow-[#A78BFA]/10
+              ${expandedGroup === 'tutti' ? 'border-[#A78BFA]/50 ring-1 ring-[#A78BFA]/30' : 'border-[#2A3754] hover:border-[#A78BFA]/30'}`}
+          >
+            <div className="flex items-center gap-3 px-3 py-2 bg-[#111C30]">
+              <img src={`${appBase}assets/Tutti.jpg`} alt="Tutti" className="h-10 w-10 object-contain rounded" />
+              <div className="flex-1 min-w-0">
+                <div className="text-xs font-semibold text-[#EAF2FF]">Tutti 機台</div>
+                <div className="text-[10px] text-[#A78BFA]">{tuttiBeads.length} markers (QBead)</div>
+              </div>
+              {expandedGroup === 'tutti' ? <ChevronDown size={14} className="text-[#A78BFA]" /> : <ChevronRight size={14} className="text-[#93A4C3]" />}
+            </div>
+          </div>
+        )}
       </div>
+
+      {/* Expanded bead grid */}
+      <AnimatePresence mode="wait">
+        {expandedGroup === 'p01' && p01Beads.length > 0 && (
+          <motion.div key="p01" initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} transition={{ duration: 0.2 }}>
+            {renderGrid(p01Beads)}
+          </motion.div>
+        )}
+        {expandedGroup === 'tutti' && tuttiBeads.length > 0 && (
+          <motion.div key="tutti" initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} transition={{ duration: 0.2 }}>
+            {renderGrid(tuttiBeads)}
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
@@ -813,21 +875,31 @@ export default function DriedBeadsPage({ navTarget, onNavConsumed, onSelectionCh
 
         {/* Col 1: Marker selector */}
         <div className="w-36 shrink-0 flex flex-col gap-1 overflow-y-auto">
-          <span className="text-[10px] font-semibold text-[#93A4C3] uppercase tracking-widest px-1 mb-1">
-            Marker
-          </span>
-          {(markers || []).map(m => (
-            <button
-              key={m}
-              onClick={() => { setSelectedMarker(m); setSelectedSheet(null); setShowForm(false); }}
-              className={`text-left rounded-lg px-3 py-2 text-xs font-medium transition-colors
-                ${selectedMarker === m
-                  ? 'bg-[#4DA3FF]/20 text-[#4DA3FF] border border-[#4DA3FF]/40'
-                  : 'text-[#93A4C3] hover:bg-[#1A2438] hover:text-[#EAF2FF] border border-transparent'}`}
-            >
-              {m}
-            </button>
-          ))}
+          {(() => {
+            const all = markers || [];
+            const p01 = all.filter(m => !/^Q/i.test(m));
+            const tutti = all.filter(m => /^Q/i.test(m));
+            const renderBtn = (m: string) => (
+              <button
+                key={m}
+                onClick={() => { setSelectedMarker(m); setSelectedSheet(null); setShowForm(false); }}
+                className={`text-left rounded-lg px-3 py-2 text-xs font-medium transition-colors
+                  ${selectedMarker === m
+                    ? 'bg-[#4DA3FF]/20 text-[#4DA3FF] border border-[#4DA3FF]/40'
+                    : 'text-[#93A4C3] hover:bg-[#1A2438] hover:text-[#EAF2FF] border border-transparent'}`}
+              >
+                {m}
+              </button>
+            );
+            return (
+              <>
+                {p01.length > 0 && <span className="text-[9px] font-semibold text-[#93A4C3] px-1 mb-0.5">P01</span>}
+                {p01.map(renderBtn)}
+                {tutti.length > 0 && <span className="text-[9px] font-semibold text-[#A78BFA] px-1 mt-2 mb-0.5">Tutti</span>}
+                {tutti.map(renderBtn)}
+              </>
+            );
+          })()}
         </div>
 
         {/* Col 2: Sheet list */}

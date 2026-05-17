@@ -15,6 +15,7 @@ import { Router } from 'express';
 import { Client } from 'ssh2';
 import { readFileSync, existsSync } from 'fs';
 import db from '../db/sqlite.js';
+import specDb from '../db/specDb.js';
 
 const router = Router();
 
@@ -188,13 +189,66 @@ setInterval(syncScheduleCache, SYNC_INTERVAL);
 // Skip: c*/f* (免疫), Qc*/Qf*, *HAMA, *R1~R4, *PS, *Diluent, PHBR, VI*
 
 // Name mapping: schedule marker name → QC bead_name
-const NAME_MAP = {
+// Base hardcoded map (fallback)
+const BASE_NAME_MAP = {
   'tCre':  'tCREA',
   'tAsti': 'tASTi',
   'CK':    'CPK',
   'GLU':   'tGlu',
   'ClH':   'Cl',
 };
+
+// Dynamic alias map built from bead_ipqc_spec + drbeadinspection bead_names
+// e.g. spec marker="CK/ CK-AD" + DB has bead_name="CPK" → CK→CPK, CK-AD→CPK
+function buildNameMap() {
+  const map = { ...BASE_NAME_MAP };
+  try {
+    const specs = specDb.prepare('SELECT marker FROM bead_ipqc_spec').all();
+    const dbNames = new Set(
+      db.prepare('SELECT DISTINCT bead_name FROM drbeadinspection').all().map(r => r.bead_name)
+    );
+    const dbNamesLower = new Map(
+      [...dbNames].map(n => [n.toLowerCase(), n])
+    );
+    for (const s of specs) {
+      // Extract tokens: split by / , \r\n and strip parentheses
+      const tokens = String(s.marker || '')
+        .replace(/\r\n/g, '/')
+        .split(/[/,]/)
+        .map(t => t.replace(/[()]/g, '').trim())
+        .filter(Boolean);
+      if (tokens.length < 2) continue;
+      // Find which token matches an existing bead_name in DB (case-insensitive)
+      let canonical = tokens.find(t => dbNames.has(t))
+        || tokens.map(t => dbNamesLower.get(t.toLowerCase())).find(Boolean);
+      // Also check via BASE_NAME_MAP
+      if (!canonical) {
+        for (const t of tokens) {
+          if (BASE_NAME_MAP[t] && dbNames.has(BASE_NAME_MAP[t])) {
+            canonical = BASE_NAME_MAP[t];
+            break;
+          }
+        }
+      }
+      if (!canonical) continue;
+      // Map all other tokens → canonical
+      for (const t of tokens) {
+        if (t !== canonical && !map[t]) {
+          // Strip reagent suffix (-AD, -AU, -D, -U, -d) to get the base name for mapping
+          const base = t.replace(/-[A-Z]*[DUd]$/, '');
+          if (base !== t && !map[base]) map[base] = canonical;
+          // Also map the full token if it's a standalone name (no dash)
+          if (!t.includes('-')) map[t] = canonical;
+        }
+      }
+    }
+  } catch (e) {
+    console.error('[schedule] buildNameMap failed:', e.message);
+  }
+  return map;
+}
+
+const NAME_MAP = buildNameMap();
 
 // Markers where the full string (with dash+suffix) IS the bead name
 // i.e. the suffix is NOT a version letter but part of the name
@@ -255,7 +309,7 @@ function parseMarker(raw) {
 }
 
 // ── Build existing work orders from local DB ──────────────────────────
-// 只要工單號已存在就不需匯入（不管 lot）
+// 只要工單號已存在於 drbeadinspection 就不需匯入（不管 lot）
 function getExistingWorkOrders() {
   const wos = new Set();
 
@@ -267,16 +321,6 @@ function getExistingWorkOrders() {
     if (r.d_work_order) r.d_work_order.split(/[,\n]/).forEach(w => wos.add(w.trim()));
     if (r.bigD_work_order) r.bigD_work_order.split(/[,\n]/).forEach(w => wos.add(w.trim()));
     if (r.u_work_order) r.u_work_order.split(/[,\n]/).forEach(w => wos.add(w.trim()));
-  }
-
-  const postRows = db.prepare(`
-    SELECT work_order_d, work_order_bigD, work_order_u
-    FROM posts
-  `).all();
-  for (const r of postRows) {
-    if (r.work_order_d) r.work_order_d.split(/[,\n]/).forEach(w => wos.add(w.trim()));
-    if (r.work_order_bigD) r.work_order_bigD.split(/[,\n]/).forEach(w => wos.add(w.trim()));
-    if (r.work_order_u) r.work_order_u.split(/[,\n]/).forEach(w => wos.add(w.trim()));
   }
 
   return wos;
@@ -303,16 +347,16 @@ router.get('/pending', (_req, res) => {
     // Algorithm: per beadName, sort by date, merge into a group if
     // the new row's date is within 1 day of the group's earliest date.
 
-    // Step 1: parse all rows, skip R&D lots and empty lots
+    // Step 1: parse all rows, skip R&D lots, empty lots, and existing work orders
     const parsed = [];
     for (const row of schedRows) {
       const p = parseMarker(row.Marker);
       if (!p) continue;
       const lot = (row.Lot || "").trim();
       if (lot.endsWith("-RD") || !lot) continue;
+      if (existingWOs.has(row.WorkOrder)) continue;
       const prodDate = (row.Date || "").replace(/\//g, "-");
-      const woExists = existingWOs.has(row.WorkOrder);
-      parsed.push({ ...p, prodDate, wo: row.WorkOrder, lot, woExists });
+      parsed.push({ ...p, prodDate, wo: row.WorkOrder, lot });
     }
 
     // Step 2: group by beadName
@@ -365,20 +409,19 @@ router.get('/pending', (_req, res) => {
           matched.work_order += ', ' + r.wo;
         }
 
-        // Merge reagent lots (comma-join if multiple lots for same reagent)
-        // Include all lots for display (even from existing WOs) so the full d/D/U combo is visible
+        // Merge reagent lots
         if (r.reagent === 'd') {
-          if (!r.woExists) matched.d_wo = r.wo;
+          matched.d_wo = matched.d_wo ? matched.d_wo + ', ' + r.wo : r.wo;
           matched.d_prod_date = r.prodDate;
           matched.d_lot = matched.d_lot ? matched.d_lot + ', ' + r.lot : r.lot;
         }
         if (r.reagent === 'bigD') {
-          if (!r.woExists) matched.bigD_wo = r.wo;
+          matched.bigD_wo = matched.bigD_wo ? matched.bigD_wo + ', ' + r.wo : r.wo;
           matched.bigD_prod_date = r.prodDate;
           matched.bigD_lot = matched.bigD_lot ? matched.bigD_lot + ', ' + r.lot : r.lot;
         }
         if (r.reagent === 'u') {
-          if (!r.woExists) matched.u_wo = r.wo;
+          matched.u_wo = matched.u_wo ? matched.u_wo + ', ' + r.wo : r.wo;
           matched.u_prod_date = r.prodDate;
           matched.u_lot = matched.u_lot ? matched.u_lot + ', ' + r.lot : r.lot;
         }
@@ -400,11 +443,6 @@ router.get('/pending', (_req, res) => {
 
       // Skip groups with no lots at all
       if (!g.d_lot && !g.bigD_lot && !g.u_lot) continue;
-
-      // Skip if ALL reagent work_orders in this group already exist in IPQC DB
-      // (only skip if there's truly nothing new to import)
-      const newWOs = [g.d_wo, g.bigD_wo, g.u_wo].filter(Boolean);
-      if (newWOs.length === 0) continue;
 
       pending.push(g);
     }
@@ -462,14 +500,29 @@ router.post('/import', (req, res) => {
       bead_name, sheet_name, combo_idx, marker, insp_date,
       work_order_d, lot_d, prod_date_d,
       work_order_bigD, lot_bigD, prod_date_bigD,
-      work_order_u, lot_u, prod_date_u
+      work_order_u, lot_u, prod_date_u,
+      lsl_l1, usl_l1, lsl_l2, usl_l2,
+      conc_cv_spec, mean_bias_spec_l1, mean_bias_spec_l2, total_cv_spec
     ) VALUES (
       @bead_name, @sheet_name, @combo_idx, @bead_name, @insp_date,
       @d_wo, @d_lot, @d_prod_date,
       @bigD_wo, @bigD_lot, @bigD_prod_date,
-      @u_wo, @u_lot, @u_prod_date
+      @u_wo, @u_lot, @u_prod_date,
+      @lsl_l1, @usl_l1, @lsl_l2, @usl_l2,
+      @conc_cv_spec, @mean_bias_spec_l1, @mean_bias_spec_l2, @total_cv_spec
     )
   `);
+
+  // Lookup spec from existing posts of the same bead_name
+  function lookupPostSpec(beadName) {
+    return db.prepare(`
+      SELECT lsl_l1, usl_l1, lsl_l2, usl_l2,
+             conc_cv_spec, mean_bias_spec_l1, mean_bias_spec_l2, total_cv_spec
+      FROM posts
+      WHERE bead_name = ? AND lsl_l1 IS NOT NULL
+      ORDER BY id DESC LIMIT 1
+    `).get(beadName) || {};
+  }
 
   const txn = db.transaction((rows) => {
     const results = [];
@@ -550,6 +603,7 @@ router.post('/import', (req, res) => {
       }
 
       try {
+        const spec = lookupPostSpec(params.bead_name);
         for (let ci = 0; ci < comboCount; ci++) {
           // d/D index: 重複使用 (e.g. d=2,U=4 → d[0],d[0],d[1],d[1])
           const dDIdx = dDMax > 0 ? Math.floor(ci * dDMax / comboCount) : ci;
@@ -562,6 +616,14 @@ router.post('/import', (req, res) => {
             d_lot: dLots[dDIdx] || null,
             bigD_lot: bigDLots[dDIdx] || null,
             u_lot: uLots[ci] || null,
+            lsl_l1: spec.lsl_l1 || null,
+            usl_l1: spec.usl_l1 || null,
+            lsl_l2: spec.lsl_l2 || null,
+            usl_l2: spec.usl_l2 || null,
+            conc_cv_spec: spec.conc_cv_spec || null,
+            mean_bias_spec_l1: spec.mean_bias_spec_l1 || null,
+            mean_bias_spec_l2: spec.mean_bias_spec_l2 || null,
+            total_cv_spec: spec.total_cv_spec || null,
           };
           insertDr.run(p);
           insertPost.run(p);

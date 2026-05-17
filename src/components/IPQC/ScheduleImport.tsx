@@ -4,6 +4,10 @@ import { useFetch } from '../../api/useFetch';
 import { fetchPendingSchedule, importScheduleItems, type PendingItem } from '../../api/schedule';
 
 const today = () => new Date().toISOString().slice(0, 10);
+const daysAgo = (n: number) => {
+  const d = new Date(); d.setDate(d.getDate() - n);
+  return d.toISOString().slice(0, 10);
+};
 
 export default function ScheduleImport() {
   const { data: pending, loading, error, refresh } = useFetch<PendingItem[]>(fetchPendingSchedule, []);
@@ -11,6 +15,8 @@ export default function ScheduleImport() {
   const [importing, setImporting] = useState(false);
   const [result, setResult] = useState<{ imported: number; skipped: number } | null>(null);
   const [filterMarker, setFilterMarker] = useState('');
+  const [dateFrom, setDateFrom] = useState(daysAgo(30));
+  const [dateTo, setDateTo] = useState(today());
 
   const markers = useMemo(() => {
     if (!pending) return [];
@@ -19,8 +25,18 @@ export default function ScheduleImport() {
 
   const filtered = useMemo(() => {
     if (!pending) return [];
-    return filterMarker ? pending.filter(p => p.bead_name === filterMarker) : pending;
-  }, [pending, filterMarker]);
+    let list = pending;
+    if (filterMarker) list = list.filter(p => p.bead_name === filterMarker);
+    if (dateFrom || dateTo) {
+      list = list.filter(p => {
+        const d = p.prod_date;
+        if (dateFrom && d < dateFrom) return false;
+        if (dateTo && d > dateTo) return false;
+        return true;
+      });
+    }
+    return list.sort((a, b) => b.prod_date.localeCompare(a.prod_date));
+  }, [pending, filterMarker, dateFrom, dateTo]);
 
   const key = (p: PendingItem) => `${p.bead_name}|${p.work_order}`;
 
@@ -75,6 +91,13 @@ export default function ScheduleImport() {
           <option value="">全部</option>
           {markers.map(m => <option key={m} value={m}>{m}</option>)}
         </select>
+
+        <span className="text-xs text-[#556A88]">生產日</span>
+        <input type="date" value={dateFrom} onChange={e => setDateFrom(e.target.value)}
+          className="bg-[#0d1f3a] border border-[#2A3754] text-[#D4E8FF] text-xs rounded px-2 py-1 focus:outline-none focus:border-[#4DA3FF] [&::-webkit-calendar-picker-indicator]:invert [&::-webkit-calendar-picker-indicator]:opacity-70" />
+        <span className="text-xs text-[#556A88]">~</span>
+        <input type="date" value={dateTo} onChange={e => setDateTo(e.target.value)}
+          className="bg-[#0d1f3a] border border-[#2A3754] text-[#D4E8FF] text-xs rounded px-2 py-1 focus:outline-none focus:border-[#4DA3FF] [&::-webkit-calendar-picker-indicator]:invert [&::-webkit-calendar-picker-indicator]:opacity-70" />
 
         <button onClick={refresh} disabled={loading}
           className="flex items-center gap-1 px-2 py-1 text-xs text-[#93A4C3] hover:text-[#4DA3FF] transition-colors">

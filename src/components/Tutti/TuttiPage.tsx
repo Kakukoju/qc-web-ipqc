@@ -1,7 +1,7 @@
 export default function TuttiPage() {
   return (
     <iframe
-      src="/qc-web/pre-assignment/"
+      src={`/qc-web/pre-assignment/?t=${Date.now()}`}
       className="w-full h-full border-0"
       title="Tutti-Beads 預建線"
     />

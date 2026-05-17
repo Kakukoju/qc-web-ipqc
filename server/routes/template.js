@@ -124,12 +124,22 @@ router.post('/import', (req, res) => {
         VALUES (?, ?, 17, ?, ?, ?, ?, ?)
       `).run(marker, sheetName, lot, today, wo, lot, prodDate);
 
-      // Insert posts
+      // Insert posts (with spec from existing data)
+      const spec = db.prepare(`
+        SELECT lsl_l1, usl_l1, lsl_l2, usl_l2,
+               conc_cv_spec, mean_bias_spec_l1, mean_bias_spec_l2, total_cv_spec
+        FROM posts WHERE bead_name = ? AND lsl_l1 IS NOT NULL
+        ORDER BY id DESC LIMIT 1
+      `).get(marker) || {};
       db.prepare(`
         INSERT INTO posts (bead_name, sheet_name, combo_idx, marker, insp_date,
-          work_order_bigD, lot_bigD, prod_date_bigD)
-        VALUES (?, ?, 1, ?, ?, ?, ?, ?)
-      `).run(marker, sheetName, marker, today, wo, lot, prodDate);
+          work_order_bigD, lot_bigD, prod_date_bigD,
+          lsl_l1, usl_l1, lsl_l2, usl_l2,
+          conc_cv_spec, mean_bias_spec_l1, mean_bias_spec_l2, total_cv_spec)
+        VALUES (?, ?, 1, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      `).run(marker, sheetName, marker, today, wo, lot, prodDate,
+        spec.lsl_l1 || null, spec.usl_l1 || null, spec.lsl_l2 || null, spec.usl_l2 || null,
+        spec.conc_cv_spec || null, spec.mean_bias_spec_l1 || null, spec.mean_bias_spec_l2 || null, spec.total_cv_spec || null);
 
       // Create rawdata skeleton — resolve levels from existing marker data or use defaults
       let tableLevels = db.prepare(`

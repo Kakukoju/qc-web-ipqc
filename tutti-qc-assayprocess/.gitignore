@@ -1,0 +1,14 @@
+.venv/
+backend/.venv/
+backend/__pycache__/
+*.pyc
+frontend/node_modules/
+frontend/dist/
+frontend/tsconfig.tsbuildinfo
+data/*.db
+data/*.db-*
+logs/*.log
+local-watcher/upload_manifest.json
+local-watcher/config.ps1
+local-watcher/config.json
+local-watcher/.venv/

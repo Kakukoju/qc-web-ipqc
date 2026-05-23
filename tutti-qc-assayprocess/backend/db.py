@@ -92,6 +92,9 @@ def init_db() -> None:
             _ensure_table_column(conn, TABLE_NAME, "baseline", "TEXT DEFAULT 'false'")
             _ensure_table_column(conn, TABLE_NAME, "baseline_equation", "TEXT")
             _ensure_table_column(conn, TABLE_NAME, "mfg_lot_no", "TEXT")
+            _ensure_table_column(conn, TABLE_NAME, "analyzt_item_lot", "TEXT")
+            _ensure_table_column(conn, TABLE_NAME, "change_baseline", "INTEGER DEFAULT 0")
+            _ensure_table_column(conn, TABLE_NAME, "device_sn", "TEXT")
 
 
 def _ensure_table_column(

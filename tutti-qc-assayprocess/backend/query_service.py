@@ -5,8 +5,6 @@ from typing import Literal
 from db import TABLE_NAME, get_connection, get_data_headers, quote_identifier, table_exists
 
 
-MONTH_RE = re.compile(r"^\d{4}[-/]\d{2}$")
-DATE_RE = re.compile(r"^\d{4}[-/]\d{2}[-/]\d{2}$")
 TIME_RE = re.compile(r"^\d{1,2}(?::\d{2}){0,2}$")
 
 
@@ -16,16 +14,24 @@ def list_headers() -> list[str]:
 
 
 def _parse_date(value: str) -> date | None:
-    normalized = value.strip().replace("/", "-")
-    if not DATE_RE.match(normalized):
+    """Parse date from multiple formats: YYYY-MM-DD, YYYY/M/D, M/D/YYYY, etc."""
+    s = value.strip().replace("-", "/")
+    parts = s.split("/")
+    if len(parts) == 3:
+        a, b, c = (int(p) for p in parts)
+        if a > 31:  # YYYY/M/D
+            return date(a, b, c)
+        if c > 31:  # M/D/YYYY
+            return date(c, a, b)
+    elif len(parts) == 2:
         return None
-    year, month, day = (int(part) for part in normalized.split("-"))
-    return date(year, month, day)
+    return None
 
 
 def _next_month(value: str) -> date:
-    normalized = value.strip().replace("/", "-")
-    year, month = (int(part) for part in normalized.split("-"))
+    s = value.strip().replace("/", "-")
+    parts = s.split("-")
+    year, month = int(parts[0]), int(parts[1])
     if month == 12:
         return date(year + 1, 1, 1)
     return date(year, month + 1, 1)
@@ -67,8 +73,37 @@ def _time_upper_bound(value: time, original: str) -> tuple[str, bool]:
     return _format_time(value), False
 
 
+def _normalize_date_expr(header: str) -> str:
+    """SQL expression to normalize any date format in DB to YYYY-MM-DD for comparison."""
+    col = quote_identifier(header)
+    # Handle formats like 2026/5/4 -> 2026-05-04 using substr + printf padding
+    # Use a simple approach: replace / with - then use substr to zero-pad
+    return (
+        f"CASE "
+        f"WHEN {col} LIKE '____-__-__' THEN {col} "
+        f"WHEN {col} LIKE '____/__/__' THEN replace({col}, '/', '-') "
+        f"ELSE "
+        f"  printf('%04d-%02d-%02d', "
+        f"    CAST(CASE WHEN CAST(substr(replace({col},'/','-'),1,instr(replace({col},'/','-'),'-')-1) AS INTEGER) > 31 "
+        f"      THEN substr(replace({col},'/','-'),1,instr(replace({col},'/','-'),'-')-1) "
+        f"      ELSE substr(replace({col},'/','-'),instr(substr(replace({col},'/','-'),instr(replace({col},'/','-'),'-')+1),'-')+instr(replace({col},'/','-'),'-')+1) "
+        f"    END AS INTEGER), "
+        f"    CAST(CASE WHEN CAST(substr(replace({col},'/','-'),1,instr(replace({col},'/','-'),'-')-1) AS INTEGER) > 31 "
+        f"      THEN substr(replace({col},'/','-'),instr(replace({col},'/','-'),'-')+1, "
+        f"        instr(substr(replace({col},'/','-'),instr(replace({col},'/','-'),'-')+1),'-')-1) "
+        f"      ELSE substr(replace({col},'/','-'),1,instr(replace({col},'/','-'),'-')-1) "
+        f"    END AS INTEGER), "
+        f"    CAST(CASE WHEN CAST(substr(replace({col},'/','-'),1,instr(replace({col},'/','-'),'-')-1) AS INTEGER) > 31 "
+        f"      THEN substr(replace({col},'/','-'),instr(substr(replace({col},'/','-'),instr(replace({col},'/','-'),'-')+1),'-')+instr(replace({col},'/','-'),'-')+1) "
+        f"      ELSE substr(replace({col},'/','-'),instr(replace({col},'/','-'),'-')+1, "
+        f"        instr(substr(replace({col},'/','-'),instr(replace({col},'/','-'),'-')+1),'-')-1) "
+        f"    END AS INTEGER)) "
+        f"END"
+    )
+
+
 def _build_date_clause(header: str, value: str) -> tuple[str, list[str]] | None:
-    expression = f"replace({quote_identifier(header)}, '/', '-')"
+    expression = _normalize_date_expr(header)
     normalized = value.strip().replace(" ", "")
 
     if "~" in normalized:
@@ -79,9 +114,12 @@ def _build_date_clause(header: str, value: str) -> tuple[str, list[str]] | None:
             return None
         return f"({expression} >= ? AND {expression} <= ?)", [start.isoformat(), end.isoformat()]
 
-    if MONTH_RE.match(normalized):
-        start = date.fromisoformat(normalized.replace("/", "-") + "-01")
-        end = _next_month(normalized)
+    # Month filter: YYYY-MM or YYYY/MM
+    month_match = re.match(r"^(\d{4})[-/](\d{1,2})$", normalized)
+    if month_match:
+        year, month = int(month_match.group(1)), int(month_match.group(2))
+        start = date(year, month, 1)
+        end = date(year + 1, 1, 1) if month == 12 else date(year, month + 1, 1)
         return f"({expression} >= ? AND {expression} < ?)", [start.isoformat(), end.isoformat()]
 
     exact = _parse_date(normalized)
@@ -209,7 +247,8 @@ def query_records(
             params,
         ).fetchone()
 
-        order_sql = "ORDER BY replace(\"analyze_date\", '/', '-') DESC, \"analyze_time\" DESC, id DESC"
+        date_sort_expr = _normalize_date_expr("analyze_date")
+        order_sql = f"ORDER BY {date_sort_expr} DESC, \"panel_name\" ASC, \"analyze_time\" DESC, id DESC"
         params.extend([normalized_limit, normalized_offset])
         rows = conn.execute(
             f"""

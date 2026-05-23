@@ -53,7 +53,7 @@ def _control_clause() -> str:
 
 
 def _base_where() -> str:
-    return f"baseline = 'true' AND {_empty_equation_clause()} AND {_control_clause()}"
+    return f"baseline = 'true' AND {_control_clause()}"
 
 
 def _marker_exclusion_clause() -> str:
@@ -202,7 +202,8 @@ def get_baseline_group(payload: dict) -> dict:
               analyze_item,
               {quote_identifier('Test Well')} AS test_well,
               {quote_identifier('Final Delta OD')} AS final_delta_od,
-              baseline_equation
+              baseline_equation,
+              COALESCE(change_baseline, 0) AS change_baseline
             FROM {quote_identifier(TABLE_NAME)}
             WHERE {_base_where()} AND {_marker_exclusion_clause()}
               AND {lot_sql} = ?
@@ -233,6 +234,7 @@ def get_baseline_group(payload: dict) -> dict:
             "test_well": _as_text(row["test_well"]),
             "final_delta_od": _as_float(row["final_delta_od"]),
             "baseline_equation": _as_text(row["baseline_equation"]),
+            "change_baseline": int(row["change_baseline"] or 0),
         }
         for row in rows
     ]
@@ -259,6 +261,8 @@ def get_baseline_group(payload: dict) -> dict:
                 "analyze_item": analyze_item,
                 "test_well": ", ".join(test_wells),
                 "baseline_equation": fit["equation"] if fit else "",
+                "current_baseline_equation": next((_as_text(row["baseline_equation"]) for row in item_rows if _as_text(row["baseline_equation"])), ""),
+                "change_baseline": max((int(row.get("change_baseline") or 0) for row in item_rows), default=0),
                 "fit": fit,
                 "points": item_rows,
                 "missing_concentration": any(row.get("conc") is None for row in item_rows),
@@ -282,7 +286,13 @@ def update_baseline_equation(payload: dict) -> dict:
         result = conn.execute(
             f"""
             UPDATE {quote_identifier(TABLE_NAME)}
-            SET baseline_equation = ?
+            SET baseline_equation = ?,
+                change_baseline = CASE
+                    WHEN COALESCE(TRIM(baseline_equation), '') <> ''
+                     AND COALESCE(TRIM(baseline_equation), '') <> ?
+                    THEN COALESCE(change_baseline, 0) + 1
+                    ELSE COALESCE(change_baseline, 0)
+                END
             WHERE baseline = 'true'
               AND {lot_sql} = ?
               AND panel_name = ?
@@ -291,6 +301,7 @@ def update_baseline_equation(payload: dict) -> dict:
               AND analyze_item = ?
             """,
             [
+                equation,
                 equation,
                 key["mfg_lot_no"],
                 key["panel_name"],

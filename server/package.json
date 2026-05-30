@@ -8,7 +8,9 @@
     "db:seed": "node db/seed.js",
     "db:reset": "node db/init.js && node db/seed.js",
     "db:import": "node db/import.js",
-    "db:import-dry": "node db/import.js --dry-run"
+    "db:import-dry": "node db/import.js --dry-run",
+    "db:migrate": "node db/migrations/001_tutti_scan_records.js",
+    "test:tutti-scan": "node tests/tuttiScanRecords.test.js"
   },
   "dependencies": {
     "better-sqlite3": "^12.9.0",

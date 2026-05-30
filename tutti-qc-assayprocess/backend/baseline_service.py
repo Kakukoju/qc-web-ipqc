@@ -1,8 +1,13 @@
 import math
 import os
+import re
+import json
 import sqlite3
 from pathlib import Path
 from typing import Any
+
+import psycopg2
+import psycopg2.extras
 
 from db import TABLE_NAME, get_connection, quote_identifier, table_exists
 
@@ -70,6 +75,7 @@ def _marker_exclusion_params() -> list[str]:
 def _group_key_from_payload(payload: dict) -> dict[str, str]:
     return {
         "mfg_lot_no": _as_text(payload.get("mfg_lot_no")),
+        "lot_key": _as_text(payload.get("lot_key")) or _as_text(payload.get("mfg_lot_no")),
         "panel_name": _as_text(payload.get("panel_name")),
         "analyze_date": _as_text(payload.get("analyze_date")),
         "Species": _as_text(payload.get("Species")),
@@ -140,43 +146,203 @@ def _linear_fit(points: list[dict[str, Any]]) -> dict[str, Any] | None:
     }
 
 
+def _get_rds_connection():
+    """Get a PostgreSQL connection to RDS."""
+    from rds_sync_service import RDS_CONFIG
+    return psycopg2.connect(**RDS_CONFIG)
+
+
+SPECIAL_MAP = {"TBA": "BA", "TC": "CHOL", "TG": "TRIG", "LIPA": "P-LIPA"}
+
+
+def _reagent_to_item(rn: str) -> str:
+    """Convert reagentName to analyze_item (strip suffix/prefix)."""
+    if not rn:
+        return ""
+    name = re.sub(r'-(AD|AU|BD|BU|D|U|B|A)$', '', rn.strip(), flags=re.IGNORECASE)
+    if name.startswith('Q') and len(name) > 1:
+        name = name[1:]
+    elif name.startswith('t') and len(name) > 1 and name[1].isupper():
+        name = name[1:]
+    upper = name.upper()
+    if upper in SPECIAL_MAP:
+        return SPECIAL_MAP[upper]
+    return name
+
+
+def _fetch_batch_info(mfg_lot_no: str, panel_name: str, analyze_date: str, markers: list[str]) -> dict[str, dict[str, str]]:
+    """
+    Fetch batch info (d_lot, bigD_lot, u_lot, prod_date) from RDS work order form_data.
+    Returns: { analyze_item: { d_lot, bigD_lot, u_lot, prod_date } }
+    """
+    if not markers:
+        return {}
+    try:
+        pg = _get_rds_connection()
+        cur = pg.cursor(cursor_factory=psycopg2.extras.DictCursor)
+
+        # Find work order: first try direct match, then via assay_process_records.lot_code
+        cur.execute("""
+            SELECT work_order_no, lot_no, form_data
+            FROM panel_production.tutti_work_orders
+            WHERE lot_no = %s OR work_order_no = %s
+            LIMIT 1
+        """, (mfg_lot_no, mfg_lot_no))
+        row = cur.fetchone()
+
+        if not row:
+            # Fallback: resolve mfg_lot_no from assay_process_records, then find work order
+            cur.execute("""
+                SELECT DISTINCT mfg_lot_no FROM panel_production.assay_process_records
+                WHERE (lot_code = %s OR mfg_lot_no = %s OR lot_no = %s)
+                  AND mfg_lot_no IS NOT NULL AND mfg_lot_no != ''
+                LIMIT 1
+            """, (mfg_lot_no, mfg_lot_no, mfg_lot_no))
+            resolved = cur.fetchone()
+            if resolved and resolved['mfg_lot_no'] != mfg_lot_no:
+                cur.execute("""
+                    SELECT work_order_no, lot_no, form_data
+                    FROM panel_production.tutti_work_orders
+                    WHERE lot_no = %s LIMIT 1
+                """, (resolved['mfg_lot_no'],))
+                row = cur.fetchone()
+            # Still not found: try matching by same panel_type
+            if not row:
+                parts = (resolved['mfg_lot_no'] if resolved else mfg_lot_no).split('-')
+                if len(parts) >= 2:
+                    panel_type = parts[1]
+                    cur.execute("""
+                        SELECT work_order_no, lot_no, form_data
+                        FROM panel_production.tutti_work_orders
+                        WHERE split_part(lot_no, '-', 2) = %s
+                          AND lot_no IS NOT NULL AND lot_no != ''
+                        ORDER BY lot_no DESC LIMIT 1
+                    """, (panel_type,))
+                    row = cur.fetchone()
+
+        if not row:
+            # Try tutti_work_orders_water
+            cur.execute("""
+                SELECT work_order_no, lot_no, form_data
+                FROM panel_production.tutti_work_orders_water
+                WHERE lot_no = %s OR work_order_no = %s
+                LIMIT 1
+            """, (mfg_lot_no, mfg_lot_no))
+            row = cur.fetchone()
+
+        if not row:
+            # Fallback: match by same panel_type (middle field of mfg_lot_no)
+            parts = mfg_lot_no.split('-')
+            if len(parts) >= 2:
+                panel_type = parts[1]
+                cur.execute("""
+                    SELECT work_order_no, lot_no, form_data
+                    FROM panel_production.tutti_work_orders
+                    WHERE split_part(lot_no, '-', 2) = %s
+                      AND lot_no IS NOT NULL AND lot_no != ''
+                    ORDER BY lot_no DESC
+                    LIMIT 1
+                """, (panel_type,))
+                row = cur.fetchone()
+
+        cur.close()
+        pg.close()
+
+        if not row:
+            return {}
+
+        form_data = row['form_data'] if isinstance(row['form_data'], dict) else json.loads(row['form_data'])
+        prod_date = form_data.get('header', {}).get('date', '')
+        wells = form_data.get('wells', {})
+
+        # Build marker -> {d_lot, bigD_lot, u_lot} from wells
+        # d_lot (small d) = batch from reagentName starting with lowercase 't' (e.g. tCRE-D)
+        # bigD_lot (big D) = batch from reagentName1 with -D/-AD suffix (all others)
+        # u_lot (U) = batch from reagentName2 with -U/-AU/-BU suffix
+        result: dict[str, dict[str, str]] = {}
+        for _line_key, entries in wells.items():
+            if not isinstance(entries, list):
+                continue
+            for entry in entries:
+                rn1 = entry.get('reagentName1', '').strip()
+                rn2 = entry.get('reagentName2', '').strip()
+                b1 = entry.get('batch1', '').strip()
+                b2 = entry.get('batch2', '').strip()
+
+                if rn1:
+                    item = _reagent_to_item(rn1).upper()
+                    if item and b1:
+                        if item not in result:
+                            result[item] = {"d_lot": "", "bigD_lot": "", "u_lot": "", "prod_date": prod_date}
+                        # lowercase t prefix -> d_lot (small d)
+                        if rn1[0] == 't' and len(rn1) > 1 and rn1[1].isupper():
+                            result[item]["d_lot"] = b1
+                        else:
+                            result[item]["bigD_lot"] = b1
+
+                if rn2:
+                    item = _reagent_to_item(rn2).upper()
+                    if item and b2:
+                        if item not in result:
+                            result[item] = {"d_lot": "", "bigD_lot": "", "u_lot": "", "prod_date": prod_date}
+                        result[item]["u_lot"] = b2
+
+        # Normalize keys to match markers (case-insensitive)
+        marker_set = {m.upper(): m for m in markers}
+        final: dict[str, dict[str, str]] = {}
+        for key_upper, info in result.items():
+            if key_upper in marker_set:
+                final[marker_set[key_upper]] = info
+        return final
+
+    except Exception:
+        return {}
+
+
 def list_baseline_groups(limit: int = 200) -> dict:
     normalized_limit = max(1, min(int(limit or 200), 1000))
-    lot_sql = _lot_expression()
-    with get_connection() as conn:
-        if not table_exists(conn, TABLE_NAME):
-            return {"ok": True, "groups": []}
+    exclusions = sorted(EXCLUDED_BUILD_LINE_MARKERS)
+    excl_clause = "AND analyze_item NOT IN (" + ",".join("%s" for _ in exclusions) + ")" if exclusions else ""
 
-        rows = conn.execute(
-            f"""
+    try:
+        pg = _get_rds_connection()
+        cur = pg.cursor(cursor_factory=psycopg2.extras.DictCursor)
+        cur.execute(f"""
             SELECT
-              {lot_sql} AS mfg_lot_no,
+              COALESCE(NULLIF(lot_code, ''), NULLIF(mfg_lot_no, ''), '') AS lot_key,
+              COALESCE(NULLIF(lot_code, ''), NULLIF(mfg_lot_no, ''), NULLIF(work_order_no, ''), '') AS display_id,
               panel_name,
               analyze_date,
-              Species,
+              species AS "Species",
               COUNT(*) AS row_count,
               COUNT(DISTINCT analyze_item) AS analyze_item_count,
-              GROUP_CONCAT(DISTINCT analyze_item) AS analyze_items
-            FROM {quote_identifier(TABLE_NAME)}
-            WHERE {_base_where()} AND {_marker_exclusion_clause()}
-            GROUP BY {lot_sql}, panel_name, analyze_date, Species
-            ORDER BY replace(analyze_date, '/', '-') DESC, mfg_lot_no, panel_name, Species
-            LIMIT ?
-            """,
-            [*CONTROL_IDS, *_marker_exclusion_params(), normalized_limit],
-        ).fetchall()
+              STRING_AGG(DISTINCT analyze_item, ',') AS analyze_items
+            FROM panel_production.assay_process_records
+            WHERE LOWER(patient_id) IN ('control-1','control-2','control-3','control-4')
+              AND analyze_item != ''
+              {excl_clause}
+            GROUP BY lot_key, display_id, panel_name, analyze_date, species
+            ORDER BY analyze_date DESC, lot_key, panel_name, species
+            LIMIT %s
+        """, [*exclusions, normalized_limit])
+        rows = cur.fetchall()
+        cur.close()
+        pg.close()
+    except Exception as exc:
+        return {"ok": False, "error": str(exc)}
 
     return {
         "ok": True,
         "groups": [
             {
-                "mfg_lot_no": _as_text(row["mfg_lot_no"]),
+                "mfg_lot_no": _as_text(row["display_id"]),
+                "lot_key": _as_text(row["lot_key"]),
                 "panel_name": _as_text(row["panel_name"]),
                 "analyze_date": _as_text(row["analyze_date"]),
                 "Species": _as_text(row["Species"]),
                 "row_count": int(row["row_count"] or 0),
                 "analyze_item_count": int(row["analyze_item_count"] or 0),
-                "analyze_items": [item for item in _as_text(row["analyze_items"]).split(",") if item],
+                "analyze_items": sorted([item for item in _as_text(row["analyze_items"]).split(",") if item]),
             }
             for row in rows
         ],
@@ -185,42 +351,40 @@ def list_baseline_groups(limit: int = 200) -> dict:
 
 def get_baseline_group(payload: dict) -> dict:
     key = _group_key_from_payload(payload)
-    lot_sql = _lot_expression()
-    with get_connection() as conn:
-        if not table_exists(conn, TABLE_NAME):
-            return {"ok": True, "group": key, "rows": [], "fits": []}
+    exclusions = sorted(EXCLUDED_BUILD_LINE_MARKERS)
+    excl_clause = "AND analyze_item NOT IN (" + ",".join("%s" for _ in exclusions) + ")" if exclusions else ""
 
-        rows = conn.execute(
-            f"""
+    try:
+        pg = _get_rds_connection()
+        cur = pg.cursor(cursor_factory=psycopg2.extras.DictCursor)
+        cur.execute(f"""
             SELECT
               id,
-              {lot_sql} AS mfg_lot_no,
+              COALESCE(NULLIF(lot_code, ''), NULLIF(mfg_lot_no, ''), '') AS mfg_lot_no,
               panel_name,
               analyze_date,
-              Species,
+              species AS "Species",
               patient_id,
               analyze_item,
-              {quote_identifier('Test Well')} AS test_well,
-              {quote_identifier('Final Delta OD')} AS final_delta_od,
+              test_well,
+              final_delta_od,
               baseline_equation,
-              COALESCE(change_baseline, 0) AS change_baseline
-            FROM {quote_identifier(TABLE_NAME)}
-            WHERE {_base_where()} AND {_marker_exclusion_clause()}
-              AND {lot_sql} = ?
-              AND panel_name = ?
-              AND analyze_date = ?
-              AND Species = ?
-            ORDER BY analyze_item, {quote_identifier('Test Well')}, patient_id, id
-            """,
-            [
-                *CONTROL_IDS,
-                *_marker_exclusion_params(),
-                key["mfg_lot_no"],
-                key["panel_name"],
-                key["analyze_date"],
-                key["Species"],
-            ],
-        ).fetchall()
+              0 AS change_baseline
+            FROM panel_production.assay_process_records
+            WHERE LOWER(patient_id) IN ('control-1','control-2','control-3','control-4')
+              AND analyze_item != ''
+              {excl_clause}
+              AND COALESCE(NULLIF(lot_code, ''), NULLIF(mfg_lot_no, ''), '') = %s
+              AND panel_name = %s
+              AND analyze_date = %s
+              AND species = %s
+            ORDER BY analyze_item, test_well, patient_id, id
+        """, [*exclusions, key["lot_key"], key["panel_name"], key["analyze_date"], key["Species"]])
+        rows = cur.fetchall()
+        cur.close()
+        pg.close()
+    except Exception as exc:
+        return {"ok": False, "error": str(exc)}
 
     normalized_rows = [
         {
@@ -248,10 +412,14 @@ def get_baseline_group(payload: dict) -> dict:
         row["conc"] = conc
         grouped.setdefault(row["analyze_item"], []).append(row)
 
+    # Fetch batch info from RDS
+    batch_info = _fetch_batch_info(key["mfg_lot_no"], key["panel_name"], key["analyze_date"], markers)
+
     fits = []
     for analyze_item, item_rows in grouped.items():
         fit = _linear_fit(item_rows)
         test_wells = sorted({row["test_well"] for row in item_rows if row["test_well"]})
+        bi = batch_info.get(analyze_item, {})
         fits.append(
             {
                 "mfg_lot_no": key["mfg_lot_no"],
@@ -266,6 +434,10 @@ def get_baseline_group(payload: dict) -> dict:
                 "fit": fit,
                 "points": item_rows,
                 "missing_concentration": any(row.get("conc") is None for row in item_rows),
+                "d_lot": bi.get("d_lot", ""),
+                "bigD_lot": bi.get("bigD_lot", ""),
+                "u_lot": bi.get("u_lot", ""),
+                "prod_date": bi.get("prod_date", ""),
             }
         )
 

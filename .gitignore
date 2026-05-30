@@ -16,3 +16,4 @@ _codex_build/
 server/uploads/
 exceldata/
 ipqcdrybeads.db
+.venv/

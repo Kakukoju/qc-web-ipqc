@@ -12,6 +12,7 @@ from import_status_service import get_import_status
 from control_sheet_service import generate_control_sheet
 from query_service import list_headers, query_records
 from upload_service import import_assay_process_csv
+from rds_sync_service import sync_to_rds
 
 load_dotenv()
 
@@ -142,10 +143,21 @@ async def upload_assay_process_csv(
     baseline: str = Form("false"),
 ) -> dict:
     content = await file.read()
-    return import_assay_process_csv(
+    result = import_assay_process_csv(
         content=content,
         source_file=source_file,
         source_file_name=source_file_name or file.filename or os.path.basename(source_file),
         file_mtime=file_mtime,
         baseline=baseline,
     )
+    # After successful import, sync to RDS
+    if result.get("ok") and result.get("status") != "skipped":
+        sync_result = sync_to_rds(source_file=source_file)
+        result["rds_sync"] = sync_result
+    return result
+
+
+@app.post("/api/sync-to-rds")
+async def trigger_rds_sync() -> dict:
+    """Manually trigger full sync from SQLite to RDS."""
+    return sync_to_rds()

@@ -10,6 +10,7 @@
     "db:seed": "cd server && node db/seed.js",
     "db:reset": "cd server && node db/init.js && node db/seed.js",
     "build": "tsc -b && vite build",
+    "test": "vitest --run",
     "lint": "eslint .",
     "preview": "vite preview"
   },
@@ -39,9 +40,11 @@
     "eslint": "^9.39.4",
     "eslint-plugin-react-hooks": "^7.0.1",
     "eslint-plugin-react-refresh": "^0.5.2",
+    "fast-check": "^4.8.0",
     "globals": "^17.4.0",
     "typescript": "~6.0.2",
     "typescript-eslint": "^8.58.0",
-    "vite": "^8.0.4"
+    "vite": "^8.0.4",
+    "vitest": "^4.1.7"
   }
 }

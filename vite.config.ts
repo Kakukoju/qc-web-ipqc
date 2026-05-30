@@ -1,4 +1,5 @@
 import { defineConfig, loadEnv } from 'vite'
+import { resolve } from 'path'
 import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 
@@ -10,6 +11,15 @@ export default defineConfig(({ mode }) => {
   return {
     base: appBase,
     plugins: [react(), tailwindcss()],
+    build: {
+      rollupOptions: {
+        input: {
+          main: resolve(__dirname, 'index.html'),
+          'mobile-scan': resolve(__dirname, 'mobile-scan.html'),
+          'rd-mobile': resolve(__dirname, 'rd-mobile.html'),
+        },
+      },
+    },
     server: {
       proxy: {
         [apiBase]: {
@@ -20,6 +30,10 @@ export default defineConfig(({ mode }) => {
           timeout: 120000,
         },
       },
+    },
+    test: {
+      include: ['src/**/*.{test,spec}.{ts,tsx,js,jsx}'],
+      exclude: ['tests/**', 'node_modules/**', 'server/**', 'tutti-qc-assayprocess/**'],
     },
   }
 })

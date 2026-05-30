@@ -13,6 +13,8 @@ import excelImportRoutes from './routes/excel-import.js';
 import tuttiRoutes from './routes/tutti.js';
 import personnelRoutes from './routes/personnel.js';
 import templateRoutes from './routes/template.js';
+import tuttiScanRecordsRoutes from './routes/tuttiScanRecords.js';
+import rdBuildLineRoutes from './routes/rdBuildLine.js';
 
 dotenv.config();
 
@@ -31,6 +33,85 @@ app.use('/api/excel-import', excelImportRoutes);
 app.use('/api/tutti', tuttiRoutes);
 app.use('/api/personnel', personnelRoutes);
 app.use('/api/template', templateRoutes);
+app.use('/api/v1', tuttiScanRecordsRoutes);
+app.use('/api/v1/pre-assignment', rdBuildLineRoutes);
+
+// ── Proxy to assayprocess backend (port 8200) for baseline-group data ─────
+app.post('/api/assayprocess-proxy/baseline-group', async (req, res) => {
+  try {
+    const upstream = await fetch('http://127.0.0.1:8200/api/baseline-group', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(req.body),
+    });
+    const data = await upstream.json();
+    res.json(data);
+  } catch (err) {
+    res.status(502).json({ ok: false, error: { code: 'PROXY_ERROR', message: err.message } });
+  }
+});
+
+// ── Fetch baseline points from RDS for curve fitting ──────────────────────
+import { queryWithRetry } from './db/pgPool.js';
+import specDb from './db/specDb.js';
+
+app.post('/api/v1/pre-assignment/baseline-points', async (req, res) => {
+  const { lot_no, panel_name, analyze_item, analyze_date } = req.body;
+  if (!lot_no || !panel_name || !analyze_item) {
+    return res.status(400).json({ ok: false, error: 'lot_no, panel_name, analyze_item required' });
+  }
+
+  try {
+    // 1. Fetch ALL baseline records from RDS (all individual wells, not averaged)
+    const dateClause = analyze_date ? 'AND analyze_date = $4' : '';
+    const params = [lot_no, panel_name, analyze_item];
+    if (analyze_date) params.push(analyze_date);
+
+    const result = await queryWithRetry(`
+      SELECT patient_id, final_delta_od, test_well, analyze_date, test_zone
+      FROM panel_production.assay_process_records
+      WHERE baseline = 'true'
+        AND (lot_no = $1 OR lot_code = $1)
+        AND panel_name = $2
+        AND analyze_item = $3
+        ${dateClause}
+        AND LOWER(TRIM(patient_id)) IN ('control-1','control-2','control-3','control-4')
+      ORDER BY patient_id, test_well
+    `, params);
+
+    // 2. Fetch concentrations from csassign
+    let concs = { 'control-1': null, 'control-2': null, 'control-3': null, 'control-4': null };
+    try {
+      const csRow = specDb.prepare('SELECT * FROM csassign WHERE Marker = ?').get(analyze_item);
+      if (csRow) {
+        for (const [col, val] of Object.entries(csRow)) {
+          if (col === 'id' || col === 'Marker') continue;
+          const numVal = parseFloat(val);
+          if (!isFinite(numVal)) continue;
+          const colLower = col.toLowerCase();
+          if (colLower.startsWith('l1') && concs['control-1'] === null) concs['control-1'] = numVal;
+          else if (colLower.startsWith('l2') && concs['control-2'] === null) concs['control-2'] = numVal;
+          else if (colLower.startsWith('n1') && concs['control-3'] === null) concs['control-3'] = numVal;
+          else if (colLower.startsWith('n3') && concs['control-4'] === null) concs['control-4'] = numVal;
+        }
+      }
+    } catch { /* ignore csassign errors */ }
+
+    // 3. Build points array — ALL individual points with conc + OD
+    const points = result.rows.map((row, idx) => ({
+      idx,
+      patient_id: row.patient_id,
+      conc: concs[row.patient_id.toLowerCase()] || null,
+      final_delta_od: parseFloat(row.final_delta_od) || null,
+      test_well: row.test_well,
+      test_zone: row.test_zone || null,
+    }));
+
+    res.json({ ok: true, data: { points, concs, analyze_item, lot_no, panel_name } });
+  } catch (err) {
+    res.status(500).json({ ok: false, error: { code: 'RDS_QUERY_FAILED', message: err.message } });
+  }
+});
 
 // ── Global search across drbeadinspection + posts ─────────────────────────
 import db from './db/sqlite.js';

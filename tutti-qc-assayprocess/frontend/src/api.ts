@@ -131,6 +131,29 @@ export interface ControlSheetResponse {
   error?: string;
 }
 
+export interface SkylaiDeviceFetchResult {
+  ok: boolean;
+  total_inserted?: number;
+  total_skipped?: number;
+  device_results?: { device_sn: string; inserted: number; error?: string }[];
+  date_range?: { start: string; end: string };
+  error?: string;
+}
+
+export async function fetchSkylaiDevices(payload?: {
+  start_date?: string;
+  end_date?: string;
+  days_back?: number;
+}): Promise<SkylaiDeviceFetchResult> {
+  const response = await fetch(`${API_BASE}/fetch-skylai-devices`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload || {}),
+  });
+  if (!response.ok) throw new Error(`Fetch request failed: ${response.status}`);
+  return response.json();
+}
+
 export async function fetchControlSheet(payload: {
   panel_name: string;
   analyze_date: string;

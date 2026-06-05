@@ -1,6 +1,8 @@
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
+import path from 'path';
+import { fileURLToPath } from 'url';
 import drbeadsRoutes from './routes/drbeads.js';
 import postsRoutes from './routes/posts.js';
 import rawdataRoutes from './routes/rawdata.js';
@@ -15,6 +17,9 @@ import personnelRoutes from './routes/personnel.js';
 import templateRoutes from './routes/template.js';
 import tuttiScanRecordsRoutes from './routes/tuttiScanRecords.js';
 import rdBuildLineRoutes from './routes/rdBuildLine.js';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 dotenv.config();
 
@@ -178,6 +183,23 @@ app.get('/api/search', (req, res) => {
     created_at    TEXT DEFAULT (datetime('now','localtime'))
   )`);
 })();
+
+// ── Serve user manual static files ────────────────────────────────────────
+app.use('/qc-web/usermanu', express.static(
+  path.join(__dirname, '..', 'usermanu'),
+  {
+    index: 'index.html',
+    extensions: ['html'],
+    fallthrough: true,
+  }
+));
+
+// 404 fallback for user manual site
+app.use('/qc-web/usermanu/*path', (req, res) => {
+  res.status(404).sendFile(
+    path.join(__dirname, '..', 'usermanu', '404.html')
+  );
+});
 
 const PORT = process.env.PORT || 3201;
 const server = app.listen(PORT, '127.0.0.1', () => {

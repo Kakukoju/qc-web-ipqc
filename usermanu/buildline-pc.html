@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>建線管理 PC 端 - IPQC 使用說明</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <header class="site-header">
+    <div class="header-inner">
+      <a href="index.html" class="logo"><img src="images/skyla-logo.png" alt="Skyla" class="logo-img">IPQC 使用說明</a>
+      <nav class="main-nav" aria-label="主導覽">
+        <input type="checkbox" class="nav-toggle-checkbox" id="nav-toggle">
+        <label for="nav-toggle" class="nav-toggle" aria-label="開啟選單">☰</label>
+        <ul class="nav-list">
+          <li><a href="ipqc-dashboard.html">IPQC Dashboard</a></li>
+          <li><a href="tutti.html">Tutti</a></li>
+          <li><a href="buildline-pc.html" class="active">BuildLine PC</a></li>
+          <li><a href="buildline-mobile.html">BuildLine Mobile</a></li>
+          <li><a href="rd-mobile.html">RD Mobile</a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+  <main class="content">
+    <h1>建線管理 PC 端</h1>
+    <p class="section-overview">PC 端建線管理功能提供查詢條件設定、建線結果檢視、以及「建線送 RD」提交操作。操作人員可在電腦上透過設定 Panel 名稱與分析日期進行查詢，檢視建線結果後將資料提交至 RD 待建線清單。</p>
+
+    <div class="url-info">
+      <p><strong>存取網址：</strong><code>https://52-192-28-39.sslip.io/qc-web/pre-assignment/build-lines</code></p>
+    </div>
+
+    <h2>操作步驟</h2>
+    <ol class="step-list">
+      <li>
+        <p class="step-title">設定查詢條件（panel_name、analyze_date）</p>
+        <p class="step-description">在查詢區域中選擇或輸入 Panel 名稱（panel_name）與分析日期（analyze_date），以篩選欲查詢的建線資料範圍。</p>
+        <img src="screenshots/BuildLinePC_query_01.png" alt="設定查詢條件畫面" class="screenshot screenshot--pc">
+      </li>
+      <li>
+        <p class="step-title">執行查詢</p>
+        <p class="step-description">確認查詢條件後，點擊查詢按鈕執行搜尋，系統將根據設定的條件從資料庫中擷取符合的建線資料。</p>
+        <img src="screenshots/BuildLinePC_execute_02.png" alt="執行查詢畫面" class="screenshot screenshot--pc">
+      </li>
+      <li>
+        <p class="step-title">檢視建線結果列表</p>
+        <p class="step-description">查詢完成後，畫面將顯示符合條件的建線結果列表，包含各筆資料的 Panel 名稱、分析日期及相關建線資訊。</p>
+        <img src="screenshots/BuildLinePC_results_03.png" alt="建線結果列表畫面" class="screenshot screenshot--pc">
+      </li>
+      <li>
+        <p class="step-title">點擊「建線送 RD」將資料提交至 RD 待建線清單</p>
+        <p class="step-description">選擇欲提交的建線項目後，點擊「建線送 RD」按鈕，系統將資料送至 RD 待建線清單，等待 RD 人員進行後續建線作業。</p>
+        <img src="screenshots/BuildLinePC_send_rd_04.png" alt="建線送 RD 操作畫面" class="screenshot screenshot--pc">
+      </li>
+    </ol>
+
+    <h2>操作流程圖</h2>
+    <figure class="workflow-diagram">
+      <img src="images/workflow_buildline_pc.png" alt="BuildLine PC 操作流程圖">
+      <figcaption>PC 端建線操作流程</figcaption>
+    </figure>
+
+    <h2>系統回饋</h2>
+    <div class="error-section">
+      <h3>成功</h3>
+      <p>顯示成功訊息，資料進入 RD 待建線清單。</p>
+    </div>
+    <div class="error-section">
+      <h3>失敗</h3>
+      <p>顯示錯誤訊息，提示重試或檢查網路連線。</p>
+    </div>
+  </main>
+  <footer class="site-footer">
+    <nav class="page-nav" aria-label="章節導覽">
+      <a href="tutti.html" class="nav-prev">← 上一章</a>
+      <a href="index.html" class="nav-home">首頁</a>
+      <a href="buildline-mobile.html" class="nav-next">下一章 →</a>
+    </nav>
+  </footer>
+</body>
+</html>

@@ -10,6 +10,7 @@ import './rd-mobile.css';
 
 type View = 'list' | 'panel' | 'detail' | 'adjust';
 type Filter = 'pending' | 'completed' | 'all';
+type LiveStatus = 'connecting' | 'connected' | 'polling';
 
 interface PanelTaskGroup {
   groupKey: string;
@@ -122,7 +123,6 @@ function PanelTaskIcon({
     >
       <span className="rd-panel-icon-symbol">{getPanelInitials(group.panelName)}</span>
       <span className="rd-panel-icon-title">{group.panelName}</span>
-      <span className="rd-panel-icon-meta">{group.totalCount} markers</span>
       <span className="rd-panel-icon-status">{statusText}</span>
     </button>
   );
@@ -283,10 +283,14 @@ export default function RdMobilePage() {
   const [notificationPermission, setNotificationPermission] = useState<NotificationPermission>(
     () => ('Notification' in window ? Notification.permission : 'denied'),
   );
+  const [liveStatus, setLiveStatus] = useState<LiveStatus>('connecting');
+  const [liveToast, setLiveToast] = useState<RdTaskEvent | null>(null);
   const [, setAdjustMode] = useState(false);
   const knownTaskIdsRef = useRef<Set<number>>(new Set());
   const hasLoadedTasksRef = useRef(false);
   const notifiedTaskIdsRef = useRef<Set<number>>(new Set());
+  const audioContextRef = useRef<AudioContext | null>(null);
+  const lastFeedbackAtRef = useRef(0);
 
   const panelGroups = useMemo(() => groupTasksByPanel(tasks), [tasks]);
   const selectedPanelGroup = useMemo(
@@ -323,7 +327,7 @@ export default function RdMobilePage() {
       body: `${task.panel_name || 'Panel'} / ${task.marker || 'Marker'} 已送到 RD mobile`,
       tag: `rd-build-line-${task.task_id}`,
       data: { taskId: task.task_id, lotNo: task.lot_no },
-      requireInteraction: false,
+      requireInteraction: true,
     });
     notification.onclick = () => {
       notification.close();
@@ -332,6 +336,57 @@ export default function RdMobilePage() {
     };
   }, [openRdMobileWeb]);
 
+  const playNoticeSound = useCallback(async (quiet = false) => {
+    const AudioContextCtor = window.AudioContext
+      || (window as typeof window & { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
+    if (!AudioContextCtor) return;
+
+    try {
+      const context = audioContextRef.current || new AudioContextCtor();
+      audioContextRef.current = context;
+      if (context.state === 'suspended') await context.resume();
+
+      const now = context.currentTime;
+      const gain = context.createGain();
+      gain.gain.setValueAtTime(quiet ? 0.0001 : 0.0001, now);
+      gain.gain.exponentialRampToValueAtTime(quiet ? 0.0001 : 0.11, now + 0.018);
+      gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.28);
+      gain.connect(context.destination);
+
+      const firstTone = context.createOscillator();
+      firstTone.type = 'sine';
+      firstTone.frequency.setValueAtTime(880, now);
+      firstTone.connect(gain);
+      firstTone.start(now);
+      firstTone.stop(now + 0.13);
+
+      if (!quiet) {
+        const secondTone = context.createOscillator();
+        secondTone.type = 'sine';
+        secondTone.frequency.setValueAtTime(1174, now + 0.11);
+        secondTone.connect(gain);
+        secondTone.start(now + 0.11);
+        secondTone.stop(now + 0.28);
+      }
+    } catch {
+      // Some mobile browsers only allow audio after user activation.
+    }
+  }, []);
+
+  const triggerNoticeFeedback = useCallback(() => {
+    const now = Date.now();
+    if (now - lastFeedbackAtRef.current < 1200) return;
+    lastFeedbackAtRef.current = now;
+
+    if ('vibrate' in navigator) navigator.vibrate([180, 70, 180]);
+    void playNoticeSound();
+  }, [playNoticeSound]);
+
+  const showInAppTaskNotice = useCallback((task: RdTaskEvent) => {
+    setLiveToast(task);
+    triggerNoticeFeedback();
+  }, [triggerNoticeFeedback]);
+
   const requestNotifications = async () => {
     if (!('Notification' in window)) {
       setError('此瀏覽器不支援通知');
@@ -339,10 +394,12 @@ export default function RdMobilePage() {
     }
     const permission = await Notification.requestPermission();
     setNotificationPermission(permission);
+    void playNoticeSound(true);
     if (permission === 'granted') {
       new Notification('RD mobile 通知已啟用', {
         body: 'PC 送 RD 建線任務時，這支手機會收到通知。',
         tag: 'rd-mobile-notification-enabled',
+        requireInteraction: true,
       });
     }
   };
@@ -364,12 +421,19 @@ export default function RdMobilePage() {
         if (hasLoadedTasksRef.current) {
           loadedTasks
             .filter(task => !knownTaskIdsRef.current.has(task.id) && (task.status === 'pending_rd' || task.status === 'in_progress'))
-            .forEach(task => showTaskNotification({
-              task_id: task.id,
-              panel_name: task.panel_name,
-              marker: task.marker,
-              lot_no: task.lot_no,
-            }));
+            .forEach(task => {
+              const taskEvent: RdTaskEvent = {
+                event: 'created',
+                task_id: task.id,
+                status: task.status,
+                panel_name: task.panel_name,
+                marker: task.marker,
+                lot_no: task.lot_no,
+                work_order: task.work_order,
+              };
+              showInAppTaskNotice(taskEvent);
+              showTaskNotification(taskEvent);
+            });
         }
         knownTaskIdsRef.current = new Set(loadedTasks.map(task => task.id));
         hasLoadedTasksRef.current = true;
@@ -380,7 +444,14 @@ export default function RdMobilePage() {
     } finally {
       if (!silent) setLoading(false);
     }
-  }, [filter, showTaskNotification]);
+  }, [filter, showInAppTaskNotice, showTaskNotification]);
+
+  const openLiveToastTask = useCallback(() => {
+    setFilter('pending');
+    setLiveToast(null);
+    loadTasks({ silent: true });
+    openRdMobileWeb();
+  }, [loadTasks, openRdMobileWeb]);
 
   useEffect(() => { loadTasks(); }, [loadTasks]);
 
@@ -395,11 +466,17 @@ export default function RdMobilePage() {
     if (!('EventSource' in window)) return undefined;
     const source = new EventSource(rdTaskEventsUrl());
 
+    const handleConnected = () => {
+      setLiveStatus('connected');
+    };
+
     const handleTaskEvent = (event: MessageEvent<string>) => {
       try {
         const payload = JSON.parse(event.data) as RdTaskEvent;
+        setLiveStatus('connected');
         if (payload.status === 'pending_rd' || payload.status === 'in_progress') {
           setFilter('pending');
+          showInAppTaskNotice(payload);
           showTaskNotification(payload);
         }
       } catch {
@@ -408,16 +485,32 @@ export default function RdMobilePage() {
       loadTasks({ silent: true });
     };
 
+    source.addEventListener('connected', handleConnected);
     source.addEventListener('rd-build-line-task', handleTaskEvent);
     source.onerror = () => {
       // EventSource auto-reconnects; task polling remains as fallback.
+      setLiveStatus('polling');
     };
 
     return () => {
+      source.removeEventListener('connected', handleConnected);
       source.removeEventListener('rd-build-line-task', handleTaskEvent);
       source.close();
     };
-  }, [loadTasks, showTaskNotification]);
+  }, [loadTasks, showInAppTaskNotice, showTaskNotification]);
+
+  useEffect(() => {
+    const syncNotificationPermission = () => {
+      if ('Notification' in window) setNotificationPermission(Notification.permission);
+    };
+
+    window.addEventListener('focus', syncNotificationPermission);
+    document.addEventListener('visibilitychange', syncNotificationPermission);
+    return () => {
+      window.removeEventListener('focus', syncNotificationPermission);
+      document.removeEventListener('visibilitychange', syncNotificationPermission);
+    };
+  }, []);
 
   useEffect(() => {
     if (view === 'panel' && selectedPanelKey && !selectedPanelGroup) {
@@ -653,27 +746,25 @@ export default function RdMobilePage() {
           </div>
           <div className="rd-header-meta">
             <span>{taskSummary.panelCount} panels</span>
-            <span>{taskSummary.markerCount} markers</span>
             <span>{filter === 'completed' ? `已完成 ${taskSummary.completedCount}` : `待建線 ${taskSummary.pendingCount}`}</span>
+            <span>{liveStatus === 'connected' ? 'Live 已連線' : liveStatus === 'polling' ? 'Live 輪詢中' : 'Live 連線中'}</span>
           </div>
           {view === 'list' && (
             <div className="rd-header-actions">
-              {'Notification' in window && (
-                <button
-                  className={`rd-notify-switch ${notificationPermission === 'granted' ? 'is-on' : ''} ${notificationPermission === 'denied' ? 'is-blocked' : ''}`}
-                  type="button"
-                  role="switch"
-                  aria-checked={notificationPermission === 'granted'}
-                  aria-label={getNotificationSwitchLabel(notificationPermission)}
-                  onClick={notificationPermission === 'granted' ? undefined : requestNotifications}
-                  title={notificationPermission === 'denied' ? '瀏覽器已封鎖通知，請到網站設定允許通知' : undefined}
-                >
-                  <span className="rd-notify-switch-track">
-                    <span className="rd-notify-switch-thumb" />
-                  </span>
-                  <span className="rd-notify-switch-text">{getNotificationSwitchLabel(notificationPermission)}</span>
-                </button>
-              )}
+              <button
+                className={`rd-notify-switch ${notificationPermission === 'granted' ? 'is-on' : ''} ${notificationPermission === 'denied' ? 'is-blocked' : ''}`}
+                type="button"
+                role="switch"
+                aria-checked={notificationPermission === 'granted'}
+                aria-label={getNotificationSwitchLabel(notificationPermission)}
+                onClick={notificationPermission === 'granted' ? undefined : requestNotifications}
+                title={notificationPermission === 'denied' ? '瀏覽器已封鎖通知，請到網站設定允許通知' : undefined}
+              >
+                <span className="rd-notify-switch-track">
+                  <span className="rd-notify-switch-thumb" />
+                </span>
+                <span className="rd-notify-switch-text">{getNotificationSwitchLabel(notificationPermission)}</span>
+              </button>
               <button className="rd-refresh-btn" onClick={() => loadTasks()} disabled={loading}>⟳</button>
             </div>
           )}
@@ -711,6 +802,47 @@ export default function RdMobilePage() {
           )}
         </AnimatePresence>
       </main>
+
+      <AnimatePresence>
+        {liveToast && (
+          <motion.button
+            key={`live-toast-${liveToast.task_id}`}
+            className="rd-live-toast"
+            type="button"
+            initial={{ opacity: 0, y: 18, scale: 0.98 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 12, scale: 0.98 }}
+            transition={{ duration: 0.18, ease: 'easeOut' }}
+            onClick={openLiveToastTask}
+          >
+            <span className="rd-live-toast-dot" />
+            <span className="rd-live-toast-main">
+              <span className="rd-live-toast-title">收到 RD 建線任務</span>
+              <strong>{liveToast.panel_name || 'Panel'} / {liveToast.marker || 'Marker'}</strong>
+              <small>不會自動消失，點擊可更新列表</small>
+            </span>
+            <span
+              className="rd-live-toast-close"
+              role="button"
+              tabIndex={0}
+              aria-label="關閉通知"
+              onClick={(event) => {
+                event.stopPropagation();
+                setLiveToast(null);
+              }}
+              onKeyDown={(event) => {
+                if (event.key === 'Enter' || event.key === ' ') {
+                  event.preventDefault();
+                  event.stopPropagation();
+                  setLiveToast(null);
+                }
+              }}
+            >
+              ×
+            </span>
+          </motion.button>
+        )}
+      </AnimatePresence>
 
       {/* Auth Modal */}
       {showAuthModal && renderAuthModal()}

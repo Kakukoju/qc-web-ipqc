@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tutti Beads Pre Assignment - IPQC 使用說明</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <header class="site-header">
+    <div class="header-inner">
+      <a href="index.html" class="logo"><img src="images/skyla-logo.png" alt="Skyla" class="logo-img">IPQC 使用說明</a>
+      <nav class="main-nav" aria-label="主導覽">
+        <input type="checkbox" class="nav-toggle-checkbox" id="nav-toggle">
+        <label for="nav-toggle" class="nav-toggle" aria-label="開啟選單">☰</label>
+        <ul class="nav-list">
+          <li><a href="ipqc-dashboard.html">IPQC Dashboard</a></li>
+          <li><a href="tutti.html" class="active">Tutti</a></li>
+          <li><a href="buildline-pc.html">BuildLine PC</a></li>
+          <li><a href="buildline-mobile.html">BuildLine Mobile</a></li>
+          <li><a href="rd-mobile.html">RD Mobile</a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+  <main class="content">
+    <h1>Tutti Beads Pre Assignment Management</h1>
+    <p class="section-overview">本章節說明 Tutti Beads 預建線管理模組的操作方式，包含資料匯入流程、檔案格式要求、以及常見錯誤處理。透過此模組，生產管理人員可將 Tutti Beads 的 OD 讀數資料匯入系統，進行預建線分析與管理。</p>
+
+    <h2>資料匯入操作</h2>
+    <p>以下為 Tutti Beads 資料匯入的完整操作步驟：</p>
+
+    <ol class="step-list">
+      <li>
+        <p class="step-title">Step 1：開啟匯入介面</p>
+        <p class="step-description">點擊頁面上方的「匯入」按鈕，系統將開啟匯入 Modal 對話框。</p>
+        <img src="screenshots/Tutti_import_modal_01.png" alt="Tutti 匯入 Modal 開啟畫面" class="screenshot screenshot--pc">
+      </li>
+      <li>
+        <p class="step-title">Step 2：填寫必填欄位</p>
+        <p class="step-description">在 Modal 中填寫必填欄位「Marker 名稱」。此欄位為必填，未填寫將無法執行匯入。</p>
+        <img src="screenshots/Tutti_fields_filled_02.png" alt="Tutti 欄位填寫完成畫面" class="screenshot screenshot--pc">
+      </li>
+      <li>
+        <p class="step-title">Step 3：填寫選填欄位</p>
+        <p class="step-description">依需求填寫以下選填欄位：</p>
+        <ul>
+          <li>工單號</li>
+          <li>Lot d/D/u</li>
+          <li>生產日期</li>
+          <li>填藥期限</li>
+          <li>生產數量</li>
+        </ul>
+      </li>
+      <li>
+        <p class="step-title">Step 4：上傳 Excel 檔案或手動輸入 OD 值</p>
+        <p class="step-description">選擇以下其中一種方式輸入 OD 資料：上傳符合格式要求的 Excel 檔案（.xlsx 或 .xls），或直接在表單中手動輸入各 OD 讀數值。</p>
+        <img src="screenshots/Tutti_file_upload_03.png" alt="Tutti 檔案上傳畫面" class="screenshot screenshot--pc">
+      </li>
+      <li>
+        <p class="step-title">Step 5：執行匯入</p>
+        <p class="step-description">確認所有欄位填寫完成後，點擊「匯入」按鈕執行資料匯入。系統將驗證資料格式並進行匯入處理。</p>
+      </li>
+      <li>
+        <p class="step-title">Step 6：確認（Confirm）匯入結果</p>
+        <p class="step-description">匯入成功後，系統將顯示匯入結果列表。請確認資料正確無誤後，點擊「Confirm」按鈕完成最終確認。</p>
+        <img src="screenshots/Tutti_success_list_04.png" alt="Tutti 匯入成功列表畫面" class="screenshot screenshot--pc">
+      </li>
+    </ol>
+
+    <h2>匯入檔案格式要求</h2>
+    <p>上傳的 Excel 檔案須符合以下格式要求：</p>
+    <ul>
+      <li><strong>檔案格式：</strong>.xlsx 或 .xls</li>
+      <li><strong>必要標頭：</strong>檔案內須包含 L1、L2、N1、N3 等 OD 讀數欄位標頭</li>
+      <li><strong>範本檔案：</strong><a href="../exceldata/Tutti_templet.xlsx">下載匯入範本檔案</a></li>
+    </ul>
+
+    <h2>錯誤處理</h2>
+    <p>以下為匯入過程中可能遇到的錯誤情境及處理方式：</p>
+
+    <div class="error-section">
+      <h3>未填寫 Marker 名稱</h3>
+      <p>Marker 名稱為必填欄位。若未填寫即點擊匯入，系統將顯示錯誤提示，要求使用者填寫 Marker 名稱後再重新執行匯入。</p>
+    </div>
+
+    <div class="error-section">
+      <h3>上傳非 xlsx/xls 格式檔案</h3>
+      <p>系統僅支援 .xlsx 與 .xls 格式的 Excel 檔案。若上傳其他格式（如 .csv、.txt），系統將顯示格式錯誤提示，請重新選擇正確格式的檔案。</p>
+    </div>
+
+    <div class="error-section">
+      <h3>csassign 中查無對應 Marker 濃度資料導致回歸線無法計算</h3>
+      <p>當系統在 csassign 資料庫中找不到所選 Marker 對應的濃度資料時，將無法計算回歸線。請確認 csassign 中已正確設定該 Marker 的濃度資料，或聯繫系統管理員進行設定。</p>
+    </div>
+  </main>
+  <footer class="site-footer">
+    <nav class="page-nav" aria-label="章節導覽">
+      <a href="ipqc-dashboard.html" class="nav-prev">← 上一章</a>
+      <a href="index.html" class="nav-home">首頁</a>
+      <a href="buildline-pc.html" class="nav-next">下一章 →</a>
+    </nav>
+  </footer>
+</body>
+</html>

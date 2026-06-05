@@ -190,6 +190,7 @@ def _fetch_batch_info(mfg_lot_no: str, panel_name: str, analyze_date: str, marke
         """, (mfg_lot_no, mfg_lot_no))
         row = cur.fetchone()
 
+        resolved_mfg = None
         if not row:
             # Fallback: resolve mfg_lot_no from assay_process_records, then find work order
             cur.execute("""
@@ -200,25 +201,62 @@ def _fetch_batch_info(mfg_lot_no: str, panel_name: str, analyze_date: str, marke
             """, (mfg_lot_no, mfg_lot_no, mfg_lot_no))
             resolved = cur.fetchone()
             if resolved and resolved['mfg_lot_no'] != mfg_lot_no:
+                resolved_mfg = resolved['mfg_lot_no']
                 cur.execute("""
                     SELECT work_order_no, lot_no, form_data
                     FROM panel_production.tutti_work_orders
                     WHERE lot_no = %s LIMIT 1
-                """, (resolved['mfg_lot_no'],))
+                """, (resolved_mfg,))
                 row = cur.fetchone()
-            # Still not found: try matching by same panel_type
-            if not row:
-                parts = (resolved['mfg_lot_no'] if resolved else mfg_lot_no).split('-')
-                if len(parts) >= 2:
-                    panel_type = parts[1]
-                    cur.execute("""
-                        SELECT work_order_no, lot_no, form_data
-                        FROM panel_production.tutti_work_orders
-                        WHERE split_part(lot_no, '-', 2) = %s
-                          AND lot_no IS NOT NULL AND lot_no != ''
-                        ORDER BY lot_no DESC LIMIT 1
-                    """, (panel_type,))
-                    row = cur.fetchone()
+
+        if not row:
+            # Fallback: match by panel_type + date_batch from mfg_lot_no
+            ref = resolved_mfg or mfg_lot_no
+            parts = ref.split('-')
+            if len(parts) >= 3:
+                panel_type = parts[1]
+                date_batch = parts[2]
+                # Try exact panel_type + date_batch
+                cur.execute("""
+                    SELECT work_order_no, lot_no, form_data
+                    FROM panel_production.tutti_work_orders
+                    WHERE split_part(lot_no, '-', 2) = %s
+                      AND split_part(lot_no, '-', 3) = %s
+                      AND lot_no IS NOT NULL AND lot_no != ''
+                    LIMIT 1
+                """, (panel_type, date_batch))
+                row = cur.fetchone()
+                # panel_type > 6 chars: try front-6 and back-6 segments
+                if not row and len(panel_type) > 6:
+                    for seg in (panel_type[:6], panel_type[-6:]):
+                        cur.execute("""
+                            SELECT work_order_no, lot_no, form_data
+                            FROM panel_production.tutti_work_orders
+                            WHERE split_part(lot_no, '-', 2) = %s
+                              AND split_part(lot_no, '-', 3) = %s
+                              AND lot_no IS NOT NULL AND lot_no != ''
+                            LIMIT 1
+                        """, (seg, date_batch))
+                        row = cur.fetchone()
+                        if row:
+                            break
+                # Still not found: match panel_type only (most recent)
+                if not row:
+                    pt_candidates = [panel_type]
+                    if len(panel_type) > 6:
+                        pt_candidates += [panel_type[:6], panel_type[-6:]]
+                    for pt in pt_candidates:
+                        cur.execute("""
+                            SELECT work_order_no, lot_no, form_data
+                            FROM panel_production.tutti_work_orders
+                            WHERE split_part(lot_no, '-', 2) = %s
+                              AND lot_no IS NOT NULL AND lot_no != ''
+                            ORDER BY split_part(lot_no, '-', 3) DESC
+                            LIMIT 1
+                        """, (pt,))
+                        row = cur.fetchone()
+                        if row:
+                            break
 
         if not row:
             # Try tutti_work_orders_water
@@ -229,21 +267,6 @@ def _fetch_batch_info(mfg_lot_no: str, panel_name: str, analyze_date: str, marke
                 LIMIT 1
             """, (mfg_lot_no, mfg_lot_no))
             row = cur.fetchone()
-
-        if not row:
-            # Fallback: match by same panel_type (middle field of mfg_lot_no)
-            parts = mfg_lot_no.split('-')
-            if len(parts) >= 2:
-                panel_type = parts[1]
-                cur.execute("""
-                    SELECT work_order_no, lot_no, form_data
-                    FROM panel_production.tutti_work_orders
-                    WHERE split_part(lot_no, '-', 2) = %s
-                      AND lot_no IS NOT NULL AND lot_no != ''
-                    ORDER BY lot_no DESC
-                    LIMIT 1
-                """, (panel_type,))
-                row = cur.fetchone()
 
         cur.close()
         pg.close()
@@ -287,6 +310,220 @@ def _fetch_batch_info(mfg_lot_no: str, panel_name: str, analyze_date: str, marke
                             result[item] = {"d_lot": "", "bigD_lot": "", "u_lot": "", "prod_date": prod_date}
                         result[item]["u_lot"] = b2
 
+        # Collect all batch lots
+        all_lots = set()
+        for info in result.values():
+            for col in ("d_lot", "bigD_lot", "u_lot"):
+                v = info.get(col, "")
+                if v:
+                    all_lots.add(v)
+
+        # 1) Lookup prod_date from ipqcdrybeads.db (drbeadinspection by lot, then posts by work_order)
+        ipqc_dates: dict[str, str] = {}
+        drybeads_db = Path(os.getenv("DRYBEADS_DB_PATH", "/home/ubuntu/ipqcdrybeads.db"))
+        if all_lots and drybeads_db.exists():
+            try:
+                with sqlite3.connect(drybeads_db) as dconn:
+                    placeholders = ",".join("?" for _ in all_lots)
+                    lot_list = list(all_lots)
+                    # 1a) Direct lot lookup in drbeadinspection (exact + LIKE with suffix)
+                    for col, date_col in [("d_lot", "d_prod_date"), ("bigD_lot", "bigD_prod_date"), ("u_lot", "u_prod_date")]:
+                        for r in dconn.execute(
+                            f"SELECT DISTINCT {col}, {date_col} FROM drbeadinspection WHERE {col} IN ({placeholders}) AND {date_col} != ''",
+                            lot_list,
+                        ).fetchall():
+                            if r[0] and r[1]:
+                                ipqc_dates[r[0]] = _as_text(r[1])[:10]
+                    # 1a-1) For lots not found by exact match, try LIKE with suffix (e.g. "2852548Z" -> "2852548Z%" matches "2852548Z-PE")
+                    not_found_exact = [l for l in lot_list if l not in ipqc_dates]
+                    for lot in not_found_exact:
+                        for col, date_col in [("d_lot", "d_prod_date"), ("bigD_lot", "bigD_prod_date"), ("u_lot", "u_prod_date")]:
+                            r = dconn.execute(
+                                f"SELECT {date_col} FROM drbeadinspection WHERE {col} LIKE ? AND {date_col} != '' LIMIT 1",
+                                (lot + "%",),
+                            ).fetchone()
+                            if r and r[0]:
+                                ipqc_dates[lot] = _as_text(r[0])[:10]
+                                break
+                    # 1a-2) For lots not found, try stripping PN prefix (first 3 chars) + bead-specific lookup
+                    # Tutti batch format: {PN末三碼}{年周批次}, e.g. "2642605Z" = PN264 + 2605Z
+                    # ipqcdrybeads stores without PN prefix, e.g. "2605Z-PE"
+                    # Use schedule.配藥限制 to map PN suffix → bead_name for precise lookup
+                    still_not_found = [l for l in lot_list if l not in ipqc_dates and len(l) >= 6]
+                    if still_not_found:
+                        # Load PN suffix → bead_name mapping from 配藥限制
+                        pn_to_bead: dict[str, list[str]] = {}
+                        try:
+                            pg_pn = _get_rds_connection()
+                            cur_pn = pg_pn.cursor(cursor_factory=psycopg2.extras.DictCursor)
+                            cur_pn.execute('SELECT "PN", "Name" FROM schedule."配藥限制"')
+                            for r in cur_pn.fetchall():
+                                pn_val = _as_text(r["PN"])
+                                name_val = _as_text(r["Name"])
+                                if len(pn_val) >= 3 and name_val:
+                                    suffix = pn_val[-3:]
+                                    # Extract bead base name: strip Q prefix for drbeadinspection lookup
+                                    bead = name_val.split('-')[0].split('_')[0].strip()
+                                    q_bead = bead  # e.g. "QK", "QAMY"
+                                    plain_bead = bead[1:] if bead.startswith('Q') and len(bead) > 1 else bead
+                                    pn_to_bead.setdefault(suffix, []).extend([q_bead, plain_bead])
+                            cur_pn.close()
+                            pg_pn.close()
+                        except Exception:
+                            pass
+
+                        for lot in still_not_found:
+                            pn_suffix = lot[:3]
+                            short_lot = lot[3:]  # strip 3-char PN prefix
+                            if not short_lot:
+                                continue
+                            bead_names = pn_to_bead.get(pn_suffix, [])
+                            if bead_names:
+                                # Precise lookup: match bead_name + lot LIKE
+                                bn_placeholders = ",".join("?" for _ in bead_names)
+                                for col, date_col in [("d_lot", "d_prod_date"), ("bigD_lot", "bigD_prod_date"), ("u_lot", "u_prod_date")]:
+                                    r = dconn.execute(
+                                        f"SELECT {date_col} FROM drbeadinspection WHERE bead_name IN ({bn_placeholders}) AND {col} LIKE ? AND {date_col} != '' LIMIT 1",
+                                        [*bead_names, short_lot + "%"],
+                                    ).fetchone()
+                                    if r and r[0]:
+                                        ipqc_dates[lot] = _as_text(r[0])[:10]
+                                        break
+                            else:
+                                # Fallback: no bead mapping, just LIKE without bead filter
+                                for col, date_col in [("d_lot", "d_prod_date"), ("bigD_lot", "bigD_prod_date"), ("u_lot", "u_prod_date")]:
+                                    r = dconn.execute(
+                                        f"SELECT {date_col} FROM drbeadinspection WHERE {col} LIKE ? AND {date_col} != '' LIMIT 1",
+                                        (short_lot + "%",),
+                                    ).fetchone()
+                                    if r and r[0]:
+                                        ipqc_dates[lot] = _as_text(r[0])[:10]
+                                        break
+                    # 1b) For lots not found, lookup via work_order in posts table
+                    missing_in_ipqc = [l for l in lot_list if l not in ipqc_dates]
+                    if missing_in_ipqc:
+                        # First get lot -> work_order mapping from RDS
+                        try:
+                            pg_wo = _get_rds_connection()
+                            cur_wo = pg_wo.cursor(cursor_factory=psycopg2.extras.DictCursor)
+                            ph = ",".join("%s" for _ in missing_in_ipqc)
+                            cur_wo.execute(f"""
+                                SELECT "Dispense_Lot_1", "Dispense_Lot_2", "Dispense_Lot_3", "Dispense_Lot_4", "工單號", "bead_name"
+                                FROM work_orders.work_orders
+                                WHERE "Dispense_Lot_1" IN ({ph})
+                                   OR "Dispense_Lot_2" IN ({ph})
+                                   OR "Dispense_Lot_3" IN ({ph})
+                                   OR "Dispense_Lot_4" IN ({ph})
+                            """, missing_in_ipqc * 4)
+                            lot_to_wo: dict[str, tuple[str, str]] = {}  # lot -> (work_order, bead_name)
+                            for r in cur_wo.fetchall():
+                                wo = _as_text(r["工單號"])
+                                bn = _as_text(r["bead_name"])
+                                for c in ("Dispense_Lot_1", "Dispense_Lot_2", "Dispense_Lot_3", "Dispense_Lot_4"):
+                                    lv = _as_text(r[c])
+                                    if lv in missing_in_ipqc and wo:
+                                        lot_to_wo[lv] = (wo, bn)
+                            cur_wo.close()
+                            pg_wo.close()
+                        except Exception:
+                            lot_to_wo = {}
+
+                        # Now lookup work_orders in posts table
+                        if lot_to_wo:
+                            wo_set = set(wo for wo, _ in lot_to_wo.values())
+                            ph_wo = ",".join("?" for _ in wo_set)
+                            wo_list = list(wo_set)
+                            wo_dates: dict[str, str] = {}
+                            for wo_col, date_col in [("work_order_d", "prod_date_d"), ("work_order_bigD", "prod_date_bigD"), ("work_order_u", "prod_date_u")]:
+                                for r in dconn.execute(
+                                    f"SELECT DISTINCT {wo_col}, {date_col} FROM posts WHERE {wo_col} IN ({ph_wo}) AND {date_col} != ''",
+                                    wo_list,
+                                ).fetchall():
+                                    if r[0] and r[1]:
+                                        wo_dates[r[0]] = _as_text(r[1])[:10]
+                            # Map back lot -> date via work_order
+                            for lot, (wo, _bn) in lot_to_wo.items():
+                                if wo in wo_dates:
+                                    ipqc_dates[lot] = wo_dates[wo]
+            except Exception:
+                pass
+
+        # 2) For lots not in ipqc, fallback to RDS dropletRecord + DropletSchedule + work_orders
+        missing_lots = all_lots - set(ipqc_dates.keys())
+        rds_dates: dict[str, str] = {}
+        if missing_lots:
+            try:
+                pg2 = _get_rds_connection()
+                cur2 = pg2.cursor(cursor_factory=psycopg2.extras.DictCursor)
+                placeholders = ",".join("%s" for _ in missing_lots)
+                lot_list = list(missing_lots)
+                # Try dropletRecord first
+                cur2.execute(f"""
+                    SELECT lot, record_date
+                    FROM "P01_formualte_schedule"."dropletRecord"
+                    WHERE lot IN ({placeholders}) AND record_date IS NOT NULL AND record_date != ''
+                """, lot_list)
+                for r in cur2.fetchall():
+                    dt = _as_text(r["record_date"]).replace("/", "-")[:10]
+                    if dt:
+                        rds_dates[r["lot"]] = dt
+                # For still-missing lots, try DropletSchedule
+                still_missing = [l for l in lot_list if l not in rds_dates]
+                if still_missing:
+                    placeholders2 = ",".join("%s" for _ in still_missing)
+                    cur2.execute(f"""
+                        SELECT "Lot", "Date"
+                        FROM "P01_formualte_schedule"."DropletSchedule"
+                        WHERE "Lot" IN ({placeholders2}) AND "Date" IS NOT NULL AND "Date" != ''
+                    """, still_missing)
+                    for r in cur2.fetchall():
+                        dt = _as_text(r["Date"]).replace("/", "-")[:10]
+                        if dt:
+                            rds_dates[r["Lot"]] = dt
+                # For still-missing lots, try work_orders.work_orders Dispense_Lot columns
+                still_missing2 = [l for l in lot_list if l not in rds_dates]
+                if still_missing2:
+                    placeholders3 = ",".join("%s" for _ in still_missing2)
+                    cur2.execute(f"""
+                        SELECT "Dispense_Lot_1", "Dispense_Lot_2", "Dispense_Lot_3", "Dispense_Lot_4", "日期"
+                        FROM work_orders.work_orders
+                        WHERE "Dispense_Lot_1" IN ({placeholders3})
+                           OR "Dispense_Lot_2" IN ({placeholders3})
+                           OR "Dispense_Lot_3" IN ({placeholders3})
+                           OR "Dispense_Lot_4" IN ({placeholders3})
+                    """, still_missing2 * 4)
+                    for r in cur2.fetchall():
+                        dt = _as_text(r["日期"]).replace("/", "-")[:10]
+                        if dt:
+                            for col in ("Dispense_Lot_1", "Dispense_Lot_2", "Dispense_Lot_3", "Dispense_Lot_4"):
+                                lot_val = _as_text(r[col])
+                                if lot_val in still_missing2:
+                                    rds_dates[lot_val] = dt
+                cur2.close()
+                pg2.close()
+            except Exception:
+                pass
+
+        # 3) Assign prod_date per marker with warning flags
+        for info in result.values():
+            dates_ipqc = []
+            dates_rds = []
+            has_batch = False
+            for col in ("d_lot", "bigD_lot", "u_lot"):
+                v = info.get(col, "")
+                if v:
+                    has_batch = True
+                    if v in ipqc_dates:
+                        dates_ipqc.append(ipqc_dates[v])
+                    elif v in rds_dates:
+                        dates_rds.append(rds_dates[v])
+            if dates_ipqc:
+                info["prod_date"] = max(dates_ipqc)
+            elif dates_rds:
+                info["prod_date"] = max(dates_rds) + " (沒ipqc資料)"
+            elif has_batch:
+                info["prod_date"] = "no data"
+
         # Normalize keys to match markers (case-insensitive)
         marker_set = {m.upper(): m for m in markers}
         final: dict[str, dict[str, str]] = {}
@@ -297,6 +534,60 @@ def _fetch_batch_info(mfg_lot_no: str, panel_name: str, analyze_date: str, marke
 
     except Exception:
         return {}
+
+
+def _can_merge_lot_codes(lot_a: str, lot_b: str) -> bool:
+    """Check if two lot codes differ only in the first digit (12-digit lot_code format)."""
+    if len(lot_a) != 12 or len(lot_b) != 12:
+        return False
+    if not lot_a.isdigit() or not lot_b.isdigit():
+        return False
+    return lot_a[1:] == lot_b[1:]
+
+
+def _merge_line_groups(groups: list[dict]) -> list[dict]:
+    """Merge groups whose lot codes differ only in the first digit and share the same analyze_items."""
+    merged: list[dict] = []
+    used: set[int] = set()
+
+    for i, g in enumerate(groups):
+        if i in used:
+            continue
+        # Find candidates to merge with g
+        to_merge = [g]
+        for j in range(i + 1, len(groups)):
+            if j in used:
+                continue
+            other = groups[j]
+            if (other["panel_name"] != g["panel_name"]
+                or other["analyze_date"] != g["analyze_date"]
+                or other["Species"] != g["Species"]):
+                continue
+            if not _can_merge_lot_codes(g["lot_key"], other["lot_key"]):
+                continue
+            if sorted(g["analyze_items"]) != sorted(other["analyze_items"]):
+                continue
+            to_merge.append(other)
+            used.add(j)
+
+        if len(to_merge) == 1:
+            merged.append(g)
+        else:
+            # Merge: combine lot codes with " & "
+            lot_keys = sorted(set(m["lot_key"] for m in to_merge))
+            display_ids = sorted(set(m["mfg_lot_no"] for m in to_merge))
+            merged.append({
+                "mfg_lot_no": " & ".join(display_ids),
+                "lot_key": lot_keys[0],  # primary key for detail query
+                "lot_keys": lot_keys,    # all keys for querying
+                "panel_name": g["panel_name"],
+                "analyze_date": g["analyze_date"],
+                "Species": g["Species"],
+                "row_count": sum(m["row_count"] for m in to_merge),
+                "analyze_item_count": g["analyze_item_count"],
+                "analyze_items": g["analyze_items"],
+            })
+    return merged
 
 
 def list_baseline_groups(limit: int = 200) -> dict:
@@ -331,28 +622,34 @@ def list_baseline_groups(limit: int = 200) -> dict:
     except Exception as exc:
         return {"ok": False, "error": str(exc)}
 
-    return {
-        "ok": True,
-        "groups": [
-            {
-                "mfg_lot_no": _as_text(row["display_id"]),
-                "lot_key": _as_text(row["lot_key"]),
-                "panel_name": _as_text(row["panel_name"]),
-                "analyze_date": _as_text(row["analyze_date"]),
-                "Species": _as_text(row["Species"]),
-                "row_count": int(row["row_count"] or 0),
-                "analyze_item_count": int(row["analyze_item_count"] or 0),
-                "analyze_items": sorted([item for item in _as_text(row["analyze_items"]).split(",") if item]),
-            }
-            for row in rows
-        ],
-    }
+    groups = [
+        {
+            "mfg_lot_no": _as_text(row["display_id"]),
+            "lot_key": _as_text(row["lot_key"]),
+            "panel_name": _as_text(row["panel_name"]),
+            "analyze_date": _as_text(row["analyze_date"]),
+            "Species": _as_text(row["Species"]),
+            "row_count": int(row["row_count"] or 0),
+            "analyze_item_count": int(row["analyze_item_count"] or 0),
+            "analyze_items": sorted([item for item in _as_text(row["analyze_items"]).split(",") if item]),
+        }
+        for row in rows
+    ]
+
+    # Merge lot codes that differ only in first digit with same analyze_items
+    groups = _merge_line_groups(groups)
+
+    return {"ok": True, "groups": groups}
 
 
 def get_baseline_group(payload: dict) -> dict:
     key = _group_key_from_payload(payload)
     exclusions = sorted(EXCLUDED_BUILD_LINE_MARKERS)
     excl_clause = "AND analyze_item NOT IN (" + ",".join("%s" for _ in exclusions) + ")" if exclusions else ""
+
+    # Support merged lot_keys (multiple lot codes)
+    lot_keys = payload.get("lot_keys") or [key["lot_key"]]
+    lot_placeholders = ",".join("%s" for _ in lot_keys)
 
     try:
         pg = _get_rds_connection()
@@ -374,12 +671,12 @@ def get_baseline_group(payload: dict) -> dict:
             WHERE LOWER(patient_id) IN ('control-1','control-2','control-3','control-4')
               AND analyze_item != ''
               {excl_clause}
-              AND COALESCE(NULLIF(lot_code, ''), NULLIF(mfg_lot_no, ''), '') = %s
+              AND COALESCE(NULLIF(lot_code, ''), NULLIF(mfg_lot_no, ''), '') IN ({lot_placeholders})
               AND panel_name = %s
               AND analyze_date = %s
               AND species = %s
             ORDER BY analyze_item, test_well, patient_id, id
-        """, [*exclusions, key["lot_key"], key["panel_name"], key["analyze_date"], key["Species"]])
+        """, [*exclusions, *lot_keys, key["panel_name"], key["analyze_date"], key["Species"]])
         rows = cur.fetchall()
         cur.close()
         pg.close()
@@ -412,8 +709,9 @@ def get_baseline_group(payload: dict) -> dict:
         row["conc"] = conc
         grouped.setdefault(row["analyze_item"], []).append(row)
 
-    # Fetch batch info from RDS
-    batch_info = _fetch_batch_info(key["mfg_lot_no"], key["panel_name"], key["analyze_date"], markers)
+    # Fetch batch info from RDS (use first lot_key for lookup, not merged display string)
+    batch_lookup_id = lot_keys[0] if lot_keys else key["mfg_lot_no"]
+    batch_info = _fetch_batch_info(batch_lookup_id, key["panel_name"], key["analyze_date"], markers)
 
     fits = []
     for analyze_item, item_rows in grouped.items():

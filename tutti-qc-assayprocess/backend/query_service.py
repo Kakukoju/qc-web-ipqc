@@ -1,47 +1,64 @@
+"""
+Query service — reads from RDS panel_production.assay_process_records.
+"""
+import os
 import re
 from datetime import date, time
 from typing import Literal
 
-from db import TABLE_NAME, get_connection, get_data_headers, quote_identifier, table_exists
+import psycopg2
+import psycopg2.extras
+from dotenv import load_dotenv
+from pathlib import Path
 
+load_dotenv(Path(__file__).resolve().parent / ".env")
+
+RDS_CONFIG = {
+    "host": os.getenv("TUTTI_RDS_HOST", "database-1.cfutwrwyrxts.ap-northeast-1.rds.amazonaws.com"),
+    "port": int(os.getenv("TUTTI_RDS_PORT", "5432")),
+    "database": os.getenv("TUTTI_RDS_DATABASE", "beadsdb"),
+    "user": os.getenv("TUTTI_RDS_USER", "harryguo"),
+    "password": os.getenv("TUTTI_RDS_PASSWORD", "skyla168"),
+}
+
+TABLE = "panel_production.assay_process_records"
+
+# Columns exposed to frontend (matching previous SQLite column names)
+QUERY_COLUMNS = [
+    "panel_name", "analyze_date", "analyze_time", "sample_type", "species",
+    "patient_id", "lot_code", "mfg_lot_no", "analyze_item", "analyze_result",
+    "unit", "test_zone", "test_well", "final_delta_od", "cal_od",
+    "equation", "eq_type", "baseline", "baseline_equation", "device_sn",
+]
 
 TIME_RE = re.compile(r"^\d{1,2}(?::\d{2}){0,2}$")
 
 
+def _get_conn():
+    return psycopg2.connect(**RDS_CONFIG)
+
+
 def list_headers() -> list[str]:
-    with get_connection() as conn:
-        return get_data_headers(conn)
+    return list(QUERY_COLUMNS)
 
 
 def _parse_date(value: str) -> date | None:
-    """Parse date from multiple formats: YYYY-MM-DD, YYYY/M/D, M/D/YYYY, etc."""
     s = value.strip().replace("-", "/")
     parts = s.split("/")
     if len(parts) == 3:
         a, b, c = (int(p) for p in parts)
-        if a > 31:  # YYYY/M/D
+        if a > 31:
             return date(a, b, c)
-        if c > 31:  # M/D/YYYY
+        if c > 31:
             return date(c, a, b)
-    elif len(parts) == 2:
-        return None
     return None
-
-
-def _next_month(value: str) -> date:
-    s = value.strip().replace("/", "-")
-    parts = s.split("-")
-    year, month = int(parts[0]), int(parts[1])
-    if month == 12:
-        return date(year + 1, 1, 1)
-    return date(year, month + 1, 1)
 
 
 def _parse_time(value: str) -> time | None:
     normalized = value.strip()
     if not TIME_RE.match(normalized):
         return None
-    parts = [int(part) for part in normalized.split(":")]
+    parts = [int(p) for p in normalized.split(":")]
     if len(parts) == 1:
         parts.extend([0, 0])
     elif len(parts) == 2:
@@ -60,50 +77,11 @@ def _one_hour_after(value: time) -> str:
     total_seconds = value.hour * 3600 + 3600
     if total_seconds >= 24 * 3600:
         return "24:00:00"
-    hour = total_seconds // 3600
-    return f"{hour:02d}:00:00"
+    return f"{total_seconds // 3600:02d}:00:00"
 
 
-def _time_upper_bound(value: time, original: str) -> tuple[str, bool]:
-    parts = original.strip().split(":")
-    if len(parts) == 1 or (len(parts) == 2 and parts[1] == "00"):
-        return _one_hour_after(value), True
-    if len(parts) == 2:
-        return value.replace(second=59).strftime("%H:%M:%S"), False
-    return _format_time(value), False
-
-
-def _normalize_date_expr(header: str) -> str:
-    """SQL expression to normalize any date format in DB to YYYY-MM-DD for comparison."""
-    col = quote_identifier(header)
-    # Handle formats like 2026/5/4 -> 2026-05-04 using substr + printf padding
-    # Use a simple approach: replace / with - then use substr to zero-pad
-    return (
-        f"CASE "
-        f"WHEN {col} LIKE '____-__-__' THEN {col} "
-        f"WHEN {col} LIKE '____/__/__' THEN replace({col}, '/', '-') "
-        f"ELSE "
-        f"  printf('%04d-%02d-%02d', "
-        f"    CAST(CASE WHEN CAST(substr(replace({col},'/','-'),1,instr(replace({col},'/','-'),'-')-1) AS INTEGER) > 31 "
-        f"      THEN substr(replace({col},'/','-'),1,instr(replace({col},'/','-'),'-')-1) "
-        f"      ELSE substr(replace({col},'/','-'),instr(substr(replace({col},'/','-'),instr(replace({col},'/','-'),'-')+1),'-')+instr(replace({col},'/','-'),'-')+1) "
-        f"    END AS INTEGER), "
-        f"    CAST(CASE WHEN CAST(substr(replace({col},'/','-'),1,instr(replace({col},'/','-'),'-')-1) AS INTEGER) > 31 "
-        f"      THEN substr(replace({col},'/','-'),instr(replace({col},'/','-'),'-')+1, "
-        f"        instr(substr(replace({col},'/','-'),instr(replace({col},'/','-'),'-')+1),'-')-1) "
-        f"      ELSE substr(replace({col},'/','-'),1,instr(replace({col},'/','-'),'-')-1) "
-        f"    END AS INTEGER), "
-        f"    CAST(CASE WHEN CAST(substr(replace({col},'/','-'),1,instr(replace({col},'/','-'),'-')-1) AS INTEGER) > 31 "
-        f"      THEN substr(replace({col},'/','-'),instr(substr(replace({col},'/','-'),instr(replace({col},'/','-'),'-')+1),'-')+instr(replace({col},'/','-'),'-')+1) "
-        f"      ELSE substr(replace({col},'/','-'),instr(replace({col},'/','-'),'-')+1, "
-        f"        instr(substr(replace({col},'/','-'),instr(replace({col},'/','-'),'-')+1),'-')-1) "
-        f"    END AS INTEGER)) "
-        f"END"
-    )
-
-
-def _build_date_clause(header: str, value: str) -> tuple[str, list[str]] | None:
-    expression = _normalize_date_expr(header)
+def _build_date_clause(value: str) -> tuple[str, list[str]] | None:
+    col = "analyze_date"
     normalized = value.strip().replace(" ", "")
 
     if "~" in normalized:
@@ -112,25 +90,23 @@ def _build_date_clause(header: str, value: str) -> tuple[str, list[str]] | None:
         end = _parse_date(end_raw)
         if not start or not end:
             return None
-        return f"({expression} >= ? AND {expression} <= ?)", [start.isoformat(), end.isoformat()]
+        return f"({col} >= %s AND {col} <= %s)", [start.isoformat(), end.isoformat()]
 
-    # Month filter: YYYY-MM or YYYY/MM
     month_match = re.match(r"^(\d{4})[-/](\d{1,2})$", normalized)
     if month_match:
         year, month = int(month_match.group(1)), int(month_match.group(2))
         start = date(year, month, 1)
         end = date(year + 1, 1, 1) if month == 12 else date(year, month + 1, 1)
-        return f"({expression} >= ? AND {expression} < ?)", [start.isoformat(), end.isoformat()]
+        return f"({col} >= %s AND {col} < %s)", [start.isoformat(), end.isoformat()]
 
     exact = _parse_date(normalized)
     if exact:
-        return f"({expression} = ?)", [exact.isoformat()]
-
+        return f"({col} = %s)", [exact.isoformat()]
     return None
 
 
-def _build_time_clause(header: str, value: str) -> tuple[str, list[str]] | None:
-    expression = quote_identifier(header)
+def _build_time_clause(value: str) -> tuple[str, list[str]] | None:
+    col = "analyze_time"
     normalized = value.strip().replace(" ", "")
 
     if "~" in normalized:
@@ -139,48 +115,47 @@ def _build_time_clause(header: str, value: str) -> tuple[str, list[str]] | None:
         end = _parse_time(end_raw)
         if not start or not end:
             return None
-        end_bound, exclusive = _time_upper_bound(end, end_raw)
-        operator = "<" if exclusive else "<="
-        return f"({expression} >= ? AND {expression} {operator} ?)", [_format_time(start), end_bound]
+        parts = end_raw.strip().split(":")
+        if len(parts) == 1 or (len(parts) == 2 and parts[1] == "00"):
+            return f"({col} >= %s AND {col} < %s)", [_format_time(start), _one_hour_after(end)]
+        if len(parts) == 2:
+            return f"({col} >= %s AND {col} <= %s)", [_format_time(start), end.replace(second=59).strftime("%H:%M:%S")]
+        return f"({col} >= %s AND {col} <= %s)", [_format_time(start), _format_time(end)]
 
     parsed = _parse_time(normalized)
     if not parsed:
         return None
 
     if ":" not in normalized or normalized.endswith(":00"):
-        return f"({expression} >= ? AND {expression} < ?)", [
+        return f"({col} >= %s AND {col} < %s)", [
             parsed.replace(minute=0, second=0).strftime("%H:%M:%S"),
             _one_hour_after(parsed),
         ]
-
     if normalized.count(":") == 1:
-        return f"({expression} >= ? AND {expression} <= ?)", [
+        return f"({col} >= %s AND {col} <= %s)", [
             _format_time(parsed),
             parsed.replace(second=59).strftime("%H:%M:%S"),
         ]
-
-    return f"({expression} = ?)", [_format_time(parsed)]
+    return f"({col} = %s)", [_format_time(parsed)]
 
 
 def _build_condition_clause(header: str, value: str) -> tuple[str, list[str]]:
     if header == "analyze_date":
-        date_clause = _build_date_clause(header, value)
-        if date_clause:
-            return date_clause
+        clause = _build_date_clause(value)
+        if clause:
+            return clause
 
     if header == "analyze_time":
-        time_clause = _build_time_clause(header, value)
-        if time_clause:
-            return time_clause
+        clause = _build_time_clause(value)
+        if clause:
+            return clause
 
-    # panel_name: support "EN||CN" format for OR matching
     if header == "panel_name" and "||" in value:
         parts = value.split("||")
-        col = quote_identifier(header)
-        or_clauses = [f"{col} LIKE ?" for _ in parts]
+        or_clauses = [f"{header} ILIKE %s" for _ in parts]
         return f"({' OR '.join(or_clauses)})", [f"%{p.strip()}%" for p in parts]
 
-    return f"({quote_identifier(header)} LIKE ?)", [f"%{value}%"]
+    return f"({header} ILIKE %s)", [f"%{value}%"]
 
 
 def query_records(
@@ -196,77 +171,63 @@ def query_records(
     normalized_offset = max(0, int(offset or 0))
     raw_conditions = (conditions or [])[:3]
 
-    with get_connection() as conn:
-        if not table_exists(conn, TABLE_NAME):
-            return {
-                "ok": True,
-                "logic": normalized_logic,
-                "total": 0,
-                "limit": normalized_limit,
-                "offset": normalized_offset,
-                "columns": [],
-                "rows": [],
-            }
+    allowed_headers = set(QUERY_COLUMNS)
+    active_conditions: list[tuple[str, str]] = []
 
-        headers = get_data_headers(conn)
-        allowed_headers = set(headers)
-        active_conditions: list[tuple[str, str]] = []
+    for condition in raw_conditions:
+        header = str(condition.get("header", "")).strip()
+        value = str(condition.get("value", "")).strip()
+        if not header or not value:
+            continue
+        if header not in allowed_headers:
+            raise ValueError(f"Invalid query header: {header}")
+        active_conditions.append((header, value))
 
-        for condition in raw_conditions:
-            header = str(condition.get("header", "")).strip()
-            value = str(condition.get("value", "")).strip()
-            if not header or not value:
-                continue
-            if header not in allowed_headers:
-                raise ValueError(f"Invalid query header: {header}")
-            active_conditions.append((header, value))
+    params: list = []
+    where_parts: list[str] = []
 
-        select_columns = ", ".join(quote_identifier(header) for header in headers)
-        if not select_columns:
-            select_columns = quote_identifier("id")
+    if baseline is not None:
+        where_parts.append("(baseline = %s)")
+        params.append(baseline)
 
-        params: list[str | int] = []
-        where_parts: list[str] = []
+    if active_conditions:
+        clauses = []
+        for header, value in active_conditions:
+            clause, clause_params = _build_condition_clause(header, value)
+            clauses.append(clause)
+            params.extend(clause_params)
+        where_parts.append(f"({f' {normalized_logic} '.join(clauses)})")
 
-        if baseline is not None:
-            where_parts.append(f'({quote_identifier("baseline")} = ?)')
-            params.append(baseline)
+    where_sql = ("WHERE " + " AND ".join(where_parts)) if where_parts else ""
+    select_columns = ", ".join(QUERY_COLUMNS)
 
-        if active_conditions:
-            clauses = []
-            for header, value in active_conditions:
-                clause, clause_params = _build_condition_clause(header, value)
-                clauses.append(clause)
-                params.extend(clause_params)
-            where_parts.append(f'({f" {normalized_logic} ".join(clauses)})')
+    try:
+        conn = _get_conn()
+        cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
 
-        where_sql = ("WHERE " + " AND ".join(where_parts)) if where_parts else ""
+        cur.execute(f"SELECT COUNT(*) AS total FROM {TABLE} {where_sql}", params)
+        total = cur.fetchone()["total"]
 
-        count_row = conn.execute(
-            f"SELECT COUNT(*) AS total FROM {quote_identifier(TABLE_NAME)} {where_sql}",
-            params,
-        ).fetchone()
-
-        date_sort_expr = _normalize_date_expr("analyze_date")
-        order_sql = f"ORDER BY {date_sort_expr} DESC, \"panel_name\" ASC, \"analyze_time\" DESC, id DESC"
-        params.extend([normalized_limit, normalized_offset])
-        rows = conn.execute(
-            f"""
+        cur.execute(f"""
             SELECT {select_columns}
-            FROM {quote_identifier(TABLE_NAME)}
+            FROM {TABLE}
             {where_sql}
-            {order_sql}
-            LIMIT ? OFFSET ?
-            """,
-            params,
-        ).fetchall()
+            ORDER BY analyze_date DESC, panel_name ASC, analyze_time DESC, id DESC
+            LIMIT %s OFFSET %s
+        """, params + [normalized_limit, normalized_offset])
+        rows = cur.fetchall()
+
+        cur.close()
+        conn.close()
+    except Exception as e:
+        return {"ok": False, "error": str(e)}
 
     return {
         "ok": True,
         "logic": normalized_logic,
-        "total": count_row["total"] if count_row else 0,
+        "total": total,
         "limit": normalized_limit,
         "offset": normalized_offset,
-        "columns": headers,
-        "rows": [{header: row[header] for header in headers} for row in rows],
+        "columns": QUERY_COLUMNS,
+        "rows": [{col: (row[col] or "") for col in QUERY_COLUMNS} for row in rows],
     }

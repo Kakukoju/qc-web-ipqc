@@ -12,7 +12,8 @@
     "build": "tsc -b && vite build",
     "test": "vitest --run",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "manual:screenshots": "npx playwright test usermanu/scripts/capture-screenshots.ts --config=usermanu/scripts/playwright.screenshot.config.ts"
   },
   "dependencies": {
     "@ag-grid-community/client-side-row-model": "^32.3.9",
@@ -31,6 +32,7 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.39.4",
+    "@mermaid-js/mermaid-cli": "^11.15.0",
     "@playwright/test": "^1.59.1",
     "@types/node": "^24.12.2",
     "@types/papaparse": "^5.5.2",

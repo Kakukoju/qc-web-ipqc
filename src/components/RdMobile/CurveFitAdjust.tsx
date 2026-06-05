@@ -244,7 +244,7 @@ export default function CurveFitAdjust({ fitData, onConfirm, onCancel, saving }:
         <>
           {/* Residual bar chart */}
           <div className="rd-info-card" style={{ padding: '12px 4px' }}>
-            <h3 style={{ padding: '0 12px' }}>殘差分布 <span style={{ fontSize: '0.7rem', color: '#6B7C85' }}>（點擊柱狀可移除該點）</span></h3>
+            <h3 style={{ padding: '0 12px' }}>殘差分布 <span style={{ fontSize: '0.7rem', color: '#6B7C85' }}>（離差大可點擊柱狀移除；已移除點可點擊 ↩ 恢復）</span></h3>
             <ResponsiveContainer width="100%" height={200}>
               <BarChart data={residuals.map((r) => ({ name: `${r.label}`, residual: r.residual, idx: r.idx }))}
                 margin={{ top: 5, right: 10, bottom: 5, left: 0 }}>
@@ -270,7 +270,7 @@ export default function CurveFitAdjust({ fitData, onConfirm, onCancel, saving }:
 
           {/* Point list with remove buttons */}
           <div className="rd-info-card">
-            <h3>資料點管理 <span style={{ fontSize: '0.7rem', color: '#6B7C85' }}>（點擊 ✕ 移除離差點）</span></h3>
+            <h3>資料點管理 <span style={{ fontSize: '0.7rem', color: '#6B7C85' }}>（離差大可點擊 ✕ 移除；已移除點可點擊 ↩ 恢復）</span></h3>
             <div className="rd-points-table">
               <table>
                 <thead>
@@ -300,7 +300,7 @@ export default function CurveFitAdjust({ fitData, onConfirm, onCancel, saving }:
           {/* Removed points */}
           {removedIndices.length > 0 && (
             <div className="rd-info-card">
-              <h3>已移除的點 <span style={{ fontSize: '0.7rem', color: '#991B1B' }}>（點擊 ↩ 恢復）</span></h3>
+              <h3>已移除的點 <span style={{ fontSize: '0.7rem', color: '#991B1B' }}>（點擊 ↩ 恢復；Marker 任務刪除請在列表向左滑動）</span></h3>
               <div className="rd-points-table">
                 <table>
                   <thead>

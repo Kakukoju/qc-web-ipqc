@@ -80,6 +80,32 @@ function ensureTable() {
 
 // Run on module load
 ensureTable();
+ensureHistoryTable();
+
+function ensureHistoryTable() {
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS build_line_history (
+      id              INTEGER PRIMARY KEY AUTOINCREMENT,
+      analyze_item    TEXT NOT NULL,
+      d_lot           TEXT,
+      bigD_lot        TEXT,
+      u_lot           TEXT,
+      work_order_no   TEXT,
+      mfg_lot_no      TEXT,
+      lot_code        TEXT,
+      panel_name      TEXT,
+      analyze_date    TEXT,
+      equation        TEXT,
+      test_well       TEXT,
+      species         TEXT,
+      points_json     TEXT,
+      completed_by    TEXT,
+      completed_at    TEXT,
+      task_id         INTEGER,
+      build_count     INTEGER DEFAULT 1
+    )
+  `);
+}
 
 // ══════════════════════════════════════════════════════════════════════════
 // Shared Build-Line Write Service
@@ -108,7 +134,7 @@ async function writeBuildLineResult(params) {
   const {
     marker, panelName, lotNo, analyzeDate, species,
     equation, slope, intercept, r2,
-    confirmedBy, fitData,
+    confirmedBy, fitData, workOrderNo,
   } = params;
 
   // 1. Write/update tutti_curves in ipqcdrybeads.db (SQLite)
@@ -142,6 +168,32 @@ async function writeBuildLineResult(params) {
         `${panelName} | ${analyzeDate}`
       );
     }
+
+    // Write to build_line_history
+    const fd = fitData ? (typeof fitData === 'string' ? JSON.parse(fitData) : fitData) : {};
+    // fitData may be points array — batch info is in the parent fit_data_json (passed via fullFitData)
+    const fullFd = params.fullFitData || fd;
+    const dLot = fullFd.d_lot || '';
+    const bigDLot = fullFd.bigD_lot || '';
+    const uLot = fullFd.u_lot || '';
+    const testWell = fullFd.test_well || '';
+    const lotCode = fullFd.mfg_lot_no || lotNo;
+    const buildCount = db.prepare(
+      'SELECT COUNT(*) as cnt FROM build_line_history WHERE analyze_item = ? AND mfg_lot_no = ?'
+    ).get(marker, lotNo)?.cnt || 0;
+    db.prepare(`
+      INSERT INTO build_line_history
+        (analyze_item, d_lot, bigD_lot, u_lot, work_order_no, mfg_lot_no, lot_code,
+         panel_name, analyze_date, equation, test_well, species, points_json,
+         completed_by, completed_at, build_count)
+      VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,datetime('now','localtime'),?)
+    `).run(
+      marker, dLot, bigDLot, uLot,
+      workOrderNo || '', lotNo, lotCode,
+      panelName, analyzeDate, equation, testWell, species,
+      Array.isArray(fitData) ? JSON.stringify(fitData) : (fitData ? JSON.stringify(fitData) : null),
+      confirmedBy, buildCount + 1
+    );
   } catch (err) {
     return { ok: false, error: `SQLite write failed: ${err.message}` };
   }
@@ -180,6 +232,7 @@ async function writeBuildLineResult(params) {
 // ══════════════════════════════════════════════════════════════════════════
 
 const rdEventClients = new Set();
+const pcCompletionEventClients = new Set();
 
 function sendRdBuildLineEvent(payload) {
   const data = JSON.stringify(payload);
@@ -191,6 +244,35 @@ function sendRdBuildLineEvent(payload) {
       rdEventClients.delete(client);
     }
   }
+}
+
+function sendPcBuildLineCompletionEvent(payload) {
+  const data = JSON.stringify(payload);
+  for (const client of pcCompletionEventClients) {
+    try {
+      client.write(`event: rd-build-line-completed\n`);
+      client.write(`data: ${data}\n\n`);
+    } catch {
+      pcCompletionEventClients.delete(client);
+    }
+  }
+}
+
+function buildCompletionPayload(task, person, actionType, confirmedBy, writeResult) {
+  return {
+    event: 'completed',
+    task_id: task.id,
+    status: 'completed',
+    action_type: actionType,
+    panel_name: task.panel_name,
+    lot_no: task.lot_no,
+    marker: task.marker || null,
+    work_order: task.work_order || null,
+    confirmed_by: confirmedBy,
+    rd_name: person.english_name,
+    rds_updated: writeResult.rdsUpdated || 0,
+    completed_at: nowLocal(),
+  };
 }
 
 // ── GET /rd-build-line-events — Live task notifications for RD mobile ────
@@ -217,6 +299,33 @@ router.get('/rd-build-line-events', (req, res) => {
   req.on('close', () => {
     clearInterval(heartbeat);
     rdEventClients.delete(res);
+  });
+});
+
+// ── GET /rd-build-line-completion-events — Live completion messages for PC ─
+router.get('/rd-build-line-completion-events', (req, res) => {
+  res.setHeader('Content-Type', 'text/event-stream');
+  res.setHeader('Cache-Control', 'no-cache, no-transform');
+  res.setHeader('Connection', 'keep-alive');
+  res.setHeader('X-Accel-Buffering', 'no');
+  res.flushHeaders?.();
+
+  res.write(`event: connected\n`);
+  res.write(`data: ${JSON.stringify({ ok: true })}\n\n`);
+  pcCompletionEventClients.add(res);
+
+  const heartbeat = setInterval(() => {
+    try {
+      res.write(`: heartbeat\n\n`);
+    } catch {
+      clearInterval(heartbeat);
+      pcCompletionEventClients.delete(res);
+    }
+  }, 25000);
+
+  req.on('close', () => {
+    clearInterval(heartbeat);
+    pcCompletionEventClients.delete(res);
   });
 });
 
@@ -505,6 +614,8 @@ router.post('/rd-build-line-tasks/:id/direct-write', async (req, res) => {
       r2,
       confirmedBy,
       fitData: fitData?.points || null,
+      workOrderNo: task.work_order || '',
+      fullFitData: fitData,
     });
 
     if (!writeResult.ok) {
@@ -535,6 +646,7 @@ router.post('/rd-build-line-tasks/:id/direct-write', async (req, res) => {
       id
     );
 
+    const payload = buildCompletionPayload(task, person, 'direct_write', confirmedBy, writeResult);
     res.json({
       ok: true,
       data: {
@@ -546,6 +658,7 @@ router.post('/rd-build-line-tasks/:id/direct-write', async (req, res) => {
         rds_updated: writeResult.rdsUpdated,
       }
     });
+    sendPcBuildLineCompletionEvent(payload);
   } catch (err) {
     // Mark task as failed
     db.prepare(`
@@ -615,6 +728,8 @@ router.post('/rd-build-line-tasks/:id/save-adjusted-fit', async (req, res) => {
       r2,
       confirmedBy,
       fitData: fit_params?.points || originalFitData?.points || null,
+      workOrderNo: task.work_order || '',
+      fullFitData: originalFitData,
     });
 
     if (!writeResult.ok) {
@@ -644,6 +759,7 @@ router.post('/rd-build-line-tasks/:id/save-adjusted-fit', async (req, res) => {
       id
     );
 
+    const payload = buildCompletionPayload(task, person, 'adjust_curve', confirmedBy, writeResult);
     res.json({
       ok: true,
       data: {
@@ -655,6 +771,7 @@ router.post('/rd-build-line-tasks/:id/save-adjusted-fit', async (req, res) => {
         rds_updated: writeResult.rdsUpdated,
       }
     });
+    sendPcBuildLineCompletionEvent(payload);
   } catch (err) {
     db.prepare(`
       UPDATE rd_build_line_tasks
@@ -689,6 +806,41 @@ router.delete('/rd-build-line-tasks/:id', (req, res) => {
 
   db.prepare('DELETE FROM rd_build_line_tasks WHERE id = ?').run(id);
   res.json({ ok: true, data: { id, deleted: true } });
+});
+
+// ── GET /build-line-history — Query build line history ──────────────────
+router.get('/build-line-history', (req, res) => {
+  const { work_order_no, mfg_lot_no, lot_code, panel_name, batch, analyze_item } = req.query;
+  const conditions = [];
+  const params = [];
+
+  if (work_order_no) { conditions.push('work_order_no LIKE ?'); params.push(`%${work_order_no}%`); }
+  if (mfg_lot_no)    { conditions.push('mfg_lot_no LIKE ?');    params.push(`%${mfg_lot_no}%`); }
+  if (lot_code)      { conditions.push('lot_code LIKE ?');       params.push(`%${lot_code}%`); }
+  if (panel_name)    { conditions.push('panel_name LIKE ?');     params.push(`%${panel_name}%`); }
+  if (batch)         { conditions.push('(d_lot LIKE ? OR bigD_lot LIKE ? OR u_lot LIKE ?)'); params.push(`%${batch}%`, `%${batch}%`, `%${batch}%`); }
+  if (analyze_item)  { conditions.push('analyze_item = ?');      params.push(analyze_item); }
+
+  const where = conditions.length ? `WHERE ${conditions.join(' AND ')}` : '';
+  const rows = db.prepare(`
+    SELECT id, analyze_item, d_lot, bigD_lot, u_lot,
+           work_order_no, mfg_lot_no, lot_code, panel_name, analyze_date,
+           equation, test_well, species, points_json,
+           completed_by, completed_at, build_count
+    FROM build_line_history
+    ${where}
+    ORDER BY completed_at DESC
+    LIMIT 500
+  `).all(...params);
+
+  // Parse points_json for each row
+  const data = rows.map(r => {
+    let points = [];
+    try { points = r.points_json ? JSON.parse(r.points_json) : []; } catch { /* ignore */ }
+    return { ...r, points };
+  });
+
+  res.json({ ok: true, data, total: data.length });
 });
 
 export default router;

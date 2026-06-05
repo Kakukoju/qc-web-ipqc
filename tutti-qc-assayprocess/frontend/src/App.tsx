@@ -1,15 +1,17 @@
 import { useCallback, useEffect, useState } from 'react';
-import { ArrowLeft, Database, FileSpreadsheet, RefreshCw, Server, X } from 'lucide-react';
+import { ArrowLeft, CloudDownload, Database, FileSpreadsheet, RefreshCw, Server, X } from 'lucide-react';
 import {
   fetchImportStatus,
   fetchHeaders,
   fetchPanelNames,
   queryAssayProcess,
+  fetchSkylaiDevices,
   type ImportStatus,
   type Logic,
   type PanelNameOption,
   type QueryCondition,
   type QueryResponse,
+  type SkylaiDeviceFetchResult,
 } from './api';
 import QueryPanel from './components/QueryPanel';
 import ResultTable from './components/ResultTable';
@@ -51,6 +53,8 @@ export default function App() {
 
   const [showControlSheet, setShowControlSheet] = useState(false);
   const [controlParams, setControlParams] = useState({ panelName: '', analyzeDate: '', fwVersion: '' });
+  const [skylaiLoading, setSkylaiLoading] = useState(false);
+  const [skylaiResult, setSkylaiResult] = useState<SkylaiDeviceFetchResult | null>(null);
 
   const loadHeaders = useCallback(async () => {
     try {
@@ -193,6 +197,28 @@ export default function App() {
             <Server size={15} />
             Backend OK
           </div>
+          <button
+            className="icon-button"
+            type="button"
+            onClick={async () => {
+              setSkylaiLoading(true);
+              setSkylaiResult(null);
+              try {
+                const res = await fetchSkylaiDevices({ days_back: 7 });
+                setSkylaiResult(res);
+                if (res.ok) runQuery();
+              } catch (e) {
+                setSkylaiResult({ ok: false, error: e instanceof Error ? e.message : 'Unknown error' });
+              } finally {
+                setSkylaiLoading(false);
+              }
+            }}
+            disabled={skylaiLoading}
+            title="從 SkylaiCloud 拉取 4 台機器資料"
+            style={{ background: '#1a237e', border: '1px solid #3f51b5', borderRadius: 8, padding: '4px 10px', color: '#90caf9', cursor: skylaiLoading ? 'wait' : 'pointer' }}
+          >
+            <CloudDownload size={17} className={skylaiLoading ? 'animate-spin' : ''} />
+          </button>
           <button className="icon-button" type="button" onClick={loadHeaders} title="重新載入欄位">
             <RefreshCw size={17} />
           </button>
@@ -211,6 +237,40 @@ export default function App() {
       </div>
 
       {message && <div className="message">{message}</div>}
+
+      {skylaiResult && (
+        <div style={{
+          margin: '0 0 12px',
+          padding: '10px 16px',
+          borderRadius: 8,
+          background: skylaiResult.ok ? '#1b5e20' : '#b71c1c',
+          color: '#fff',
+          fontSize: 13,
+          display: 'flex',
+          alignItems: 'center',
+          gap: 12,
+          justifyContent: 'space-between',
+        }}>
+          <div>
+            {skylaiResult.ok ? (
+              <>
+                <strong>✅ SkylaiCloud 資料已匯入 RDS</strong>
+                <span style={{ marginLeft: 12 }}>
+                  共 {skylaiResult.total_inserted} 筆 ({skylaiResult.date_range?.start} ~ {skylaiResult.date_range?.end})
+                </span>
+                <span style={{ marginLeft: 12, opacity: 0.8 }}>
+                  {skylaiResult.device_results?.map(d => `${d.device_sn}: ${d.inserted}`).join(' · ')}
+                </span>
+              </>
+            ) : (
+              <><strong>❌ 匯入失敗</strong> {skylaiResult.error}</>
+            )}
+          </div>
+          <button onClick={() => setSkylaiResult(null)} style={{ background: 'none', border: 'none', color: '#fff', cursor: 'pointer' }}>
+            <X size={16} />
+          </button>
+        </div>
+      )}
 
       {showUploadMemo && (
         <section className="upload-memo" aria-label="PowerShell 上傳說明">

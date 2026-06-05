@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>手機端建立測試資料 - IPQC 使用說明</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <header class="site-header">
+    <div class="header-inner">
+      <a href="index.html" class="logo"><img src="images/skyla-logo.png" alt="Skyla" class="logo-img">IPQC 使用說明</a>
+      <nav class="main-nav" aria-label="主導覽">
+        <input type="checkbox" class="nav-toggle-checkbox" id="nav-toggle">
+        <label for="nav-toggle" class="nav-toggle" aria-label="開啟選單">☰</label>
+        <ul class="nav-list">
+          <li><a href="ipqc-dashboard.html">IPQC Dashboard</a></li>
+          <li><a href="tutti.html">Tutti</a></li>
+          <li><a href="buildline-pc.html">BuildLine PC</a></li>
+          <li><a href="buildline-mobile.html" class="active">BuildLine Mobile</a></li>
+          <li><a href="rd-mobile.html">RD Mobile</a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+  <main class="content">
+    <h1>手機端建立測試資料</h1>
+    <p class="section-overview">本章說明如何使用手機端進行建線掃描操作。手機端採用逐步引導式 QR 掃描流程，適用於現場操作人員在生產線旁快速建立測試資料。操作流程共分為 6 個步驟，依序完成機器識別、位置指定、工單綁定、Disk 綁定、資料確認與送出建立。</p>
+
+    <div class="url-info">
+      <p><strong>存取網址：</strong><code>https://52-192-28-39.sslip.io/qc-web/pre-assignment/tutti-scan</code></p>
+    </div>
+
+    <h2>掃描操作步驟</h2>
+    <ol class="step-list">
+      <li>
+        <p class="step-title">掃描機器 QR</p>
+        <p class="step-description">目的：識別機台。使用手機相機掃描機器上的 QR Code，系統將自動解析並識別對應的機台。成功後畫面顯示機台名稱。</p>
+        <p><strong>輸入：</strong>機器 QR Code</p>
+        <p><strong>成功結果：</strong>顯示機台名稱</p>
+        <img src="screenshots/BuildLineMobile_scan_machine_01.jpg" alt="掃描機器 QR 操作畫面" class="screenshot screenshot--mobile">
+      </li>
+      <li>
+        <p class="step-title">選擇 Position</p>
+        <p class="step-description">目的：指定位置。從下拉選單中選擇對應的 Position，確定測試資料的放置位置。成功後畫面顯示已選位置。</p>
+        <p><strong>輸入：</strong>下拉選單選擇</p>
+        <p><strong>成功結果：</strong>顯示已選位置</p>
+        <img src="screenshots/BuildLineMobile_position_02.jpg" alt="選擇 Position 操作畫面" class="screenshot screenshot--mobile">
+      </li>
+      <li>
+        <p class="step-title">掃描工單 QR</p>
+        <p class="step-description">目的：綁定工單。掃描工單上的 QR Code，將測試資料與對應工單進行綁定。成功後畫面顯示工單號。</p>
+        <p><strong>輸入：</strong>工單 QR Code</p>
+        <p><strong>成功結果：</strong>顯示工單號</p>
+        <img src="screenshots/BuildLineMobile_scan_order_03.jpg" alt="掃描工單 QR 操作畫面" class="screenshot screenshot--mobile">
+      </li>
+      <li>
+        <p class="step-title">掃描 Disk QR</p>
+        <p class="step-description">目的：綁定 Disk。掃描 Disk 上的 QR Code，將 Disk 資訊與測試資料進行綁定。成功後畫面顯示 Disk 資訊。</p>
+        <p><strong>輸入：</strong>Disk QR Code</p>
+        <p><strong>成功結果：</strong>顯示 Disk 資訊</p>
+        <img src="screenshots/BuildLineMobile_scan_disk_04.jpg" alt="掃描 Disk QR 操作畫面" class="screenshot screenshot--mobile">
+      </li>
+      <li>
+        <p class="step-title">資料確認</p>
+        <p class="step-description">目的：核對所有掃描資料。系統彙整前四步驟的掃描結果，操作人員需逐項確認資料無誤後方可進行下一步。</p>
+        <p><strong>確認項目：</strong>機台名稱、Position、工單號、Disk 資訊</p>
+        <img src="screenshots/BuildLineMobile_confirm_05.jpg" alt="資料確認操作畫面" class="screenshot screenshot--mobile">
+      </li>
+      <li>
+        <p class="step-title">送出建立</p>
+        <p class="step-description">目的：提交資料至系統。確認資料無誤後，點擊送出按鈕將所有掃描資料提交至系統建立測試記錄。</p>
+        <img src="screenshots/BuildLineMobile_submit_06.jpg" alt="送出建立操作畫面" class="screenshot screenshot--mobile">
+      </li>
+    </ol>
+
+    <h2>手機端與 PC 端差異比較</h2>
+    <table class="comparison-table">
+      <thead>
+        <tr>
+          <th>比較項目</th>
+          <th>手機端</th>
+          <th>PC 端</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>輸入方式</td>
+          <td>QR 掃描</td>
+          <td>表單輸入</td>
+        </tr>
+        <tr>
+          <td>操作流程</td>
+          <td>逐步引導式</td>
+          <td>單頁表單式</td>
+        </tr>
+        <tr>
+          <td>適用場景</td>
+          <td>現場掃描</td>
+          <td>辦公室管理</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h2>操作流程圖</h2>
+    <figure class="workflow-diagram">
+      <img src="images/workflow_buildline_mobile.png" alt="手機端操作流程圖">
+      <figcaption>手機端建線操作流程</figcaption>
+    </figure>
+
+    <h2>錯誤處理</h2>
+    <div class="error-section">
+      <h3>QR 解析失敗</h3>
+      <p>顯示錯誤提示，可重新掃描。請確認 QR Code 清晰可辨識，避免反光或遮擋。</p>
+    </div>
+    <div class="error-section">
+      <h3>手動輸入替代</h3>
+      <p>點擊手動輸入按鈕，直接輸入 QR 內容。當 QR Code 損壞或無法掃描時，可使用此替代方式完成操作。</p>
+    </div>
+    <div class="error-section">
+      <h3>工單與 Disk 批號不一致</h3>
+      <p>系統提示不一致，需確認後才能送出。請核對工單號與 Disk 批號是否正確對應，確認無誤後可強制送出。</p>
+    </div>
+  </main>
+  <footer class="site-footer">
+    <nav class="page-nav" aria-label="章節導覽">
+      <a href="buildline-pc.html" class="nav-prev">← 上一章</a>
+      <a href="index.html" class="nav-home">首頁</a>
+      <a href="rd-mobile.html" class="nav-next">下一章 →</a>
+    </nav>
+  </footer>
+</body>
+</html>

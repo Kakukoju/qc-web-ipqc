@@ -17,6 +17,8 @@ import personnelRoutes from './routes/personnel.js';
 import templateRoutes from './routes/template.js';
 import tuttiScanRecordsRoutes from './routes/tuttiScanRecords.js';
 import rdBuildLineRoutes from './routes/rdBuildLine.js';
+import reviewTaskRoutes from './routes/reviewTasks.js';
+import { ensureSchema } from './db/specRdsSync.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -40,6 +42,7 @@ app.use('/api/personnel', personnelRoutes);
 app.use('/api/template', templateRoutes);
 app.use('/api/v1', tuttiScanRecordsRoutes);
 app.use('/api/v1/pre-assignment', rdBuildLineRoutes);
+app.use('/api/v1/pre-assignment', reviewTaskRoutes);
 
 // ── Proxy to assayprocess backend (port 8200) for baseline-group data ─────
 app.post('/api/assayprocess-proxy/baseline-group', async (req, res) => {
@@ -207,6 +210,18 @@ const server = app.listen(PORT, '127.0.0.1', () => {
   const host = typeof address === 'object' && address ? address.address : 'localhost';
   const port = typeof address === 'object' && address ? address.port : PORT;
   console.log(`🚀 API server on http://${host}:${port}`);
+
+  ensureSchema()
+    .then((ready) => {
+      if (ready) {
+        console.log('[specRdsSync] Schema ready');
+      } else {
+        console.warn('[specRdsSync] Schema setup skipped or failed');
+      }
+    })
+    .catch((error) => {
+      console.warn(`[specRdsSync] Schema setup failed: ${error.message}`);
+    });
 });
 
 server.on('error', (err) => {

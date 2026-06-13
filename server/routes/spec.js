@@ -5,6 +5,7 @@ import fs from 'fs';
 import { fileURLToPath } from 'url';
 import XLSX from 'xlsx';
 import specDb from '../db/specDb.js';
+import { syncRows, fullSync } from '../db/specRdsSync.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const upload = multer({ dest: path.resolve(__dirname, '../uploads') });
@@ -229,9 +230,10 @@ router.get('/defaults', (_req, res) => {
 
 // POST /api/spec/sync — read from file path (UNC or local), no upload needed
 // Body: { paths: { P01: "...", Qbi: "..." } }  (optional, uses defaults if omitted)
-router.post('/sync', (req, res) => {
+router.post('/sync', async (req, res) => {
   const paths = req.body?.paths || {};
   const results = [];
+  const allSpecs = [];
 
   for (const [key, defaultPath] of Object.entries(DEFAULT_PATHS)) {
     const filePath = paths[key] || defaultPath;
@@ -247,21 +249,43 @@ router.post('/sync', (req, res) => {
         fileName: path.basename(filePath),
         total: specs.length, inserted, updated,
       });
+      allSpecs.push(...specs);
     } catch (err) {
       results.push({ source: key, ok: false, error: err.message });
     }
   }
 
-  res.json({ ok: results.every(r => r.ok), results });
+  let rdsSync;
+  if (allSpecs.length > 0) {
+    try {
+      rdsSync = await syncRows(allSpecs);
+    } catch (err) {
+      const error = err instanceof Error ? err.message : String(err);
+      console.error(`[spec] RDS sync failed after sync: ${error}`);
+      rdsSync = { ok: false, synced: 0, error };
+    }
+  } else {
+    rdsSync = { ok: true, synced: 0 };
+  }
+
+  res.json({ ok: results.every(r => r.ok), results, rds_sync: rdsSync });
 });
 
 // POST /api/spec/upload — upload Excel file (for EC2 / no UNC access)
-router.post('/upload', upload.single('file'), (req, res) => {
+router.post('/upload', upload.single('file'), async (req, res) => {
   if (!req.file) return res.status(400).json({ error: '未選擇檔案' });
 
   try {
     const { source, sheetName, specs } = parseExcelFile(req.file.path);
     const { inserted, updated } = upsertSpecs(specs, req.file.originalname);
+    let rdsSync;
+    try {
+      rdsSync = await syncRows(specs);
+    } catch (err) {
+      const error = err instanceof Error ? err.message : String(err);
+      console.error(`[spec] RDS sync failed after upload: ${error}`);
+      rdsSync = { ok: false, synced: 0, error };
+    }
 
     fs.unlink(req.file.path, () => {});
 
@@ -270,9 +294,23 @@ router.post('/upload', upload.single('file'), (req, res) => {
       fileName: req.file.originalname,
       total: specs.length, inserted, updated,
       markers: specs.map(s => s.marker),
+      rds_sync: rdsSync,
     });
   } catch (err) {
     res.status(500).json({ error: err.message });
+  }
+});
+
+// POST /api/spec/rds-sync — full sync: mirror all SQLite rows to RDS, remove orphans
+router.post('/rds-sync', async (_req, res) => {
+  try {
+    const result = await fullSync();
+    if (!result.ok) {
+      return res.status(500).json(result);
+    }
+    res.json(result);
+  } catch (err) {
+    res.status(500).json({ ok: false, total: 0, upserted: 0, deleted: 0, error: err.message });
   }
 });
 

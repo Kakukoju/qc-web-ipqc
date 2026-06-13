@@ -1,0 +1,23 @@
+{
+  "name": "Skyla QC/RD Review",
+  "short_name": "QC/RD",
+  "start_url": "/qc-web/pre-assignment/rd-mobile/tasks",
+  "scope": "/qc-web/pre-assignment/",
+  "display": "standalone",
+  "theme_color": "#145c4b",
+  "background_color": "#f4faf6",
+  "icons": [
+    {
+      "src": "/qc-web/skylaflower.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/qc-web/skylaflower.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

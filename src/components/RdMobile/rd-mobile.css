@@ -498,6 +498,9 @@
   padding: 9px 8px;
   text-align: center;
   touch-action: manipulation;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
   position: relative;
   overflow: hidden;
   -webkit-tap-highlight-color: transparent;
@@ -517,6 +520,14 @@
   height: 58px;
   border-radius: 38% 62% 55% 45% / 42% 43% 57% 58%;
   background: linear-gradient(135deg, rgba(116,185,74,0.18), rgba(56,167,215,0.14));
+}
+.rd-panel-icon.is-long-pressing {
+  transform: translateY(4px) scale(0.95);
+  border-color: rgba(224, 82, 82, 0.34);
+  background-color: #fff7f7;
+  box-shadow:
+    0 3px 8px rgba(19, 53, 55, 0.12),
+    inset 0 0 0 2px rgba(224, 82, 82, 0.12);
 }
 .rd-panel-icon:active {
   transform: translateY(4px) scale(0.96);

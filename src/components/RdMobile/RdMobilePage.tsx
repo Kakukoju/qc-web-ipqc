@@ -77,10 +77,12 @@ function PanelTaskGrid({
   groups,
   filter,
   onOpen,
+  onDelete,
 }: {
   groups: PanelTaskGroup[];
   filter: Filter;
   onOpen: (groupKey: string) => void;
+  onDelete: (group: PanelTaskGroup) => void;
 }) {
   return (
     <div className="rd-panel-grid">
@@ -91,6 +93,7 @@ function PanelTaskGrid({
           filter={filter}
           index={index}
           onOpen={() => onOpen(group.groupKey)}
+          onDelete={() => onDelete(group)}
         />
       ))}
     </div>
@@ -102,24 +105,75 @@ function PanelTaskIcon({
   filter,
   index,
   onOpen,
+  onDelete,
 }: {
   group: PanelTaskGroup;
   filter: Filter;
   index: number;
   onOpen: () => void;
+  onDelete: () => void;
 }) {
+  const [isLongPressing, setIsLongPressing] = useState(false);
+  const longPressTimerRef = useRef<number | null>(null);
+  const longPressTriggeredRef = useRef(false);
+  const pointerStartRef = useRef({ x: 0, y: 0 });
+
+  useEffect(() => () => {
+    if (longPressTimerRef.current) window.clearTimeout(longPressTimerRef.current);
+  }, []);
+
   const statusText = filter === 'completed'
     ? `已完成 ${group.completedCount}`
     : filter === 'all'
       ? `待建線 ${group.pendingCount} / ${group.totalCount}`
       : `待建線 ${group.pendingCount}`;
 
+  const cancelLongPress = () => {
+    if (longPressTimerRef.current) {
+      window.clearTimeout(longPressTimerRef.current);
+      longPressTimerRef.current = null;
+    }
+    setIsLongPressing(false);
+  };
+
+  const startLongPress = (clientX: number, clientY: number) => {
+    cancelLongPress();
+    longPressTriggeredRef.current = false;
+    pointerStartRef.current = { x: clientX, y: clientY };
+    setIsLongPressing(true);
+    longPressTimerRef.current = window.setTimeout(() => {
+      longPressTimerRef.current = null;
+      longPressTriggeredRef.current = true;
+      setIsLongPressing(false);
+      if ('vibrate' in navigator) navigator.vibrate(80);
+      onDelete();
+    }, 700);
+  };
+
   return (
     <button
-      className="rd-panel-icon"
+      className={`rd-panel-icon ${isLongPressing ? 'is-long-pressing' : ''}`}
       type="button"
-      onClick={onOpen}
+      onClick={(event) => {
+        if (longPressTriggeredRef.current) {
+          event.preventDefault();
+          longPressTriggeredRef.current = false;
+          return;
+        }
+        onOpen();
+      }}
+      onPointerDown={(event) => startLongPress(event.clientX, event.clientY)}
+      onPointerMove={(event) => {
+        const dx = event.clientX - pointerStartRef.current.x;
+        const dy = event.clientY - pointerStartRef.current.y;
+        if (Math.hypot(dx, dy) > 10) cancelLongPress();
+      }}
+      onPointerUp={cancelLongPress}
+      onPointerCancel={cancelLongPress}
+      onPointerLeave={cancelLongPress}
+      onContextMenu={(event) => event.preventDefault()}
       style={{ animationDelay: `${Math.min(index * 42, 360)}ms` }}
+      aria-label={`${group.panelName}，點擊開啟，長按刪除`}
     >
       <span className="rd-panel-icon-symbol">{getPanelInitials(group.panelName)}</span>
       <span className="rd-panel-icon-title">{group.panelName}</span>
@@ -723,6 +777,33 @@ export default function RdMobilePage() {
     }
   };
 
+  const handleDeletePanelGroup = async (group: PanelTaskGroup) => {
+    const confirmed = window.confirm(
+      `確定刪除「${group.panelName}」卡片內的 ${group.totalCount} 筆任務？`,
+    );
+    if (!confirmed) return;
+
+    setError('');
+    const results = await Promise.all(
+      group.markers.map(async task => {
+        try {
+          const resp = await deleteRdTask(task.id);
+          return { id: task.id, ok: resp.ok };
+        } catch {
+          return { id: task.id, ok: false };
+        }
+      }),
+    );
+    const deletedIds = new Set(results.filter(result => result.ok).map(result => result.id));
+    const failedCount = results.length - deletedIds.size;
+    if (deletedIds.size > 0) {
+      setTasks(prev => prev.filter(task => !deletedIds.has(task.id)));
+    }
+    if (failedCount > 0) {
+      setError(`已刪除 ${deletedIds.size} 筆，另有 ${failedCount} 筆刪除失敗`);
+    }
+  };
+
   // ══════════════════════════════════════════════════════════════════════════
   // RENDER
   // ══════════════════════════════════════════════════════════════════════════
@@ -881,7 +962,12 @@ export default function RdMobilePage() {
         )}
 
         {!loading && !error && (
-          <PanelTaskGrid groups={panelGroups} filter={filter} onOpen={openPanel} />
+          <PanelTaskGrid
+            groups={panelGroups}
+            filter={filter}
+            onOpen={openPanel}
+            onDelete={handleDeletePanelGroup}
+          />
         )}
       </div>
     );

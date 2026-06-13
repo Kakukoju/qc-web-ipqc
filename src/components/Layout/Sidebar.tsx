@@ -35,12 +35,12 @@ export default function Sidebar({ activeView, onNavigate }: SidebarProps) {
 
   const items: NavItem[] = [
     { icon: <LayoutDashboard size={18} />, label: 'Dashboard', id: 'dashboard' },
-    { icon: <Activity size={18} />, label: '生產管理', id: 'production' },
     { icon: <FlaskConical size={18} />, label: 'IPQC 管理', id: 'qc' },
     { icon: <Microscope size={18} />, label: 'IPQC 工作台', id: 'ipqc', badge: pendingCount || undefined },
     { icon: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="3" y1="20" x2="3" y2="4" /><line x1="3" y1="20" x2="21" y2="20" /><path d="M4 16 Q10 4 20 6" /></svg>, label: 'Tutti-Beads 預建線', id: 'monitor', href: 'https://52-192-28-39.sslip.io/qc-web/pre-assignment/' },
     { icon: <FileSearch size={18} />, label: 'Tutti AssayProcess 查詢', id: 'tutti-assayprocess', href: '/tutti-assayprocess/' },
     { icon: <AlertTriangle size={18} />, label: '異常管理', id: 'anomaly' },
+    { icon: <Activity size={18} />, label: '生產管理', id: 'production' },
     { icon: <BarChart3 size={18} />, label: '報表分析', id: 'reports' },
     { icon: <Settings size={18} />, label: '系統設定', id: 'settings' },
   ];

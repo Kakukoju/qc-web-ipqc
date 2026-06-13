@@ -82,6 +82,51 @@ function ensureTable() {
 ensureTable();
 ensureHistoryTable();
 
+/**
+ * Find all 可併 (mergeable) batches in the same IPQC group.
+ * Group is identified by bead_name + sheet_name in drbeadinspection.
+ * Returns all batch numbers where batch_decision = '可併' AND final_decision = 'Accept'.
+ */
+function getMergeableBatches(batchNumber, beadName = null) {
+  // First find the group (sheet_name) this batch belongs to
+  let groupQuery = `
+    SELECT DISTINCT bead_name, sheet_name FROM drbeadinspection
+    WHERE (d_lot = ? OR bigD_lot = ? OR u_lot = ? OR batch_combo = ?)
+  `;
+  const params = [batchNumber, batchNumber, batchNumber, batchNumber];
+  if (beadName) {
+    groupQuery += ` AND bead_name = ?`;
+    params.push(beadName);
+  }
+  groupQuery += ` LIMIT 1`;
+
+  const group = db.prepare(groupQuery).get(...params);
+  if (!group) return [];
+
+  // Find all mergeable batches in the same group
+  const rows = db.prepare(`
+    SELECT DISTINCT d_lot, bigD_lot, u_lot, batch_decision, final_decision, batch_combo
+    FROM drbeadinspection
+    WHERE bead_name = ? AND sheet_name = ?
+      AND batch_decision = '可併'
+      AND final_decision = 'Accept'
+  `).all(group.bead_name, group.sheet_name);
+
+  // Collect all unique batch numbers from d_lot, bigD_lot, u_lot
+  const batchSet = new Set();
+  for (const row of rows) {
+    if (row.d_lot) batchSet.add(row.d_lot);
+    if (row.bigD_lot) batchSet.add(row.bigD_lot);
+    if (row.u_lot) batchSet.add(row.u_lot);
+  }
+
+  return {
+    bead_name: group.bead_name,
+    sheet_name: group.sheet_name,
+    mergeable_batches: Array.from(batchSet),
+  };
+}
+
 function ensureHistoryTable() {
   db.exec(`
     CREATE TABLE IF NOT EXISTS build_line_history (
@@ -224,7 +269,103 @@ async function writeBuildLineResult(params) {
     }
   }
 
+  // 3. Transition batch_build_line_status (non-blocking)
+  try {
+    await notifyBatchStatusTransition(params);
+  } catch (err) {
+    console.error('[rdBuildLine] batch status transition error:', err.message);
+  }
+
   return { ok: true, rdsUpdated };
+}
+
+// ── Notify beads-project backend to transition batch_build_line_status ────
+async function notifyBatchStatusTransition(params) {
+  const { marker, lotNo, workOrderNo, confirmedBy, fullFitData } = params;
+  const fd = fullFitData || {};
+  const dLot = fd.d_lot || '';
+  const bigDLot = fd.bigD_lot || '';
+  const uLot = fd.u_lot || '';
+
+  // Build batch_keys from the lot info
+  const batchKeys = [];
+  if (dLot) batchKeys.push({ batch_key: `${dLot}::d_lot`, classification: 'd_lot', batch_number: dLot });
+  if (bigDLot) batchKeys.push({ batch_key: `${bigDLot}::bigD_lot`, classification: 'bigD_lot', batch_number: bigDLot });
+  if (uLot) batchKeys.push({ batch_key: `${uLot}::u_lot`, classification: 'u_lot', batch_number: uLot });
+
+  if (batchKeys.length === 0) return;
+
+  for (const batch of batchKeys) {
+    try {
+      // Get actual build count from SQLite build_line_history (source of truth for completed builds)
+      const histCount = db.prepare(
+        'SELECT COUNT(*) as cnt FROM build_line_history WHERE (d_lot = ? OR bigD_lot = ? OR u_lot = ?)'
+      ).get(batch.batch_number, batch.batch_number, batch.batch_number)?.cnt || 0;
+
+      // Determine status based on actual build count
+      const modificationCount = Math.max(0, histCount - 1);
+      const status = modificationCount === 0 ? '已建線' : `已改線(${modificationCount})`;
+
+      // Get current status for history record
+      const currentRow = await queryWithRetry(
+        `SELECT status, modification_count FROM panel_production.batch_build_line_status WHERE batch_key = $1`,
+        [batch.batch_key]
+      );
+      const previousStatus = currentRow.rows[0]?.status || '未建線';
+
+      // Upsert status
+      await queryWithRetry(
+        `INSERT INTO panel_production.batch_build_line_status
+           (batch_key, classification, batch_number, status, modification_count, last_transition_at, last_operator, updated_at)
+         VALUES ($1, $2, $3, $4, $5, NOW(), $6, NOW())
+         ON CONFLICT (batch_key) DO UPDATE SET
+           status = $4,
+           modification_count = $5,
+           last_transition_at = NOW(),
+           last_operator = $6,
+           updated_at = NOW()`,
+        [batch.batch_key, batch.classification, batch.batch_number, status, modificationCount, confirmedBy || 'RD']
+      );
+
+      // Write history record (only if status actually changed)
+      if (previousStatus !== status) {
+        await queryWithRetry(
+          `INSERT INTO panel_production.batch_build_line_history
+             (batch_key, previous_status, new_status, modification_count, transitioned_at, operator, work_order_no, lot_no)
+           VALUES ($1, $2, $3, $4, NOW(), $5, $6, $7)`,
+          [batch.batch_key, previousStatus, status, modificationCount, confirmedBy || 'RD', workOrderNo || '', lotNo || '']
+        );
+      }
+
+      // ── Sync all mergeable batches (可併) in the same IPQC group ──
+      try {
+        const mergeableInfo = getMergeableBatches(batch.batch_number);
+        if (mergeableInfo && mergeableInfo.mergeable_batches) {
+          for (const siblingBatch of mergeableInfo.mergeable_batches) {
+            if (siblingBatch === batch.batch_number) continue; // skip self
+            const siblingKey = `${siblingBatch}::${batch.classification}`;
+            await queryWithRetry(
+              `INSERT INTO panel_production.batch_build_line_status
+                 (batch_key, classification, batch_number, status, modification_count, last_transition_at, last_operator, updated_at)
+               VALUES ($1, $2, $3, $4, $5, NOW(), $6, NOW())
+               ON CONFLICT (batch_key) DO UPDATE SET
+                 status = $4,
+                 modification_count = $5,
+                 last_transition_at = NOW(),
+                 last_operator = $6,
+                 updated_at = NOW()`,
+              [siblingKey, batch.classification, siblingBatch, status, modificationCount, confirmedBy || 'RD']
+            );
+          }
+        }
+      } catch (mergeErr) {
+        console.error(`[rdBuildLine] mergeable sync failed for ${batch.batch_number}:`, mergeErr.message);
+      }
+
+    } catch (err) {
+      console.error(`[rdBuildLine] batch_build_line_status transition failed for ${batch.batch_key}:`, err.message);
+    }
+  }
 }
 
 // ══════════════════════════════════════════════════════════════════════════
@@ -246,15 +387,44 @@ function sendRdBuildLineEvent(payload) {
   }
 }
 
-function sendPcBuildLineCompletionEvent(payload) {
+function sendPcBuildLineEvent(eventName, payload) {
   const data = JSON.stringify(payload);
   for (const client of pcCompletionEventClients) {
     try {
-      client.write(`event: rd-build-line-completed\n`);
+      client.write(`event: ${eventName}\n`);
       client.write(`data: ${data}\n\n`);
     } catch {
       pcCompletionEventClients.delete(client);
     }
+  }
+}
+
+function sendPcBuildLineCompletionEvent(payload) {
+  sendPcBuildLineEvent('rd-build-line-completed', payload);
+}
+
+/** Notify pre-assignment QC Manager about build-line completion for spec check */
+async function notifyQcManagerSpecCheck(task, fitData, confirmedBy) {
+  try {
+    const body = JSON.stringify({
+      marker: task.marker,
+      panel_name: task.panel_name,
+      lot_no: task.lot_no,
+      work_order: task.work_order || "",
+      confirmed_by: confirmedBy || "",
+      task_id: task.id,
+      equation: fitData?.equation || fitData?.baseline_equation || "",
+    });
+    const res = await fetch("http://127.0.0.1:3000/api/qc-manager/webhook/build-line-completed", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body,
+      signal: AbortSignal.timeout(10000),
+    });
+    const data = await res.json();
+    console.log("[RD BuildLine] QC Manager spec check notified:", data.ok, data.specCheck?.passed ? "PASS" : "FAIL");
+  } catch (err) {
+    console.warn("[RD BuildLine] QC Manager webhook failed (non-blocking):", err.message);
   }
 }
 
@@ -353,12 +523,12 @@ router.post('/rd-build-line-tasks', (req, res) => {
     return res.status(400).json({ ok: false, error: { code: 'MISSING_FIELDS', message: 'panel_name and lot_no are required' } });
   }
 
-  // Check for existing pending/in_progress task
+  // Check for existing pending/in_progress/pending_qc task
   const existing = db.prepare(`
     SELECT id, status FROM rd_build_line_tasks
     WHERE panel_name = ? AND lot_no = ? AND COALESCE(marker, '') = COALESCE(?, '')
       AND COALESCE(source_fit_id, '') = COALESCE(?, '')
-      AND status IN ('pending_rd', 'in_progress')
+      AND status IN ('pending_rd', 'in_progress', 'pending_qc')
   `).get(panel_name, lot_no, marker || '', source_fit_id || '');
 
   if (existing) {
@@ -411,10 +581,45 @@ router.post('/rd-build-line-tasks', (req, res) => {
           AND COALESCE(source_fit_id, '') = COALESCE(?, '')
       `).get(panel_name, lot_no, marker || '', source_fit_id || '');
       if (existingAny) {
+        // If task is completed, failed, on_hold, or rejected, allow re-send as "改線" (re-build)
+        if (existingAny.status === 'completed' || existingAny.status === 'failed' || existingAny.status === 'on_hold' || existingAny.status === 'rejected') {
+          // Reset the task to pending_rd for re-build (改線)
+          db.prepare(`
+            UPDATE rd_build_line_tasks
+            SET status = 'pending_rd',
+                assigned_rd_emp_no = NULL, assigned_rd_name = NULL,
+                started_at = NULL, completed_at = NULL,
+                action_type = NULL, result_json = NULL, error_message = NULL,
+                created_by = ?, created_at = datetime('now','localtime'),
+                fit_data_json = ?
+            WHERE id = ?
+          `).run(
+            created_by || null,
+            fit_data ? JSON.stringify(fit_data) : existingAny.fit_data_json || null,
+            existingAny.id
+          );
+
+          res.json({
+            ok: true,
+            data: { task_id: existingAny.id, status: 'pending_rd', resend: true },
+            message: '已重新送出改線任務至 RD 待建線清單'
+          });
+          sendRdBuildLineEvent({
+            event: 'created',
+            task_id: existingAny.id,
+            status: 'pending_rd',
+            panel_name,
+            lot_no,
+            marker: marker || null,
+            work_order: work_order || null,
+            created_by: created_by || null,
+          });
+          return;
+        }
         return res.json({
           ok: true,
           data: { task_id: existingAny.id, status: existingAny.status, existing: true },
-          message: existingAny.status === 'completed' ? '此筆已完成建線' : '此筆已在 RD 待建線清單中'
+          message: '此筆已在 RD 待建線清單中'
         });
       }
     }
@@ -632,10 +837,10 @@ router.post('/rd-build-line-tasks/:id/direct-write', async (req, res) => {
       });
     }
 
-    // Mark task as completed
+    // Mark task as pending_qc (awaiting QC Manager spec check approval)
     db.prepare(`
       UPDATE rd_build_line_tasks
-      SET status = 'completed', action_type = 'direct_write',
+      SET status = 'pending_qc', action_type = 'direct_write',
           assigned_rd_emp_no = ?, assigned_rd_name = ?,
           completed_at = datetime('now','localtime'),
           result_json = ?
@@ -651,7 +856,7 @@ router.post('/rd-build-line-tasks/:id/direct-write', async (req, res) => {
       ok: true,
       data: {
         task_id: id,
-        status: 'completed',
+        status: 'pending_qc',
         action_type: 'direct_write',
         confirmed_by: confirmedBy,
         rd_person: person,
@@ -659,6 +864,7 @@ router.post('/rd-build-line-tasks/:id/direct-write', async (req, res) => {
       }
     });
     sendPcBuildLineCompletionEvent(payload);
+    notifyQcManagerSpecCheck(task, fitData, confirmedBy);
   } catch (err) {
     // Mark task as failed
     db.prepare(`
@@ -745,10 +951,10 @@ router.post('/rd-build-line-tasks/:id/save-adjusted-fit', async (req, res) => {
       });
     }
 
-    // Mark task as completed
+    // Mark task as pending_qc (awaiting QC Manager spec check approval)
     db.prepare(`
       UPDATE rd_build_line_tasks
-      SET status = 'completed', action_type = 'adjust_curve',
+      SET status = 'pending_qc', action_type = 'adjust_curve',
           assigned_rd_emp_no = ?, assigned_rd_name = ?,
           completed_at = datetime('now','localtime'),
           result_json = ?
@@ -764,7 +970,7 @@ router.post('/rd-build-line-tasks/:id/save-adjusted-fit', async (req, res) => {
       ok: true,
       data: {
         task_id: id,
-        status: 'completed',
+        status: 'pending_qc',
         action_type: 'adjust_curve',
         confirmed_by: confirmedBy,
         rd_person: person,
@@ -772,6 +978,7 @@ router.post('/rd-build-line-tasks/:id/save-adjusted-fit', async (req, res) => {
       }
     });
     sendPcBuildLineCompletionEvent(payload);
+    notifyQcManagerSpecCheck(task, originalFitData, confirmedBy);
   } catch (err) {
     db.prepare(`
       UPDATE rd_build_line_tasks
@@ -801,11 +1008,25 @@ router.delete('/rd-build-line-tasks/:id', (req, res) => {
   const id = Number(req.params.id);
   if (!id) return res.status(400).json({ ok: false, error: { code: 'INVALID_ID', message: 'Invalid task ID' } });
 
-  const task = db.prepare('SELECT id, status FROM rd_build_line_tasks WHERE id = ?').get(id);
+  const task = db.prepare(`
+    SELECT id, status, panel_name, lot_no, marker, work_order
+    FROM rd_build_line_tasks
+    WHERE id = ?
+  `).get(id);
   if (!task) return res.status(404).json({ ok: false, error: { code: 'NOT_FOUND', message: 'Task not found' } });
 
   db.prepare('DELETE FROM rd_build_line_tasks WHERE id = ?').run(id);
   res.json({ ok: true, data: { id, deleted: true } });
+  sendPcBuildLineEvent('rd-build-line-task-deleted', {
+    event: 'deleted',
+    task_id: task.id,
+    status: task.status,
+    panel_name: task.panel_name,
+    lot_no: task.lot_no,
+    marker: task.marker || null,
+    work_order: task.work_order || null,
+    deleted_at: nowLocal(),
+  });
 });
 
 // ── GET /build-line-history — Query build line history ──────────────────
@@ -841,6 +1062,21 @@ router.get('/build-line-history', (req, res) => {
   });
 
   res.json({ ok: true, data, total: data.length });
+});
+
+// ── GET /mergeable-batches — Find all 可併 batches in same IPQC group ────
+router.get('/mergeable-batches', (req, res) => {
+  const { batch_number, bead_name } = req.query;
+  if (!batch_number) {
+    return res.status(400).json({ ok: false, error: { code: 'MISSING_PARAMS', message: 'batch_number is required' } });
+  }
+
+  try {
+    const batches = getMergeableBatches(batch_number, bead_name || null);
+    res.json({ ok: true, data: batches });
+  } catch (err) {
+    res.status(500).json({ ok: false, error: { code: 'QUERY_FAILED', message: err.message } });
+  }
 });
 
 export default router;

@@ -112,15 +112,15 @@ def _fetch_concentrations(markers: list[str]) -> dict[str, dict[str, float | Non
 
 def _linear_fit(points: list[dict[str, Any]]) -> dict[str, Any] | None:
     valid = [
-        (float(point["conc"]), float(point["final_delta_od"]))
+        (float(point["final_delta_od"]), float(point["conc"]))
         for point in points
         if point.get("conc") is not None and point.get("final_delta_od") is not None
     ]
     if len(valid) < 2:
         return None
 
-    xs = [point[0] for point in valid]
-    ys = [point[1] for point in valid]
+    xs = [point[0] for point in valid]  # X = OD
+    ys = [point[1] for point in valid]  # Y = Conc
     n = len(valid)
     x_mean = sum(xs) / n
     y_mean = sum(ys) / n
@@ -310,13 +310,27 @@ def _fetch_batch_info(mfg_lot_no: str, panel_name: str, analyze_date: str, marke
                             result[item] = {"d_lot": "", "bigD_lot": "", "u_lot": "", "prod_date": prod_date}
                         result[item]["u_lot"] = b2
 
-        # Collect all batch lots
+        # Collect all batch lots (split multi-batch values: batches are 8 chars each)
         all_lots = set()
         for info in result.values():
             for col in ("d_lot", "bigD_lot", "u_lot"):
                 v = info.get(col, "")
                 if v:
-                    all_lots.add(v)
+                    # Split by whitespace (space, newline, tab) for multi-batch values
+                    parts = v.split()
+                    if len(parts) > 1:
+                        for p in parts:
+                            p = p.strip()
+                            if p:
+                                all_lots.add(p)
+                    elif len(v) > 8:
+                        # No whitespace but >8 chars: split every 8 chars
+                        for i in range(0, len(v), 8):
+                            chunk = v[i:i+8].strip()
+                            if chunk:
+                                all_lots.add(chunk)
+                    else:
+                        all_lots.add(v)
 
         # 1) Lookup prod_date from ipqcdrybeads.db (drbeadinspection by lot, then posts by work_order)
         ipqc_dates: dict[str, str] = {}
@@ -467,6 +481,52 @@ def _fetch_batch_info(mfg_lot_no: str, panel_name: str, analyze_date: str, marke
                     dt = _as_text(r["record_date"]).replace("/", "-")[:10]
                     if dt:
                         rds_dates[r["lot"]] = dt
+                # Fallback: match by marker + partial lot suffix (old format records)
+                still_missing_dr = [l for l in lot_list if l not in rds_dates and len(l) >= 6]
+                if still_missing_dr:
+                    # Load PN suffix → marker name mapping
+                    pn_to_marker: dict[str, str] = {}
+                    try:
+                        pg_pn2 = _get_rds_connection()
+                        cur_pn2 = pg_pn2.cursor(cursor_factory=psycopg2.extras.DictCursor)
+                        cur_pn2.execute('SELECT "PN", "Name" FROM schedule."配藥限制"')
+                        for r in cur_pn2.fetchall():
+                            pn_val = _as_text(r["PN"])
+                            name_val = _as_text(r["Name"])
+                            if len(pn_val) >= 3 and name_val:
+                                pn_to_marker[pn_val[-3:]] = name_val
+                        cur_pn2.close()
+                        pg_pn2.close()
+                    except Exception:
+                        pass
+                    for lot in still_missing_dr:
+                        pn_suffix = lot[:3]
+                        marker_name = pn_to_marker.get(pn_suffix, '')
+                        if not marker_name:
+                            continue
+                        # Extract week+batch: strip PN(3) + year(2) = 5 chars
+                        week_batch = lot[5:]  # e.g. "2852539Z" -> "39Z"
+                        if not week_batch:
+                            continue
+                        # Try exact week+batch first, then week-only (strip last batch char)
+                        found = False
+                        for pattern in (week_batch, week_batch[:-1] if len(week_batch) > 1 else week_batch):
+                            cur2.execute("""
+                                SELECT record_date
+                                FROM "P01_formualte_schedule"."dropletRecord"
+                                WHERE marker = %s AND lot LIKE %s
+                                  AND record_date IS NOT NULL AND record_date != ''
+                                ORDER BY record_date DESC LIMIT 1
+                            """, (marker_name, '%' + pattern + '%'))
+                            r = cur2.fetchone()
+                            if r:
+                                dt = _as_text(r["record_date"]).replace("/", "-")[:10]
+                                if dt:
+                                    rds_dates[lot] = dt
+                                    found = True
+                                    break
+                            if found:
+                                break
                 # For still-missing lots, try DropletSchedule
                 still_missing = [l for l in lot_list if l not in rds_dates]
                 if still_missing:
@@ -513,10 +573,20 @@ def _fetch_batch_info(mfg_lot_no: str, panel_name: str, analyze_date: str, marke
                 v = info.get(col, "")
                 if v:
                     has_batch = True
-                    if v in ipqc_dates:
-                        dates_ipqc.append(ipqc_dates[v])
-                    elif v in rds_dates:
-                        dates_rds.append(rds_dates[v])
+                    # Split multi-batch values (space/newline separated or >8 chars)
+                    parts = v.split()
+                    if len(parts) <= 1 and len(v) > 8:
+                        parts = [v[i:i+8].strip() for i in range(0, len(v), 8)]
+                    elif len(parts) <= 1:
+                        parts = [v]
+                    for p in parts:
+                        p = p.strip()
+                        if not p:
+                            continue
+                        if p in ipqc_dates:
+                            dates_ipqc.append(ipqc_dates[p])
+                        elif p in rds_dates:
+                            dates_rds.append(rds_dates[p])
             if dates_ipqc:
                 info["prod_date"] = max(dates_ipqc)
             elif dates_rds:

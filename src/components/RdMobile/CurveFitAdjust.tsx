@@ -38,16 +38,16 @@ export default function CurveFitAdjust({ fitData, onConfirm, onCancel, saving }:
   const [removedIndices, setRemovedIndices] = useState<number[]>([]);
   const [tab, setTab] = useState<Tab>('chart');
 
-  // Extract ALL data points
+  // Extract ALL data points — OD as x-axis, Conc as y-axis
   const allPoints = useMemo(() => {
     const points = fitData?.points || [];
     return points.map((p, i) => {
-      const x = Number((p as Record<string,unknown>).conc ?? (p as Record<string,unknown>).x ?? 0);
-      const y = Number(
+      const x = Number(
         (p as Record<string,unknown>).final_delta_od ??
         (p as Record<string,unknown>)['Final Delta OD'] ??
         (p as Record<string,unknown>).od ?? (p as Record<string,unknown>).y ?? 0
       );
+      const y = Number((p as Record<string,unknown>).conc ?? (p as Record<string,unknown>).x ?? 0);
       const label = String(p.patient_id || (p as Record<string,unknown>).control_id || `P${i + 1}`);
       const well = String((p as Record<string,unknown>).test_well || '');
       return { idx: i, x, y, label, well, valid: isFinite(x) && isFinite(y) && (x !== 0 || y !== 0) };
@@ -120,7 +120,7 @@ export default function CurveFitAdjust({ fitData, onConfirm, onCancel, saving }:
   }, [xs, currentFit]);
 
   const hasAdjustment = shift !== 0 || rotation !== 0;
-  const equation = `y = ${currentFit.slope.toPrecision(6)}x + ${currentFit.intercept.toPrecision(6)}; R2 = ${currentFit.r2.toPrecision(6)}; n = ${xs.length}`;
+  const equation = `conc = ${currentFit.slope.toPrecision(6)}×OD + ${currentFit.intercept.toPrecision(6)}; R² = ${currentFit.r2.toPrecision(6)}; n = ${xs.length}`;
 
   // Remove point handler
   const removePoint = (pointIdx: number) => {
@@ -197,16 +197,16 @@ export default function CurveFitAdjust({ fitData, onConfirm, onCancel, saving }:
             <ResponsiveContainer width="100%" height={240}>
               <ScatterChart margin={{ top: 10, right: 10, bottom: 10, left: 0 }}>
                 <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="x" type="number" name="Conc" tick={{ fontSize: 10 }} />
-                <YAxis dataKey="y" type="number" name="OD" tick={{ fontSize: 10 }} />
+                <XAxis dataKey="x" type="number" name="OD" tick={{ fontSize: 10 }} />
+                <YAxis dataKey="y" type="number" name="Conc" tick={{ fontSize: 10 }} />
                 <Tooltip content={({ active, payload }) => {
                   if (!active || !payload?.[0]) return null;
                   const d = payload[0].payload as { x: number; y: number; label?: string; well?: string };
                   return (
                     <div style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: 6, padding: 6, fontSize: 11 }}>
                       {d.label && <div><b>{d.label}</b> {d.well && `(Well ${d.well})`}</div>}
-                      <div>Conc: {d.x?.toFixed(2)}</div>
-                      <div>OD: {d.y?.toFixed(6)}</div>
+                      <div>OD: {d.x?.toFixed(6)}</div>
+                      <div>Conc: {d.y?.toFixed(2)}</div>
                     </div>
                   );
                 }} />
@@ -274,7 +274,7 @@ export default function CurveFitAdjust({ fitData, onConfirm, onCancel, saving }:
             <div className="rd-points-table">
               <table>
                 <thead>
-                  <tr><th>#</th><th>Control</th><th>Well</th><th>Conc</th><th>OD</th><th>殘差</th><th></th></tr>
+                  <tr><th>#</th><th>Control</th><th>Well</th><th>OD</th><th>Conc</th><th>殘差</th><th></th></tr>
                 </thead>
                 <tbody>
                   {residuals.map((r) => (
@@ -282,8 +282,8 @@ export default function CurveFitAdjust({ fitData, onConfirm, onCancel, saving }:
                       <td>{r.i + 1}</td>
                       <td>{r.label}</td>
                       <td>{r.well}</td>
-                      <td>{r.x.toFixed(1)}</td>
-                      <td>{r.y.toFixed(5)}</td>
+                      <td>{r.x.toFixed(5)}</td>
+                      <td>{r.y.toFixed(1)}</td>
                       <td style={{ color: Math.abs(r.residual) > 0.01 ? '#dc2626' : '#16a34a', fontWeight: 600 }}>
                         {r.residual.toFixed(5)}
                       </td>
@@ -304,7 +304,7 @@ export default function CurveFitAdjust({ fitData, onConfirm, onCancel, saving }:
               <div className="rd-points-table">
                 <table>
                   <thead>
-                    <tr><th>#</th><th>Control</th><th>Well</th><th>Conc</th><th>OD</th><th></th></tr>
+                    <tr><th>#</th><th>Control</th><th>Well</th><th>OD</th><th>Conc</th><th></th></tr>
                   </thead>
                   <tbody>
                     {allPoints.filter(p => removedIndices.includes(p.idx)).map(p => (
@@ -312,8 +312,8 @@ export default function CurveFitAdjust({ fitData, onConfirm, onCancel, saving }:
                         <td>{p.idx + 1}</td>
                         <td>{p.label}</td>
                         <td>{p.well}</td>
-                        <td>{p.x.toFixed(1)}</td>
-                        <td>{p.y.toFixed(5)}</td>
+                        <td>{p.x.toFixed(5)}</td>
+                        <td>{p.y.toFixed(1)}</td>
                         <td>
                           <button type="button" className="rd-restore-btn" onClick={(e) => { e.stopPropagation(); restorePoint(p.idx); }} title="恢復此點">↩</button>
                         </td>

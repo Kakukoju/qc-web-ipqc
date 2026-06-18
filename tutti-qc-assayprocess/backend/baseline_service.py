@@ -851,4 +851,39 @@ def update_baseline_equation(payload: dict) -> dict:
             ],
         )
 
+    # Sync baseline_equation to RDS
+    _sync_baseline_equation_to_rds(key, analyze_item, equation)
+
     return {"ok": True, "updated": result.rowcount, "baseline_equation": equation}
+
+
+def _sync_baseline_equation_to_rds(key: dict, analyze_item: str, equation: str) -> None:
+    """Write baseline_equation to RDS assay_process_records for downstream consumption."""
+    try:
+        pg = _get_rds_connection()
+        cur = pg.cursor()
+        # Match by lot_code or mfg_lot_no + panel_name + analyze_date + species + analyze_item
+        # baseline='true' records only
+        cur.execute("""
+            UPDATE panel_production.assay_process_records
+            SET baseline_equation = %s
+            WHERE COALESCE(NULLIF(TRIM(lot_code), ''), NULLIF(TRIM(mfg_lot_no), ''), '') = %s
+              AND panel_name = %s
+              AND analyze_date = %s
+              AND species = %s
+              AND analyze_item = %s
+              AND LOWER(TRIM(COALESCE(patient_id, ''))) IN ('control-1','control-2','control-3','control-4')
+        """, [
+            equation,
+            key["mfg_lot_no"],
+            key["panel_name"],
+            key["analyze_date"],
+            key["Species"],
+            analyze_item,
+        ])
+        pg.commit()
+        cur.close()
+        pg.close()
+    except Exception as exc:
+        import logging
+        logging.getLogger(__name__).warning("Failed to sync baseline_equation to RDS: %s", exc)

@@ -98,6 +98,93 @@ def _resolve_panel_type(sub_panel_type: str, one_piece_box_panel_type: str) -> s
     return one_piece_box_panel_type
 
 
+def _lot_suffix(value: str) -> str:
+    match = re.search(r"(\d{2})$", str(value or "").strip())
+    return match.group(1) if match else ""
+
+
+def _lot_no_matches_lot_code_suffix(lot_no: str, lot_code: str) -> bool:
+    """Lot No and lot_code must represent the same production batch suffix."""
+    lot_no_suffix = _lot_suffix(lot_no)
+    lot_code_suffix = _lot_suffix(lot_code)
+    return bool(lot_no_suffix and lot_code_suffix and lot_no_suffix == lot_code_suffix)
+
+
+def _mfg_lot_no_to_lot_codes(mfg_lot_no: str, pg_cur=None, line_numbers: list[str] | None = None) -> list[str]:
+    """
+    Reverse convert mfg_lot_no → list of possible lot_codes (12碼 disc-level).
+
+    mfg_lot_no format: "{SalesCode}-{PanelType6}-{YYMMDDBB}"
+    e.g. "1-053054-26060201"
+
+    PanelType 規則:
+    - 2片/盒 (L size): PanelType = sub1(3) + sub2(3), e.g. "053054" → sub "053", "054"
+    - 1片/盒 (M size): PanelType = "000" + sub(3), e.g. "000001" → sub "001"
+
+    Returns list of 12碼 lot_codes: "{Line}{SubPanel}{YYMMDDBB}"
+    - If line_numbers provided, generates lot_codes for each line × each sub_panel_type
+    - If line_numbers not provided, uses lines ["1","2","3"] as default candidates
+
+    Args:
+        mfg_lot_no: mfg_lot_no string (e.g. "1-053054-26060201")
+        pg_cur: PostgreSQL cursor (unused here but kept for API consistency)
+        line_numbers: list of line numbers to generate lot_codes for (e.g. ["1","2"])
+
+    Returns:
+        List of 12碼 lot_code strings
+    """
+    mfg_lot_no = str(mfg_lot_no or "").strip()
+    if not mfg_lot_no or "-" not in mfg_lot_no:
+        logger.warning("Invalid mfg_lot_no format: %s", mfg_lot_no)
+        return []
+
+    parts = mfg_lot_no.split("-")
+    if len(parts) != 3:
+        logger.warning("Invalid mfg_lot_no format: %s", mfg_lot_no)
+        return []
+
+    # parts[0] = sales_code (not used in lot_code)
+    panel_type = parts[1].strip()   # 6 chars
+    date_batch = parts[2].strip()   # YYMMDDBB (8 chars)
+
+    if len(panel_type) != 6 or len(date_batch) != 8:
+        logger.warning("Invalid mfg_lot_no panel/date segment: %s", mfg_lot_no)
+        return []
+
+    # Extract sub_panel_types from panel_type
+    sub1 = panel_type[0:3]  # first 3 chars
+    sub2 = panel_type[3:6]  # last 3 chars
+
+    sub_panel_types = []
+    if sub1 == "000":
+        # 1片/盒 (M size): only sub2 is a real sub_panel_type
+        sub_panel_types.append(sub2)
+    else:
+        # 2片/盒 (L size): both are real sub_panel_types
+        sub_panel_types.append(sub1)
+        sub_panel_types.append(sub2)
+
+    # Default line numbers if not provided
+    if not line_numbers:
+        line_numbers = ["1", "2", "3"]
+
+    # Generate lot_codes: {Line}{SubPanel}{YYMMDDBB}
+    lot_codes = []
+    for line in line_numbers:
+        for sub in sub_panel_types:
+            lot_code = f"{str(line).strip()}{sub}{date_batch}"
+            if _lot_no_matches_lot_code_suffix(mfg_lot_no, lot_code):
+                lot_codes.append(lot_code)
+            else:
+                logger.warning(
+                    "Skip lot_code with mismatched suffix: lot_no=%s lot_code=%s",
+                    mfg_lot_no,
+                    lot_code,
+                )
+
+    return lot_codes
+
+
 def _extract_english(form_title: str) -> str:
     """Extract English portion from formTitle, normalize spaces."""
     if not form_title:
@@ -275,10 +362,8 @@ def sync_to_rds(source_file: str | None = None) -> dict:
                     skipped += 1
                     continue
 
-                # Derive mfg_lot_no from lot_code
-                mfg_lot_no = row["mfg_lot_no"] or ""
-                if not mfg_lot_no:
-                    mfg_lot_no = _lot_code_to_mfg_lot_no(lot_code, pg_cur)
+                # Always derive mfg_lot_no from lot_code (ignore SQLite value)
+                mfg_lot_no = _lot_code_to_mfg_lot_no(lot_code, pg_cur) if lot_code else ""
 
                 # Try to find work order (optional)
                 work_order_id, work_order_no, lot_no = _find_work_order(

@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Tutti 出貨明細確認</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Noto Sans TC", sans-serif;
+      background: #f4f7fb;
+      color: #152033;
+    }
+    header {
+      background: #10233f;
+      color: #f8fbff;
+      padding: 18px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+    }
+    h1 { margin: 0; font-size: 22px; font-weight: 700; letter-spacing: 0; }
+    header a { color: #9ee7d1; text-decoration: none; font-size: 14px; white-space: nowrap; }
+    main { padding: 20px 24px 32px; }
+    .toolbar {
+      display: grid;
+      grid-template-columns: repeat(6, minmax(120px, 1fr));
+      gap: 10px;
+      align-items: end;
+      margin-bottom: 14px;
+    }
+    label { display: grid; gap: 5px; color: #526177; font-size: 12px; font-weight: 650; }
+    input {
+      width: 100%;
+      border: 1px solid #c9d3e1;
+      border-radius: 6px;
+      padding: 9px 10px;
+      color: #152033;
+      background: #fff;
+      font: inherit;
+      min-height: 38px;
+    }
+    .check {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      min-height: 38px;
+      color: #26364d;
+      font-size: 14px;
+      font-weight: 600;
+    }
+    .check input { width: 16px; min-height: 16px; }
+    .actions { display: flex; gap: 8px; }
+    button {
+      border: 1px solid #1d6f8f;
+      border-radius: 6px;
+      background: #1d6f8f;
+      color: #fff;
+      padding: 9px 12px;
+      font: inherit;
+      font-weight: 700;
+      min-height: 38px;
+      cursor: pointer;
+    }
+    button.secondary { background: #fff; color: #1d6f8f; }
+    button:disabled { opacity: .6; cursor: wait; }
+    .summary {
+      min-height: 28px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      color: #59677a;
+      font-size: 14px;
+      margin-bottom: 10px;
+    }
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      min-height: 24px;
+      padding: 2px 8px;
+      border-radius: 999px;
+      background: #e7f5f1;
+      color: #11614f;
+      font-weight: 800;
+      font-size: 12px;
+    }
+    .table-wrap {
+      overflow: auto;
+      background: #fff;
+      border: 1px solid #d9e2ee;
+      border-radius: 8px;
+      box-shadow: 0 10px 24px rgba(35, 53, 84, .08);
+    }
+    table { width: 100%; border-collapse: collapse; min-width: 1180px; }
+    th, td { padding: 10px 12px; border-bottom: 1px solid #e7edf5; text-align: left; vertical-align: top; }
+    th {
+      position: sticky;
+      top: 0;
+      z-index: 1;
+      background: #edf3fa;
+      color: #42526a;
+      font-size: 12px;
+      white-space: nowrap;
+    }
+    td { font-size: 13px; }
+    .lot { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; white-space: nowrap; }
+    .muted { color: #7d8a9d; }
+    .status {
+      display: inline-flex;
+      align-items: center;
+      min-height: 24px;
+      padding: 2px 8px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 800;
+      white-space: nowrap;
+      background: #edf1f6;
+      color: #59677a;
+    }
+    .status.ok { background: #dcf6ea; color: #17683d; }
+    .status.warn { background: #fff1d6; color: #8a5a00; }
+    .status.bad { background: #ffe1e1; color: #9b1c1c; }
+    .details {
+      max-width: 280px;
+      color: #526177;
+      line-height: 1.45;
+    }
+    details summary { cursor: pointer; color: #1d6f8f; font-weight: 700; }
+    .detail-list { margin-top: 8px; display: grid; gap: 6px; }
+    .detail-item {
+      border-left: 3px solid #c8d7e6;
+      padding-left: 8px;
+      color: #40516a;
+    }
+    .empty {
+      padding: 34px;
+      text-align: center;
+      color: #7d8a9d;
+    }
+    @media (max-width: 900px) {
+      header { align-items: flex-start; flex-direction: column; }
+      main { padding: 14px; }
+      .toolbar { grid-template-columns: 1fr 1fr; }
+      .actions { grid-column: 1 / -1; }
+      button { flex: 1; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Tutti 出貨明細確認</h1>
+    <a href="/qc-web/">返回 IPQC 管理儀表</a>
+  </header>
+  <main>
+    <form class="toolbar" id="filters">
+      <label>Lot No.
+        <input id="lotNo" name="lot_no" autocomplete="off" />
+      </label>
+      <label>Panel
+        <input id="panel" name="panel" autocomplete="off" />
+      </label>
+      <label>起日
+        <input id="dateFrom" name="date_from" type="date" />
+      </label>
+      <label>迄日
+        <input id="dateTo" name="date_to" type="date" />
+      </label>
+      <label class="check">
+        <input id="onlyShippable" name="only_shippable" type="checkbox" />
+        只看可出貨
+      </label>
+      <div class="actions">
+        <button id="refresh" type="submit">查詢</button>
+        <button id="exportCsv" class="secondary" type="button">匯出 CSV</button>
+      </div>
+    </form>
+    <div class="summary">
+      <span class="pill" id="count">0 筆</span>
+      <span id="message">尚未查詢</span>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>P/N</th>
+            <th>Panel</th>
+            <th>Lot No.</th>
+            <th>Exp Date</th>
+            <th>Q'ty</th>
+            <th>RD換線與否</th>
+            <th>QC確認是否可出貨</th>
+            <th>Lot Code</th>
+            <th>QC 明細</th>
+          </tr>
+        </thead>
+        <tbody id="rows">
+          <tr><td class="empty" colspan="9">尚未查詢</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </main>
+  <script>
+    const state = { rows: [] };
+    const $ = (id) => document.getElementById(id);
+    const esc = (value) => String(value ?? '').replace(/[&<>"']/g, (ch) => ({
+      '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+    })[ch]);
+
+    function statusClass(text) {
+      if (text === '可出貨' || text === 'QC核准可出貨' || text === '是') return 'ok';
+      if (text === '不可出貨') return 'bad';
+      if (String(text || '').includes('待') || String(text || '').includes('核准')) return 'warn';
+      return '';
+    }
+
+    function buildParams() {
+      const params = new URLSearchParams();
+      for (const [id, key] of [['lotNo', 'lot_no'], ['panel', 'panel'], ['dateFrom', 'date_from'], ['dateTo', 'date_to']]) {
+        const value = $(id).value.trim();
+        if (value) params.set(key, value);
+      }
+      if ($('onlyShippable').checked) params.set('only_shippable', '1');
+      return params;
+    }
+
+    function render() {
+      $('count').textContent = `${state.rows.length} 筆`;
+      if (!state.rows.length) {
+        $('rows').innerHTML = '<tr><td class="empty" colspan="9">查無資料</td></tr>';
+        return;
+      }
+      $('rows').innerHTML = state.rows.map((row) => {
+        const qcDetails = row.qc_details?.length
+          ? `<details><summary>${row.qc_details.length} 筆</summary><div class="detail-list">${row.qc_details.map((item) => `
+              <div class="detail-item">
+                <strong>${esc(item.analyze_item)}</strong> <span class="lot">${esc(item.lot_code || '-')}</span><br />
+                ${esc(item.status)} · ${esc(item.reason)}
+              </div>`).join('')}</div></details>`
+          : '<span class="muted">無明細</span>';
+        const rdText = row.rd_line_changed ? '是' : (row.rd_line_changed === false ? '否' : '待確認');
+        return `<tr>
+          <td>${esc(row.pn || '-')}</td>
+          <td>${esc(row.panel || '-')}</td>
+          <td class="lot">${esc(row.lot_no || '-')}</td>
+          <td>${esc(row.exp_date || '-')}</td>
+          <td>${esc(row.qty ?? 0)}</td>
+          <td><span class="status ${statusClass(rdText)}">${esc(rdText)}</span><div class="muted">${esc(row.rd_line_changed_status || '')}</div></td>
+          <td><span class="status ${statusClass(row.qc_ship_status)}">${esc(row.qc_ship_status || '待確認')}</span><div class="details">${esc(row.qc_ship_reason || '')}</div></td>
+          <td class="lot">${esc((row.qc_details || []).map(d => d.lot_code).filter(Boolean).filter((v,i,a) => a.indexOf(v) === i).join(' & ') || '-')}</td>
+          <td>${qcDetails}</td>
+        </tr>`;
+      }).join('');
+    }
+
+    async function loadRows() {
+      $('refresh').disabled = true;
+      $('message').textContent = '查詢中';
+      try {
+        const res = await fetch(`/api/tutti-shipment/orders?${buildParams().toString()}`);
+        const data = await res.json();
+        if (!data.success) throw new Error(data.error || '查詢失敗');
+        state.rows = data.rows || [];
+        $('message').textContent = `更新時間 ${new Date().toLocaleString('zh-TW')}`;
+        render();
+      } catch (error) {
+        state.rows = [];
+        $('rows').innerHTML = `<tr><td class="empty" colspan="9">${esc(error.message)}</td></tr>`;
+        $('count').textContent = '0 筆';
+        $('message').textContent = '查詢失敗';
+      } finally {
+        $('refresh').disabled = false;
+      }
+    }
+
+    function exportCsv() {
+      const headers = ['P/N', 'Panel', 'Lot No.', 'Exp Date', "Q'ty", 'RD換線與否', 'QC確認是否可出貨', 'QC原因', 'Lot Code'];
+      const lines = [headers, ...state.rows.map((row) => [
+        row.pn, row.panel, row.lot_no, row.exp_date, row.qty,
+        row.rd_line_changed ? '是' : '否',
+        row.qc_ship_status, row.qc_ship_reason,
+        (row.qc_details || []).map(d => d.lot_code).filter(Boolean).filter((v,i,a) => a.indexOf(v) === i).join(' ')
+      ])];
+      const csv = lines.map((line) => line.map((cell) => `"${String(cell ?? '').replace(/"/g, '""')}"`).join(',')).join('\n');
+      const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `tutti-shipment-${new Date().toISOString().slice(0, 10)}.csv`;
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+
+    $('filters').addEventListener('submit', (event) => {
+      event.preventDefault();
+      loadRows();
+    });
+    $('exportCsv').addEventListener('click', exportCsv);
+    loadRows();
+  </script>
+</body>
+</html>

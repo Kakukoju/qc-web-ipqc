@@ -1,6 +1,12 @@
 node_modules/
 server/node_modules/
 dist/
+!tutti-allbatch/
+!tutti-allbatch/dist/
+!tutti-allbatch/dist/index.html
+!tutti-shipment/
+!tutti-shipment/dist/
+!tutti-shipment/dist/index.html
 
 .env
 .env.*

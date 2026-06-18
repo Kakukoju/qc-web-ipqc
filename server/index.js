@@ -18,6 +18,8 @@ import templateRoutes from './routes/template.js';
 import tuttiScanRecordsRoutes from './routes/tuttiScanRecords.js';
 import rdBuildLineRoutes from './routes/rdBuildLine.js';
 import reviewTaskRoutes from './routes/reviewTasks.js';
+import tuttiSkuListRoutes from './routes/tuttiSkuList.js';
+import tuttiShipmentRoutes from './routes/tuttiShipment.js';
 import { ensureSchema } from './db/specRdsSync.js';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -43,6 +45,8 @@ app.use('/api/template', templateRoutes);
 app.use('/api/v1', tuttiScanRecordsRoutes);
 app.use('/api/v1/pre-assignment', rdBuildLineRoutes);
 app.use('/api/v1/pre-assignment', reviewTaskRoutes);
+app.use('/api/tutti-sku-list', tuttiSkuListRoutes);
+app.use('/api/tutti-shipment', tuttiShipmentRoutes);
 
 // ── Proxy to assayprocess backend (port 8200) for baseline-group data ─────
 app.post('/api/assayprocess-proxy/baseline-group', async (req, res) => {
@@ -190,6 +194,15 @@ app.get('/api/search', (req, res) => {
 // ── Serve user manual static files ────────────────────────────────────────
 app.use('/qc-web/usermanu', express.static(
   path.join(__dirname, '..', 'usermanu'),
+  {
+    index: 'index.html',
+    extensions: ['html'],
+    fallthrough: true,
+  }
+));
+
+app.use('/tutti-shipment', express.static(
+  path.join(__dirname, '..', 'tutti-shipment', 'dist'),
   {
     index: 'index.html',
     extensions: ['html'],

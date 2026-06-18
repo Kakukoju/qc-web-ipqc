@@ -1,35 +1,32 @@
-import { useState, useMemo, useCallback } from 'react';
+import { useState, useMemo, useCallback, useEffect } from 'react';
 import {
   ScatterChart, Scatter, XAxis, YAxis, CartesianGrid,
   Tooltip, Legend, ResponsiveContainer, BarChart, Bar,
 } from 'recharts';
-import type { FitData, FitPoint } from '../../api/rdBuildLine';
+import type { FitData, FitSaveParams } from '../../api/rdBuildLine';
+import {
+  DIRECTION_LABELS,
+  DIRECTION_METADATA_LABELS,
+  MODEL_LABELS,
+  STRATEGY_LABELS,
+  fitCurve,
+  inferReferenceConc,
+  type CurveModel,
+  type EquationDirection,
+  type FitStrategy,
+} from './curveFitting';
 
 interface Props {
   fitData: FitData | null;
-  onConfirm: (params: { slope: number; intercept: number; r2: number; equation: string; points: FitPoint[] }) => void;
+  onConfirm: (params: FitSaveParams) => void;
   onCancel: () => void;
   saving: boolean;
 }
 
 type Tab = 'chart' | 'residuals';
 
-// ── Linear regression ────────────────────────────────────────────────────
-function linearFit(xs: number[], ys: number[]) {
-  const n = xs.length;
-  if (n < 2) return { slope: 0, intercept: 0, r2: 0 };
-  const xBar = xs.reduce((a, b) => a + b, 0) / n;
-  const yBar = ys.reduce((a, b) => a + b, 0) / n;
-  const ssxy = xs.reduce((s, x, i) => s + (x - xBar) * (ys[i] - yBar), 0);
-  const ssxx = xs.reduce((s, x) => s + (x - xBar) ** 2, 0);
-  if (ssxx === 0) return { slope: 0, intercept: yBar, r2: 1 };
-  const slope = ssxy / ssxx;
-  const intercept = yBar - slope * xBar;
-  const yPred = xs.map(x => slope * x + intercept);
-  const ssTot = ys.reduce((s, y) => s + (y - yBar) ** 2, 0);
-  const ssRes = ys.reduce((s, y, i) => s + (y - yPred[i]) ** 2, 0);
-  const r2 = ssTot === 0 ? 1 : Math.max(0, 1 - ssRes / ssTot);
-  return { slope, intercept, r2 };
+function formatCoefficient(value: number) {
+  return Number(value.toPrecision(8)).toString();
 }
 
 export default function CurveFitAdjust({ fitData, onConfirm, onCancel, saving }: Props) {
@@ -37,6 +34,9 @@ export default function CurveFitAdjust({ fitData, onConfirm, onCancel, saving }:
   const [rotation, setRotation] = useState(0);
   const [removedIndices, setRemovedIndices] = useState<number[]>([]);
   const [tab, setTab] = useState<Tab>('chart');
+  const [equationDirection, setEquationDirection] = useState<EquationDirection>('forward_od_to_conc');
+  const [curveModel, setCurveModel] = useState<CurveModel>('linear');
+  const [fitStrategy, setFitStrategy] = useState<FitStrategy>('full_range');
 
   // Extract ALL data points — OD as x-axis, Conc as y-axis
   const allPoints = useMemo(() => {
@@ -50,7 +50,14 @@ export default function CurveFitAdjust({ fitData, onConfirm, onCancel, saving }:
       const y = Number((p as Record<string,unknown>).conc ?? (p as Record<string,unknown>).x ?? 0);
       const label = String(p.patient_id || (p as Record<string,unknown>).control_id || `P${i + 1}`);
       const well = String((p as Record<string,unknown>).test_well || '');
-      return { idx: i, x, y, label, well, valid: isFinite(x) && isFinite(y) && (x !== 0 || y !== 0) };
+      return {
+        idx: i,
+        od: x,
+        conc: y,
+        label,
+        well,
+        valid: isFinite(x) && isFinite(y) && (x !== 0 || y !== 0),
+      };
     }).filter(p => p.valid);
   }, [fitData]);
 
@@ -60,67 +67,143 @@ export default function CurveFitAdjust({ fitData, onConfirm, onCancel, saving }:
     [allPoints, removedIndices]
   );
 
-  const xs = useMemo(() => activePoints.map(p => p.x), [activePoints]);
-  const ys = useMemo(() => activePoints.map(p => p.y), [activePoints]);
+  const inferredReferenceConc = useMemo(
+    () => inferReferenceConc(allPoints, fitData),
+    [allPoints, fitData],
+  );
+  const targetConcentrations = useMemo(
+    () => Array.from(new Set(allPoints.map(point => point.conc))).sort((a, b) => a - b),
+    [allPoints],
+  );
+  const [targetSelection, setTargetSelection] = useState('auto');
+  const [customTargetConc, setCustomTargetConc] = useState('');
+  const [localStartConc, setLocalStartConc] = useState('');
+  const [localEndConc, setLocalEndConc] = useState('');
+  const referenceConc = useMemo(() => {
+    if (targetSelection === 'custom') {
+      const custom = Number(customTargetConc);
+      return Number.isFinite(custom) ? custom : inferredReferenceConc;
+    }
+    if (targetSelection !== 'auto') {
+      const selected = Number(targetSelection);
+      if (Number.isFinite(selected)) return selected;
+    }
+    return inferredReferenceConc;
+  }, [customTargetConc, inferredReferenceConc, targetSelection]);
 
-  // Linear fit on active points
-  const origFit = useMemo(() => linearFit(xs, ys), [xs, ys]);
-
-  // Adjusted prediction
-  const calcAdjusted = useCallback((yPred: number[], xArr: number[], s: number, r: number) => {
-    const n = xArr.length;
-    if (n === 0) return [];
-    const cx = xArr.reduce((a, b) => a + b, 0) / n;
-    const cy = yPred.reduce((a, b) => a + b, 0) / n;
-    const rad = (r * Math.PI) / 180;
-    const cosR = Math.cos(rad), sinR = Math.sin(rad);
-    return yPred.map((yp, i) => {
-      const dx = xArr[i] - cx, dy = yp - cy;
-      return cy + dx * sinR + dy * cosR + s;
-    });
-  }, []);
-
-  // Current fit (with shift/rotation applied)
-  const currentFit = useMemo(() => {
-    if (shift === 0 && rotation === 0) return origFit;
-    const origPred = xs.map(x => origFit.slope * x + origFit.intercept);
-    const adjPred = calcAdjusted(origPred, xs, shift, rotation);
-    // Refit to get new slope/intercept
-    const newFit = linearFit(xs, adjPred);
-    // R² against actual data
-    const yBar = ys.reduce((a, b) => a + b, 0) / ys.length;
-    const ssTot = ys.reduce((s, y) => s + (y - yBar) ** 2, 0);
-    const ssRes = ys.reduce((s, y, i) => s + (y - adjPred[i]) ** 2, 0);
-    const r2 = ssTot === 0 ? 1 : Math.max(0, 1 - ssRes / ssTot);
-    return { slope: newFit.slope, intercept: newFit.intercept, r2 };
-  }, [xs, ys, origFit, shift, rotation, calcAdjusted]);
+  useEffect(() => {
+    const saved = Number(fitData?.strategy_reference_conc);
+    if (!Number.isFinite(saved)) return;
+    const matching = targetConcentrations.find(value => value === saved);
+    if (matching != null) {
+      setTargetSelection(String(matching));
+    } else {
+      setTargetSelection('custom');
+      setCustomTargetConc(String(saved));
+    }
+  }, [fitData, targetConcentrations]);
+  useEffect(() => {
+    if (targetConcentrations.length === 0) return;
+    const savedStart = Number(fitData?.local_range_min_conc);
+    const savedEnd = Number(fitData?.local_range_max_conc);
+    setLocalStartConc(String(
+      Number.isFinite(savedStart) && targetConcentrations.includes(savedStart)
+        ? savedStart
+        : targetConcentrations[0],
+    ));
+    setLocalEndConc(String(
+      Number.isFinite(savedEnd) && targetConcentrations.includes(savedEnd)
+        ? savedEnd
+        : targetConcentrations[targetConcentrations.length - 1],
+    ));
+  }, [fitData, targetConcentrations]);
+  const localRange = useMemo<[number, number] | undefined>(() => {
+    const start = Number(localStartConc);
+    const end = Number(localEndConc);
+    return Number.isFinite(start) && Number.isFinite(end) ? [start, end] : undefined;
+  }, [localEndConc, localStartConc]);
+  const fitted = useMemo(() => fitCurve(activePoints, {
+    equationDirection,
+    curveModel,
+    fitStrategy,
+    referenceConc,
+    localRange,
+  }), [activePoints, equationDirection, curveModel, fitStrategy, localRange, referenceConc]);
+  const chartPoints = useMemo(() => activePoints.map(point => ({
+    ...point,
+    x: equationDirection === 'forward_od_to_conc' ? point.od : point.conc,
+    y: equationDirection === 'forward_od_to_conc' ? point.conc : point.od,
+  })), [activePoints, equationDirection]);
+  const xs = useMemo(() => chartPoints.map(point => point.x), [chartPoints]);
+  const currentPredict = useCallback((x: number) => {
+    if (!fitted) return 0;
+    const base = fitted.predict(x);
+    if (curveModel !== 'linear' || rotation === 0) return base + shift;
+    const centerX = xs.reduce((sum, value) => sum + value, 0) / xs.length;
+    return base + shift + Math.tan(rotation * Math.PI / 180) * (x - centerX);
+  }, [curveModel, fitted, rotation, shift, xs]);
 
   // Residuals
   const residuals = useMemo(() => {
-    return activePoints.map((p, i) => {
-      const predicted = currentFit.slope * p.x + currentFit.intercept;
+    return chartPoints.map((p, i) => {
+      const predicted = currentPredict(p.x);
       const residual = p.y - predicted;
       return { ...p, i, predicted, residual };
     });
-  }, [activePoints, currentFit]);
+  }, [chartPoints, currentPredict]);
 
   // Chart data
-  const scatterData = useMemo(() => activePoints.map(p => ({ x: p.x, y: p.y, label: p.label, well: p.well })), [activePoints]);
-  const removedScatterData = useMemo(() => allPoints.filter(p => removedIndices.includes(p.idx)).map(p => ({ x: p.x, y: p.y, label: p.label })), [allPoints, removedIndices]);
+  const scatterData = chartPoints;
+  const removedScatterData = useMemo(() => allPoints.filter(p => removedIndices.includes(p.idx)).map(p => ({
+    x: equationDirection === 'forward_od_to_conc' ? p.od : p.conc,
+    y: equationDirection === 'forward_od_to_conc' ? p.conc : p.od,
+    label: p.label,
+  })), [allPoints, equationDirection, removedIndices]);
 
   const lineData = useMemo(() => {
-    if (xs.length < 2) return [];
+    if (xs.length < 2 || !fitted) return [];
     const xMin = Math.min(...xs), xMax = Math.max(...xs);
-    const pad = (xMax - xMin) * 0.05;
-    const x1 = xMin - pad, x2 = xMax + pad;
-    return [
-      { x: x1, y: currentFit.slope * x1 + currentFit.intercept },
-      { x: x2, y: currentFit.slope * x2 + currentFit.intercept },
-    ];
-  }, [xs, currentFit]);
+    const pad = (xMax - xMin || Math.abs(xMax) || 1) * 0.05;
+    const start = curveModel === 'natural_log' ? Math.max(Number.MIN_VALUE, xMin - pad) : xMin - pad;
+    return Array.from({ length: 60 }, (_, index) => {
+      const x = start + ((xMax + pad - start) * index) / 59;
+      return { x, y: currentPredict(x) };
+    });
+  }, [curveModel, currentPredict, fitted, xs]);
 
   const hasAdjustment = shift !== 0 || rotation !== 0;
-  const equation = `conc = ${currentFit.slope.toPrecision(6)}×OD + ${currentFit.intercept.toPrecision(6)}; R² = ${currentFit.r2.toPrecision(6)}; n = ${xs.length}`;
+  const adjustedCoefficients = useMemo(() => {
+    if (!fitted) return [];
+    const coefficients = [...fitted.coefficients];
+    if (curveModel === 'linear') {
+      const rotationSlope = Math.tan(rotation * Math.PI / 180);
+      const centerX = xs.reduce((sum, value) => sum + value, 0) / xs.length;
+      coefficients[0] += rotationSlope;
+      coefficients[1] += shift - rotationSlope * centerX;
+    } else {
+      coefficients[coefficients.length - 1] += shift;
+    }
+    return coefficients;
+  }, [curveModel, fitted, rotation, shift, xs]);
+  const currentR2 = useMemo(() => {
+    const evaluated = residuals.filter(point => fitted?.usedPointIndices.includes(point.idx));
+    if (evaluated.length === 0) return 0;
+    const mean = evaluated.reduce((sum, point) => sum + point.y, 0) / evaluated.length;
+    const total = evaluated.reduce((sum, point) => sum + (point.y - mean) ** 2, 0);
+    const residual = evaluated.reduce((sum, point) => sum + point.residual ** 2, 0);
+    return total === 0 ? 1 : 1 - residual / total;
+  }, [fitted, residuals]);
+  const equation = useMemo(() => {
+    if (!fitted) return '無法以目前選項完成擬合';
+    const output = equationDirection === 'forward_od_to_conc' ? 'conc' : 'OD';
+    const input = equationDirection === 'forward_od_to_conc' ? 'OD' : 'conc';
+    const core = curveModel === 'quadratic'
+      ? `${output} = ${formatCoefficient(adjustedCoefficients[0])} * ${input}^2 + ${formatCoefficient(adjustedCoefficients[1])} * ${input} + ${formatCoefficient(adjustedCoefficients[2])}`
+      : curveModel === 'natural_log'
+        ? `${output} = ${formatCoefficient(adjustedCoefficients[0])} * ln(${input}) + ${formatCoefficient(adjustedCoefficients[1])}`
+        : `${output} = ${formatCoefficient(adjustedCoefficients[0])} * ${input} + ${formatCoefficient(adjustedCoefficients[1])}`;
+    return `${core}; R² = ${currentR2.toPrecision(6)}; n = ${fitted.usedPointIndices.length}`;
+  }, [adjustedCoefficients, currentR2, curveModel, equationDirection, fitted]);
 
   // Remove point handler
   const removePoint = (pointIdx: number) => {
@@ -134,12 +217,23 @@ export default function CurveFitAdjust({ fitData, onConfirm, onCancel, saving }:
   };
 
   const handleConfirm = () => {
+    if (!fitted) return;
     onConfirm({
-      slope: currentFit.slope,
-      intercept: currentFit.intercept,
-      r2: currentFit.r2,
+      slope: adjustedCoefficients[0],
+      intercept: adjustedCoefficients[adjustedCoefficients.length - 1],
+      r2: currentR2,
       equation,
       points: fitData?.points || [],
+      equation_direction: equationDirection,
+      equation_direction_label: DIRECTION_METADATA_LABELS[equationDirection],
+      curve_model: curveModel,
+      fit_strategy: fitStrategy,
+      formula_text: fitted.formulaText,
+      coefficients: adjustedCoefficients,
+      strategy_reference_conc: referenceConc,
+      local_range_min_conc: fitStrategy === 'local_near_cutoff' && localRange ? Math.min(...localRange) : undefined,
+      local_range_max_conc: fitStrategy === 'local_near_cutoff' && localRange ? Math.max(...localRange) : undefined,
+      used_point_indices: fitted.usedPointIndices,
     });
   };
 
@@ -157,21 +251,114 @@ export default function CurveFitAdjust({ fitData, onConfirm, onCancel, saving }:
 
   return (
     <div className="rd-curve-fit">
+      <div className="rd-info-card">
+        <h3>Fitting Options</h3>
+        <div className="rd-fit-options">
+          <label>
+            <span>Equation Direction</span>
+            <select value={equationDirection} onChange={event => {
+              setEquationDirection(event.target.value as EquationDirection);
+              setShift(0);
+              setRotation(0);
+            }}>
+              {Object.entries(DIRECTION_LABELS).map(([value, label]) => (
+                <option key={value} value={value}>{label}</option>
+              ))}
+            </select>
+          </label>
+          <label>
+            <span>Curve Model</span>
+            <select value={curveModel} onChange={event => {
+              setCurveModel(event.target.value as CurveModel);
+              setShift(0);
+              setRotation(0);
+            }}>
+              {Object.entries(MODEL_LABELS).map(([value, label]) => (
+                <option key={value} value={value}>{label}</option>
+              ))}
+            </select>
+          </label>
+          <label>
+            <span>Fit Strategy</span>
+            <select value={fitStrategy} onChange={event => setFitStrategy(event.target.value as FitStrategy)}>
+              {Object.entries(STRATEGY_LABELS).map(([value, label]) => (
+                <option key={value} value={value}>{label}</option>
+              ))}
+            </select>
+          </label>
+          {fitStrategy === 'weighted_near_target' && (
+            <label>
+              <span>Target Concentration</span>
+              <select value={targetSelection} onChange={event => setTargetSelection(event.target.value)}>
+                <option value="auto">自動中位數 ({inferredReferenceConc.toPrecision(6)})</option>
+                {targetConcentrations.map(value => (
+                  <option key={value} value={value}>{value} (Control concentration)</option>
+                ))}
+                <option value="custom">自訂濃度</option>
+              </select>
+            </label>
+          )}
+          {fitStrategy === 'weighted_near_target' && targetSelection === 'custom' && (
+            <label>
+              <span>Custom Target Concentration</span>
+              <input
+                type="number"
+                inputMode="decimal"
+                step="any"
+                value={customTargetConc}
+                onChange={event => setCustomTargetConc(event.target.value)}
+                placeholder="輸入 target concentration"
+              />
+            </label>
+          )}
+          {fitStrategy === 'local_near_cutoff' && (
+            <>
+              <label>
+                <span>Local Concentration 1</span>
+                <select value={localStartConc} onChange={event => setLocalStartConc(event.target.value)}>
+                  {targetConcentrations.map(value => (
+                    <option key={value} value={value} disabled={String(value) === localEndConc}>{value}</option>
+                  ))}
+                </select>
+              </label>
+              <label>
+                <span>Local Concentration 2</span>
+                <select value={localEndConc} onChange={event => setLocalEndConc(event.target.value)}>
+                  {targetConcentrations.map(value => (
+                    <option key={value} value={value} disabled={String(value) === localStartConc}>{value}</option>
+                  ))}
+                </select>
+              </label>
+            </>
+          )}
+        </div>
+        {fitStrategy === 'weighted_near_target' && (
+          <p className="rd-fit-reference">
+            Selected target concentration: {referenceConc.toPrecision(6)}
+          </p>
+        )}
+        {fitStrategy === 'local_near_cutoff' && localRange && (
+          <p className="rd-fit-reference">
+            Selected local concentrations: {localRange[0]} ＆ {localRange[1]}
+          </p>
+        )}
+      </div>
+
       {/* Metrics */}
       <div className="rd-info-card">
-        <h3>📈 線性擬合 (n={activePoints.length}/{allPoints.length})</h3>
+        <h3>{MODEL_LABELS[curveModel]} 擬合 (n={fitted?.usedPointIndices.length || 0}/{allPoints.length})</h3>
         <div className="rd-fit-metrics">
-          <div className="rd-metric">
-            <span className="rd-metric-label">Slope</span>
-            <span className="rd-metric-value">{currentFit.slope.toPrecision(6)}</span>
-          </div>
-          <div className="rd-metric">
-            <span className="rd-metric-label">Intercept</span>
-            <span className="rd-metric-value">{currentFit.intercept.toPrecision(6)}</span>
-          </div>
+          {adjustedCoefficients.map((coefficient, index) => (
+            <div className="rd-metric" key={index}>
+              <span className="rd-metric-label">
+                {curveModel === 'quadratic' ? ['a', 'b', 'c'][index] : index === 0 ? 'a' : 'b'}
+              </span>
+              <span className="rd-metric-value">{coefficient.toPrecision(6)}</span>
+            </div>
+          ))}
           <div className="rd-metric">
             <span className="rd-metric-label">R²</span>
-            <span className="rd-metric-value">{currentFit.r2.toFixed(6)}</span>
+            <span className="rd-metric-value">{currentR2.toFixed(6)}</span>
           </div>
         </div>
         {hasAdjustment && (
@@ -197,16 +384,16 @@ export default function CurveFitAdjust({ fitData, onConfirm, onCancel, saving }:
             <ResponsiveContainer width="100%" height={240}>
               <ScatterChart margin={{ top: 10, right: 10, bottom: 10, left: 0 }}>
                 <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="x" type="number" name="OD" tick={{ fontSize: 10 }} />
-                <YAxis dataKey="y" type="number" name="Conc" tick={{ fontSize: 10 }} />
+                <XAxis dataKey="x" type="number" name={fitted?.xLabel || 'X'} tick={{ fontSize: 10 }} />
+                <YAxis dataKey="y" type="number" name={fitted?.yLabel || 'Y'} tick={{ fontSize: 10 }} />
                 <Tooltip content={({ active, payload }) => {
                   if (!active || !payload?.[0]) return null;
                   const d = payload[0].payload as { x: number; y: number; label?: string; well?: string };
                   return (
                     <div style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: 6, padding: 6, fontSize: 11 }}>
                       {d.label && <div><b>{d.label}</b> {d.well && `(Well ${d.well})`}</div>}
-                      <div>OD: {d.x?.toFixed(6)}</div>
-                      <div>Conc: {d.y?.toFixed(2)}</div>
+                      <div>{fitted?.xLabel || 'X'}: {d.x?.toFixed(6)}</div>
+                      <div>{fitted?.yLabel || 'Y'}: {d.y?.toFixed(6)}</div>
                     </div>
                   );
                 }} />
@@ -231,7 +418,8 @@ export default function CurveFitAdjust({ fitData, onConfirm, onCancel, saving }:
             <div className="rd-slider-group">
               <label className="rd-slider-label">旋轉: <b>{rotation.toFixed(1)}°</b></label>
               <input type="range" min={-15} max={15} step={0.1} value={rotation}
-                onChange={e => setRotation(+e.target.value)} className="rd-slider" />
+                onChange={e => setRotation(+e.target.value)} className="rd-slider"
+                disabled={curveModel !== 'linear'} />
             </div>
             <button className="rd-btn-sm rd-btn-outline" onClick={() => { setShift(0); setRotation(0); }}>
               🔄 重置調整
@@ -282,8 +470,8 @@ export default function CurveFitAdjust({ fitData, onConfirm, onCancel, saving }:
                       <td>{r.i + 1}</td>
                       <td>{r.label}</td>
                       <td>{r.well}</td>
-                      <td>{r.x.toFixed(5)}</td>
-                      <td>{r.y.toFixed(1)}</td>
+                      <td>{r.od.toFixed(5)}</td>
+                      <td>{r.conc.toFixed(1)}</td>
                       <td style={{ color: Math.abs(r.residual) > 0.01 ? '#dc2626' : '#16a34a', fontWeight: 600 }}>
                         {r.residual.toFixed(5)}
                       </td>
@@ -312,8 +500,8 @@ export default function CurveFitAdjust({ fitData, onConfirm, onCancel, saving }:
                         <td>{p.idx + 1}</td>
                         <td>{p.label}</td>
                         <td>{p.well}</td>
-                        <td>{p.x.toFixed(5)}</td>
-                        <td>{p.y.toFixed(1)}</td>
+                        <td>{p.od.toFixed(5)}</td>
+                        <td>{p.conc.toFixed(1)}</td>
                         <td>
                           <button type="button" className="rd-restore-btn" onClick={(e) => { e.stopPropagation(); restorePoint(p.idx); }} title="恢復此點">↩</button>
                         </td>
@@ -337,7 +525,7 @@ export default function CurveFitAdjust({ fitData, onConfirm, onCancel, saving }:
 
       {/* Actions */}
       <div className="rd-action-buttons">
-        <button className="rd-btn rd-btn-primary" onClick={handleConfirm} disabled={saving || activePoints.length < 2}>
+        <button className="rd-btn rd-btn-primary" onClick={handleConfirm} disabled={saving || !fitted}>
           {saving ? '寫入中...' : '✅ 確認寫入建線'}
         </button>
         <button className="rd-btn rd-btn-outline" onClick={onCancel} disabled={saving}>取消</button>

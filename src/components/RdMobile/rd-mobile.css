@@ -1019,6 +1019,20 @@
 
 /* ── Fit Section ────────────────────────────────────────────────────────── */
 .rd-fit-section { margin-top: 8px; }
+.rd-fit-metadata {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+.rd-fit-metadata span {
+  padding: 5px 8px;
+  border-radius: 999px;
+  background: rgba(223, 244, 251, 0.74);
+  color: #0369A1;
+  font-size: 0.7rem;
+  font-weight: 700;
+}
 .rd-equation-box {
   background: rgba(223, 244, 251, 0.74);
   border: 1px solid rgba(56, 167, 215, 0.20);
@@ -1258,6 +1272,35 @@
   grid-template-columns: 1fr 1fr 1fr;
   gap: 8px;
   margin-top: 8px;
+}
+.rd-fit-options {
+  display: grid;
+  gap: 10px;
+  margin-top: 10px;
+}
+.rd-fit-options label {
+  display: grid;
+  gap: 5px;
+  color: var(--rd-text-muted);
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+.rd-fit-options select,
+.rd-fit-options input {
+  width: 100%;
+  min-height: 42px;
+  border: 1px solid #D7E4DC;
+  border-radius: 10px;
+  background: #fff;
+  color: var(--rd-text);
+  padding: 8px 10px;
+  font: inherit;
+  font-size: 0.82rem;
+}
+.rd-fit-reference {
+  margin: 8px 0 0;
+  color: var(--rd-text-muted);
+  font-size: 0.72rem;
 }
 .rd-metric {
   background: #F8FAFC;

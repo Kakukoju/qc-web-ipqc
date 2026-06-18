@@ -1,7 +1,6 @@
 import os
 import logging
 import sqlite3
-from pathlib import Path
 from contextlib import asynccontextmanager
 
 from dotenv import load_dotenv
@@ -15,13 +14,13 @@ from control_sheet_service import generate_control_sheet
 from query_service import list_headers, query_records
 from upload_service import import_assay_process_csv
 from rds_sync_service import sync_to_rds
+from all_batch_service import get_all_batch_summary
+from app_config import SPEC_DB_PATH
 import skylai_fetch_service
 from skylai_fetch_service import fetch_and_save as skylai_fetch_and_save, scheduled_fetch as skylai_scheduled_fetch, TARGET_DEVICES
 
 load_dotenv()
 logger = logging.getLogger(__name__)
-
-SPEC_DB_PATH = Path(os.getenv("SPEC_DB_PATH", "/home/ubuntu/bead_ipqc_spec.db"))
 
 _scheduler = None
 
@@ -87,6 +86,15 @@ def import_status() -> dict:
     try:
         return get_import_status()
     except Exception as exc:
+        return {"ok": False, "error": str(exc)}
+
+
+@app.get("/api/all-batch-summary")
+def all_batch_summary() -> dict:
+    try:
+        return get_all_batch_summary()
+    except Exception as exc:
+        logger.exception("Failed to build all-batch summary")
         return {"ok": False, "error": str(exc)}
 
 

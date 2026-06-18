@@ -33,6 +33,18 @@ function formatNameAtDate(name) {
   return `${name}@${dateStr}`;
 }
 
+const FIT_DEFAULTS = {
+  equation_direction: 'forward_od_to_conc',
+  equation_direction_label: 'f(OD)=conc',
+  curve_model: 'linear',
+  fit_strategy: 'full_range',
+  formula_text: 'conc = a * OD + b',
+};
+
+function withFitMetadata(fitData) {
+  return { ...FIT_DEFAULTS, ...(fitData || {}) };
+}
+
 /** Verify emp_no against rd_whitelist. Returns person data or null. */
 function verifyRdEmpNo(empNo) {
   if (!empNo || typeof empNo !== 'string') return null;
@@ -801,10 +813,11 @@ router.post('/rd-build-line-tasks/:id/direct-write', async (req, res) => {
   const confirmedBy = formatNameAtDate(person.english_name);
 
   // Extract equation/slope/intercept/r2 from fit_data
-  const equation = fitData?.equation || fitData?.baseline_equation || '';
-  const slope = fitData?.fit?.slope ?? fitData?.slope ?? null;
-  const intercept = fitData?.fit?.intercept ?? fitData?.intercept ?? null;
-  const r2 = fitData?.fit?.r2 ?? fitData?.r2 ?? null;
+  fitData = withFitMetadata(fitData);
+  const equation = fitData.equation || fitData.baseline_equation || '';
+  const slope = fitData.fit?.slope ?? fitData.slope ?? null;
+  const intercept = fitData.fit?.intercept ?? fitData.intercept ?? null;
+  const r2 = fitData.fit?.r2 ?? fitData.r2 ?? null;
 
   try {
     const writeResult = await writeBuildLineResult({
@@ -818,7 +831,7 @@ router.post('/rd-build-line-tasks/:id/direct-write', async (req, res) => {
       intercept,
       r2,
       confirmedBy,
-      fitData: fitData?.points || null,
+      fitData: fitData.points || null,
       workOrderNo: task.work_order || '',
       fullFitData: fitData,
     });
@@ -843,11 +856,12 @@ router.post('/rd-build-line-tasks/:id/direct-write', async (req, res) => {
       SET status = 'pending_qc', action_type = 'direct_write',
           assigned_rd_emp_no = ?, assigned_rd_name = ?,
           completed_at = datetime('now','localtime'),
-          result_json = ?
+          result_json = ?, fit_data_json = ?
       WHERE id = ?
     `).run(
       person.emp_no, person.english_name,
-      JSON.stringify({ confirmedBy, rdsUpdated: writeResult.rdsUpdated }),
+      JSON.stringify({ confirmedBy, fit_metadata: FIT_DEFAULTS, rdsUpdated: writeResult.rdsUpdated }),
+      JSON.stringify(fitData),
       id
     );
 
@@ -915,10 +929,23 @@ router.post('/rd-build-line-tasks/:id/save-adjusted-fit', async (req, res) => {
   const confirmedBy = formatNameAtDate(person.english_name);
 
   // Use adjusted params
-  const slope = fit_params?.slope ?? null;
-  const intercept = fit_params?.intercept ?? null;
-  const r2 = fit_params?.r2 ?? null;
-  const equation = fit_params?.equation || 
+  const adjustedFitData = withFitMetadata({
+    ...originalFitData,
+    ...fit_params,
+    points: fit_params?.points || originalFitData?.points || [],
+    fit: {
+      ...(originalFitData?.fit || {}),
+      slope: fit_params?.slope ?? null,
+      intercept: fit_params?.intercept ?? null,
+      r2: fit_params?.r2 ?? null,
+      equation: fit_params?.equation || '',
+      coefficients: fit_params?.coefficients || [],
+    },
+  });
+  const slope = adjustedFitData.slope ?? null;
+  const intercept = adjustedFitData.intercept ?? null;
+  const r2 = adjustedFitData.r2 ?? null;
+  const equation = adjustedFitData.equation ||
     (slope != null && intercept != null ? `y = ${slope}x + ${intercept}; R2 = ${r2 || 'N/A'}` : '');
 
   try {
@@ -933,9 +960,9 @@ router.post('/rd-build-line-tasks/:id/save-adjusted-fit', async (req, res) => {
       intercept,
       r2,
       confirmedBy,
-      fitData: fit_params?.points || originalFitData?.points || null,
+      fitData: adjustedFitData.points || null,
       workOrderNo: task.work_order || '',
-      fullFitData: originalFitData,
+      fullFitData: adjustedFitData,
     });
 
     if (!writeResult.ok) {
@@ -957,11 +984,12 @@ router.post('/rd-build-line-tasks/:id/save-adjusted-fit', async (req, res) => {
       SET status = 'pending_qc', action_type = 'adjust_curve',
           assigned_rd_emp_no = ?, assigned_rd_name = ?,
           completed_at = datetime('now','localtime'),
-          result_json = ?
+          result_json = ?, fit_data_json = ?
       WHERE id = ?
     `).run(
       person.emp_no, person.english_name,
       JSON.stringify({ confirmedBy, fit_params, rdsUpdated: writeResult.rdsUpdated }),
+      JSON.stringify(adjustedFitData),
       id
     );
 
@@ -978,7 +1006,7 @@ router.post('/rd-build-line-tasks/:id/save-adjusted-fit', async (req, res) => {
       }
     });
     sendPcBuildLineCompletionEvent(payload);
-    notifyQcManagerSpecCheck(task, originalFitData, confirmedBy);
+    notifyQcManagerSpecCheck(task, adjustedFitData, confirmedBy);
   } catch (err) {
     db.prepare(`
       UPDATE rd_build_line_tasks

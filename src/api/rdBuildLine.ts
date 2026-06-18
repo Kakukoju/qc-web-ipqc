@@ -49,7 +49,38 @@ export interface FitData {
   panel_name?: string;
   mfg_lot_no?: string;
   fit?: { slope: number; intercept: number; r2: number; equation: string };
+  equation_direction?: EquationDirection;
+  equation_direction_label?: string;
+  curve_model?: CurveModel;
+  fit_strategy?: FitStrategy;
+  formula_text?: string;
+  coefficients?: number[];
+  strategy_reference_conc?: number;
+  local_range_min_conc?: number;
+  local_range_max_conc?: number;
   [key: string]: unknown;
+}
+
+export type EquationDirection = 'forward_od_to_conc' | 'reverse_conc_to_od';
+export type CurveModel = 'linear' | 'quadratic' | 'natural_log';
+export type FitStrategy = 'full_range' | 'weighted_near_target' | 'local_near_cutoff';
+
+export interface FitSaveParams {
+  slope?: number;
+  intercept?: number;
+  r2?: number;
+  equation?: string;
+  points?: FitPoint[];
+  equation_direction: EquationDirection;
+  equation_direction_label: string;
+  curve_model: CurveModel;
+  fit_strategy: FitStrategy;
+  formula_text: string;
+  coefficients: number[];
+  strategy_reference_conc?: number;
+  local_range_min_conc?: number;
+  local_range_max_conc?: number;
+  used_point_indices?: number[];
 }
 
 export interface FitPoint {
@@ -152,13 +183,7 @@ export async function directWrite(taskId: number, empNo: string): Promise<ApiRes
   return res.json();
 }
 
-export async function saveAdjustedFit(taskId: number, empNo: string, fitParams: {
-  slope?: number;
-  intercept?: number;
-  r2?: number;
-  equation?: string;
-  points?: FitPoint[];
-}): Promise<ApiResponse<{
+export async function saveAdjustedFit(taskId: number, empNo: string, fitParams: FitSaveParams): Promise<ApiResponse<{
   task_id: number;
   status: string;
   action_type: string;

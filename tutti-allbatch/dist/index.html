@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Tutti 全批次數據</title>
+  <style>
+    :root { color-scheme: dark; --bg:#0b1220; --panel:#111a2d; --line:#2a3754; --text:#eaf2ff; --muted:#93a4c3; --accent:#00d4aa; --blue:#4da3ff; --red:#ff5c73; }
+    * { box-sizing:border-box; }
+    body { margin:0; min-height:100vh; font-family:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; background:var(--bg); color:var(--text); }
+    header { position:sticky; top:0; z-index:5; padding:18px 24px 14px; background:rgba(11,18,32,.96); border-bottom:1px solid var(--line); backdrop-filter:blur(10px); }
+    .top { display:flex; align-items:flex-start; justify-content:space-between; gap:16px; }
+    h1 { margin:3px 0 4px; font-size:24px; }
+    .eyebrow { color:var(--accent); font-size:11px; font-weight:700; letter-spacing:.08em; }
+    .sub { margin:0; color:var(--muted); font-size:12px; }
+    .actions { display:flex; gap:8px; }
+    button,.back { border:1px solid var(--line); background:#151f35; color:var(--text); border-radius:8px; padding:9px 12px; cursor:pointer; text-decoration:none; font-size:12px; }
+    button:hover,.back:hover { border-color:var(--blue); }
+    .filters { display:grid; grid-template-columns:minmax(240px,1fr) 150px 150px 160px; gap:10px; margin-top:15px; }
+    input,select { width:100%; border:1px solid var(--line); background:#0d1628; color:var(--text); border-radius:8px; padding:9px 11px; outline:none; }
+    input:focus,select:focus { border-color:var(--blue); }
+    main { padding:16px 22px 28px; }
+    .summary { display:flex; gap:8px; align-items:center; margin-bottom:10px; color:var(--muted); font-size:12px; }
+    .pill { padding:4px 8px; border:1px solid var(--line); border-radius:999px; background:var(--panel); }
+    .table-wrap { overflow:auto; max-height:calc(100vh - 190px); border:1px solid var(--line); border-radius:10px; background:var(--panel); }
+    table { width:100%; min-width:1760px; border-collapse:separate; border-spacing:0; font-size:12px; }
+    th { position:sticky; top:0; z-index:2; padding:10px 9px; background:#172137; color:var(--muted); text-align:left; white-space:nowrap; border-bottom:1px solid var(--line); }
+    td { padding:9px; border-bottom:1px solid rgba(42,55,84,.7); vertical-align:top; white-space:nowrap; }
+    tbody tr:hover td { background:rgba(77,163,255,.05); }
+    .num { text-align:right; font-variant-numeric:tabular-nums; }
+    .lot { color:var(--accent); font-family:ui-monospace,SFMono-Regular,Menlo,monospace; }
+    .item { color:#fff; font-weight:700; }
+    .fail { color:var(--red); font-weight:700; background:rgba(255,92,115,.08); }
+    .pass { color:#43d17d; font-weight:700; }
+    .na { color:#596b89; }
+    .bias-list { display:grid; gap:2px; min-width:110px; }
+    .spec { min-width:310px; max-width:420px; white-space:normal; line-height:1.45; color:#b8c7e2; }
+    .spec strong { color:var(--blue); }
+    .status { display:inline-block; padding:2px 7px; border-radius:4px; font-size:10px; margin-right:5px; }
+    .status.ok { color:#43d17d; background:rgba(67,209,125,.12); }
+    .status.bad { color:var(--red); background:rgba(255,92,115,.12); }
+    .status.unknown { color:var(--muted); background:rgba(147,164,195,.1); }
+    .empty { padding:48px; text-align:center; color:var(--muted); }
+    .loading { opacity:.65; pointer-events:none; }
+    @media (max-width:800px) { .filters{grid-template-columns:1fr 1fr}.top{flex-direction:column}.actions{align-self:stretch}.actions>*{flex:1;text-align:center} }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="top">
+      <div>
+        <div class="eyebrow">TUTTI QC ASSAYPROCESS</div>
+        <h1>生產測試全批次數據</h1>
+        <p class="sub">RDS panel_production.assay_process_records · Qbi QC 規格判定</p>
+      </div>
+      <div class="actions"><button id="refresh">重新整理</button><a class="back" href="/qc-web/">返回管理儀表</a></div>
+    </div>
+    <div class="filters">
+      <input id="search" placeholder="搜尋 Panel / mfg_lot_no / analyze item..." />
+      <input id="from" type="date" aria-label="起始生產日" />
+      <input id="to" type="date" aria-label="結束生產日" />
+      <select id="status"><option value="">全部判定</option><option value="pass">PASS</option><option value="fail">FAIL</option><option value="unknown">無完整規格</option></select>
+    </div>
+  </header>
+  <main>
+    <div class="summary"><span class="pill" id="count">載入中</span><span>2026-06-10（含）以前全部；之後僅顯示 mfg_lot_no 末兩碼 &lt; 50</span></div>
+    <div class="table-wrap" id="wrap">
+      <table>
+        <thead><tr>
+          <th>生產日</th><th>Panel</th><th>mfg_lot_no</th><th>analyze item</th><th>Bias%</th>
+          <th>control-L1 mean</th><th>control-L1 CV%</th><th>control-L2 mean</th><th>control-L2 CV%</th>
+          <th>control-N1 mean</th><th>control-N1 CV%</th><th>control-N3 mean</th><th>control-N3 CV%</th><th>規格 (Qbi)</th>
+        </tr></thead>
+        <tbody id="body"><tr><td colspan="14" class="empty">資料載入中...</td></tr></tbody>
+      </table>
+    </div>
+  </main>
+  <script>
+    const state = { rows: [] };
+    const $ = id => document.getElementById(id);
+    const esc = value => String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+    const value = (v, digits=3) => v == null ? '<span class="na">-</span>' : Number(v).toLocaleString('en-US',{maximumFractionDigits:digits});
+    const checkClass = check => check === false ? 'fail' : check === true ? 'pass' : '';
+    function levelCell(level, field, digits) {
+      const data = level || {};
+      const relevant = field === 'mean' ? data.checks?.tea : data.checks?.cv;
+      return `<td class="num ${checkClass(relevant)}">${value(data[field], digits)}${data.n ? `<small class="na"> (n=${data.n})</small>` : ''}</td>`;
+    }
+    function renderSpec(row) {
+      const s = row.spec || {};
+      const statusClass = row.pass === true ? 'ok' : row.pass === false ? 'bad' : 'unknown';
+      const statusText = row.pass === true ? 'PASS' : row.pass === false ? 'FAIL' : 'N/A';
+      const parts = [
+        s.tea && `TEa ${s.tea}`,
+        s.single_cv && `CV ${s.single_cv}`,
+        s.merge_bias && `Bias ${s.merge_bias}`,
+        s.spec_l1_od && `OD L1 ${s.spec_l1_od}`,
+        s.spec_l2_od && `OD L2 ${s.spec_l2_od}`,
+        s.spec_n1_od && `OD N1 ${s.spec_n1_od}`
+      ].filter(Boolean);
+      return `<td class="spec"><span class="status ${statusClass}">${statusText}</span><strong>${esc(s.marker || '找不到規格')}</strong>${parts.length ? `<br>${parts.map(esc).join(' · ')}` : ''}</td>`;
+    }
+    function render() {
+      const q = $('search').value.trim().toLowerCase();
+      const from = $('from').value, to = $('to').value, status = $('status').value;
+      const rows = state.rows.filter(row => {
+        const haystack = `${row.panel_name} ${row.mfg_lot_no} ${row.analyze_item}`.toLowerCase();
+        if (q && !haystack.includes(q)) return false;
+        if (from && row.production_date < from) return false;
+        if (to && row.production_date > to) return false;
+        if (status === 'pass' && row.pass !== true) return false;
+        if (status === 'fail' && row.pass !== false) return false;
+        if (status === 'unknown' && row.pass !== null) return false;
+        return true;
+      });
+      $('count').textContent = `顯示 ${rows.length} / ${state.rows.length} 筆`;
+      $('body').innerHTML = rows.length ? rows.map(row => {
+        const l = row.levels || {};
+        const biases = ['L1','L2','N1','N3'].map(k => `<span class="${checkClass(l[k]?.checks?.bias)}">${k} ${value(l[k]?.bias,2)}</span>`).join('');
+        return `<tr><td>${esc(row.production_date || '-')}</td><td>${esc(row.panel_name)}</td><td class="lot">${esc(row.mfg_lot_no)}</td><td class="item">${esc(row.analyze_item)}</td>
+          <td><div class="bias-list">${biases}</div></td>
+          ${levelCell(l.L1,'mean',3)}${levelCell(l.L1,'cv',2)}
+          ${levelCell(l.L2,'mean',3)}${levelCell(l.L2,'cv',2)}
+          ${levelCell(l.N1,'mean',3)}${levelCell(l.N1,'cv',2)}
+          ${levelCell(l.N3,'mean',3)}${levelCell(l.N3,'cv',2)}
+          ${renderSpec(row)}</tr>`;
+      }).join('') : '<tr><td colspan="14" class="empty">沒有符合條件的資料</td></tr>';
+    }
+    async function load() {
+      $('wrap').classList.add('loading');
+      $('count').textContent = '載入中';
+      try {
+        const response = await fetch('/api/assayprocess/all-batch-summary', {cache:'no-store'});
+        const data = await response.json();
+        if (!response.ok || !data.ok) throw new Error(data.error || `HTTP ${response.status}`);
+        state.rows = data.rows || [];
+        render();
+      } catch (error) {
+        $('count').textContent = '載入失敗';
+        $('body').innerHTML = `<tr><td colspan="14" class="empty">無法載入資料：${esc(error.message)}</td></tr>`;
+      } finally { $('wrap').classList.remove('loading'); }
+    }
+    ['search','from','to','status'].forEach(id => $(id).addEventListener(id === 'search' ? 'input' : 'change', render));
+    $('refresh').addEventListener('click', load);
+    load();
+  </script>
+</body>
+</html>

@@ -3,7 +3,7 @@ import type { TouchEvent } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import {
   fetchRdTasks, fetchRdTaskDetail, verifyRdEmpNo, directWrite, startAdjust, saveAdjustedFit, deleteRdTask, rdTaskEventsUrl,
-  type RdTask, type RdTaskDetail, type RdPerson, type FitPoint,
+  type RdTask, type RdTaskDetail, type RdPerson, type FitSaveParams,
 } from '../../api/rdBuildLine';
 import CurveFitAdjust from './CurveFitAdjust';
 import './rd-mobile.css';
@@ -698,18 +698,11 @@ export default function RdMobilePage() {
   };
 
   // ── Save adjusted fit ──────────────────────────────────────────────────
-  const handleSaveAdjusted = async (params?: { slope: number; intercept: number; r2: number; equation: string; points: FitPoint[] }) => {
+  const handleSaveAdjusted = async (params: FitSaveParams) => {
     if (!selectedTask || !rdPerson) return;
     setWriteLoading(true);
     try {
-      const fitParams = params || {
-        slope: selectedTask.fit_data?.fit?.slope ?? selectedTask.fit_data?.slope,
-        intercept: selectedTask.fit_data?.fit?.intercept ?? selectedTask.fit_data?.intercept,
-        r2: selectedTask.fit_data?.fit?.r2 ?? selectedTask.fit_data?.r2,
-        equation: selectedTask.fit_data?.fit?.equation ?? selectedTask.fit_data?.equation ?? selectedTask.fit_data?.baseline_equation,
-        points: selectedTask.fit_data?.points,
-      };
-      const resp = await saveAdjustedFit(selectedTask.id, rdPerson.emp_no, fitParams);
+      const resp = await saveAdjustedFit(selectedTask.id, rdPerson.emp_no, params);
       if (resp.ok && resp.data) {
         setWriteResult({ ok: true, message: `曲線調整完成 · ${resp.data.confirmed_by}` });
         setAdjustMode(false);
@@ -1024,6 +1017,11 @@ export default function RdMobilePage() {
           <h3>曲線擬合資料</h3>
           {fitData ? (
             <div className="rd-fit-section">
+              <div className="rd-fit-metadata">
+                <span>{fitData.equation_direction === 'reverse_conc_to_od' ? '反算 f(conc)=OD' : '正算 f(OD)=conc'}</span>
+                <span>{fitData.curve_model === 'quadratic' ? 'Quadratic' : fitData.curve_model === 'natural_log' ? 'Natural Log' : 'Linear'}</span>
+                <span>{fitData.fit_strategy === 'weighted_near_target' ? 'Weighted Near Target' : fitData.fit_strategy === 'local_near_cutoff' ? 'Local Near' : 'Full Range'}</span>
+              </div>
               {fitData.equation || fitData.baseline_equation ? (
                 <div className="rd-equation-box">
                   <span className="rd-eq-label">Equation</span>

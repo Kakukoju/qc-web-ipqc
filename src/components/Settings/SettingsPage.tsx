@@ -2,13 +2,14 @@ import { useState, Suspense, lazy } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   FileSpreadsheet, Grid3x3, Beaker, Cpu,
-  Database, Info, ChevronLeft, Users,
+  Database, Info, ChevronLeft, Users, Table2,
 } from 'lucide-react';
 import SpecManager from './SpecManager';
 const CsManager = lazy(() => import('./CsManager'));
 const MachineManager = lazy(() => import('./MachineManager'));
 const WellManager = lazy(() => import('./WellManager'));
 const PersonnelManager = lazy(() => import('./PersonnelManager'));
+const TuttiSkuListManager = lazy(() => import('./TuttiSkuListManager'));
 
 interface CardDef {
   id: string;
@@ -38,6 +39,13 @@ const cards: CardDef[] = [
     icon: <Beaker size={28} />,
     label: 'CS 濃度設定',
     desc: '管理 CS assign 標準品濃度對照表、批號效期，用於 IPQC 計算與列印',
+    ready: true,
+  },
+  {
+    id: 'tutti-sku-list',
+    icon: <Table2 size={28} />,
+    label: 'Tutti SKU List 資料管理',
+    desc: '管理 Tutti SKU List Excel 匯入與 RDS table 資料查詢',
     ready: true,
   },
   {
@@ -92,6 +100,7 @@ export default function SettingsPage() {
         <div className="flex-1 overflow-auto">
           {activeCard === 'spec' && <SpecManager />}
           {activeCard === 'cs' && <Suspense fallback={<div className="p-6 text-[#93A4C3] text-sm">載入中…</div>}><CsManager /></Suspense>}
+          {activeCard === 'tutti-sku-list' && <Suspense fallback={<div className="p-6 text-[#93A4C3] text-sm">載入中…</div>}><TuttiSkuListManager /></Suspense>}
           {activeCard === 'pn' && <Suspense fallback={<div className="p-6 text-[#93A4C3] text-sm">載入中…</div>}><MachineManager /></Suspense>}
           {activeCard === 'well' && <Suspense fallback={<div className="p-6 text-[#93A4C3] text-sm">載入中…</div>}><WellManager /></Suspense>}
           {activeCard === 'personnel' && <Suspense fallback={<div className="p-6 text-[#93A4C3] text-sm">載入中…</div>}><PersonnelManager /></Suspense>}

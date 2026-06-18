@@ -22,6 +22,18 @@ const viewTitles: Record<string, string> = {
   settings: '系統設定',
 };
 
+function viewFromPath(pathname: string) {
+  if (pathname.endsWith('/qc-web/system_setting') || pathname.endsWith('/system_setting')) {
+    return 'settings';
+  }
+  return 'dashboard';
+}
+
+function pathForView(view: string) {
+  if (view === 'settings') return '/qc-web/system_setting';
+  return '/qc-web/';
+}
+
 interface LotSelection { marker: string; sheet: string }
 interface SearchResult { bead_name: string; sheet_name: string; tab: 'table1' | 'table2'; insp_date: string | null; }
 
@@ -183,25 +195,39 @@ function PlaceholderView({ title }: { title: string }) {
 }
 
 export default function App() {
-  const [activeView, setActiveView] = useState('dashboard');
+  const [activeView, setActiveView] = useState(() => viewFromPath(window.location.pathname));
   const [sharedLot, setSharedLot] = useState<LotSelection | null>(null);
   const [sharedYear, setSharedYear] = useState(new Date().getFullYear().toString());
+
+  const handleNavigate = useCallback((view: string) => {
+    setActiveView(view);
+    const nextPath = pathForView(view);
+    if (window.location.pathname !== nextPath) {
+      window.history.pushState(null, '', nextPath);
+    }
+  }, []);
+
+  useEffect(() => {
+    const onPopState = () => setActiveView(viewFromPath(window.location.pathname));
+    window.addEventListener('popstate', onPopState);
+    return () => window.removeEventListener('popstate', onPopState);
+  }, []);
 
   // Expose global nav function for year-filter-patched.js
   useEffect(() => {
     (window as any).__navigateToQcLot = (marker: string, sheet: string) => {
       setSharedLot({ marker, sheet });
-      setActiveView('qc');
+      handleNavigate('qc');
     };
     return () => { delete (window as any).__navigateToQcLot; };
-  }, []);
+  }, [handleNavigate]);
 
   return (
     <div className="flex h-screen w-screen overflow-hidden bg-[#0B1220]">
-      <Sidebar activeView={activeView} onNavigate={setActiveView} />
+      <Sidebar activeView={activeView} onNavigate={handleNavigate} />
 
       <div className="flex flex-col flex-1 overflow-hidden">
-        <Topbar title={viewTitles[activeView] || 'IPQC 管理儀表'} onNavigate={(marker, sheet) => { setSharedLot({ marker, sheet }); setActiveView('qc'); }} />
+        <Topbar title={viewTitles[activeView] || 'IPQC 管理儀表'} onNavigate={(marker, sheet) => { setSharedLot({ marker, sheet }); handleNavigate('qc'); }} />
 
         <main className="flex-1 overflow-hidden">
           <AnimatePresence mode="wait">
@@ -213,7 +239,7 @@ export default function App() {
               transition={{ duration: 0.2 }}
               className="h-full"
             >
-              {activeView === 'dashboard' && <Dashboard onNavigate={setActiveView} onYearChange={setSharedYear} />}
+              {activeView === 'dashboard' && <Dashboard onNavigate={handleNavigate} onYearChange={setSharedYear} />}
               {activeView === 'qc' && <QCView sharedLot={sharedLot} onLotChange={setSharedLot} year={sharedYear} />}
               {activeView === 'ipqc' && <IPQCWorkbench sharedLot={sharedLot} onLotChange={setSharedLot} year={sharedYear} />}
               {activeView === 'settings' && <SettingsPage />}

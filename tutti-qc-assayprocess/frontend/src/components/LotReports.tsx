@@ -6,6 +6,7 @@ import {
   type LotReportDetailTable,
   type LotReportGroupRow,
   type LotReportPreview,
+  type LotReportSheetPreview,
   type LotReportSummaryTable,
 } from '../api';
 
@@ -13,7 +14,7 @@ interface LotReportsProps {
   onBack: () => void;
 }
 
-const SHEET_NAMES = ['Control', 'Canine', 'Feline', 'Equine'] as const;
+const SHEET_NAMES = ['CS-real彙總', 'Control', 'Canine', 'Feline', 'Equine'] as const;
 
 type SheetName = (typeof SHEET_NAMES)[number];
 
@@ -58,6 +59,53 @@ function SummaryMatrix({ title, table }: { title: string; table?: LotReportSumma
         </table>
       </div>
     </section>
+  );
+}
+
+function MakerBatchMatrix({ table }: { table?: LotReportSheetPreview['maker_batch'] }) {
+  const markers = table?.markers || [];
+  const values = table?.values || [];
+  return (
+    <section className="excel-block">
+      <div className="excel-block__title">Beads Lot / Maker Batch</div>
+      <div className="table-scroll">
+        <table className="excel-like-table excel-like-table--summary">
+          <thead>
+            <tr>
+              <th className="sticky-col">Item</th>
+              {markers.map((marker) => <th key={marker}>{marker}</th>)}
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td className="sticky-col">Beads Lot.</td>
+              {markers.map((marker, index) => <td key={marker}>{fmt(values[index])}</td>)}
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+  );
+}
+
+function CsRealView({ sheet }: { sheet?: LotReportSheetPreview }) {
+  return (
+    <>
+      <section className="excel-block">
+        <div className="excel-block__title">頁面資訊</div>
+        <div className="cs-real-info-grid">
+          {(sheet?.page_info || []).map((item) => (
+            <div key={item.label}>
+              <span>{item.label}</span>
+              <strong>{fmt(item.value)}</strong>
+            </div>
+          ))}
+        </div>
+      </section>
+      <MakerBatchMatrix table={sheet?.maker_batch} />
+      <SummaryMatrix title="表一 濃度" table={sheet?.summary_conc} />
+      <SummaryMatrix title="表二 OD" table={sheet?.summary_od} />
+    </>
   );
 }
 
@@ -267,12 +315,18 @@ export default function LotReports({ onBack }: LotReportsProps) {
               </div>
 
               <div className="excel-sheet-view">
-                <SummaryMatrix title="表一 濃度" table={sheet?.summary_conc} />
-                <SummaryMatrix title="表二 OD" table={sheet?.summary_od} />
-                {activeSheet === 'Control' && (
+                {activeSheet === 'CS-real彙總' ? (
+                  <CsRealView sheet={sheet} />
+                ) : (
                   <>
-                    <DetailMatrix title="表三 濃度明細" table={sheet?.detail_conc} />
-                    <DetailMatrix title="表四 OD 明細" table={sheet?.detail_od} />
+                    <SummaryMatrix title="表一 濃度" table={sheet?.summary_conc} />
+                    <SummaryMatrix title="表二 OD" table={sheet?.summary_od} />
+                    {activeSheet === 'Control' && (
+                      <>
+                        <DetailMatrix title="表三 濃度明細" table={sheet?.detail_conc} />
+                        <DetailMatrix title="表四 OD 明細" table={sheet?.detail_od} />
+                      </>
+                    )}
                   </>
                 )}
               </div>

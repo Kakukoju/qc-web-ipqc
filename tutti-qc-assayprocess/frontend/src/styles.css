@@ -1018,3 +1018,35 @@ tbody tr:hover {
   text-align: left;
   background: #121a2b;
 }
+
+.cs-real-info-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 1px;
+  overflow: hidden;
+  border: 1px solid #22304a;
+  border-radius: 8px;
+  background: #22304a;
+}
+
+.cs-real-info-grid div {
+  min-height: 58px;
+  padding: 10px 12px;
+  background: #0d1526;
+}
+
+.cs-real-info-grid span {
+  display: block;
+  margin-bottom: 5px;
+  color: #7f90b2;
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.cs-real-info-grid strong {
+  color: #eaf2ff;
+  font-size: 13px;
+  font-weight: 800;
+  word-break: break-word;
+}

@@ -28,6 +28,7 @@ from all_batch_service import (
 )
 from app_config import SPEC_DB_PATH
 from query_service import _get_conn
+from baseline_service import _fetch_batch_info
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -464,23 +465,158 @@ def _write_summary_sheet(ws, group: dict[str, Any] | None, summaries: dict[str, 
         ws.cell(row, 37, _clean_text(rec.get("device_sn")))
 
 
-def _write_cs_real(ws, group: dict[str, Any] | None, summaries: dict[str, dict[str, Any]]) -> None:
+def _first_non_empty(records: list[dict[str, Any]], field: str) -> str:
+    for rec in records:
+        value = _clean_text(rec.get(field))
+        if value:
+            return value
+    return ""
+
+
+def _fetch_product_code(panel_name: str, group_key: str) -> str:
+    sub_panel = group_key[:3] if group_key else ""
+    pg = _get_conn()
+    try:
+        cur = pg.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+        cur.execute(
+            """
+            SELECT product_code
+            FROM qbi_qr.panels
+            WHERE panel_name = %s
+            ORDER BY CASE
+                WHEN panel_key = %s THEN 0
+                WHEN sub_panel_type = %s THEN 1
+                WHEN panel_key LIKE %s THEN 2
+                ELSE 3
+            END
+            LIMIT 1
+            """,
+            (panel_name, f"00-{sub_panel}", sub_panel, f"%{sub_panel}"),
+        )
+        row = cur.fetchone()
+        return _clean_text(row.get("product_code") if row else "")
+    finally:
+        pg.close()
+
+
+def _fetch_work_order_info(group: dict[str, Any] | None) -> dict[str, Any]:
+    if not group:
+        return {"work_order_no": "", "lot_no": "", "form_data": None, "source_table": ""}
+    records = group.get("records", [])
+    lot_candidates = []
+    work_order_candidates = []
+    for rec in records:
+        for field in ("mfg_lot_no", "lot_no"):
+            value = _clean_text(rec.get(field))
+            if value and value not in lot_candidates:
+                lot_candidates.append(value)
+        value = _clean_text(rec.get("work_order_no"))
+        if value and value not in work_order_candidates:
+            work_order_candidates.append(value)
+    if not lot_candidates and not work_order_candidates:
+        return {"work_order_no": "", "lot_no": "", "form_data": None, "source_table": ""}
+
+    pg = _get_conn()
+    try:
+        cur = pg.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+        params = [lot_candidates, work_order_candidates, lot_candidates, work_order_candidates]
+        cur.execute(
+            """
+            SELECT source_table, work_order_no, lot_no, form_data, created_at, updated_at
+            FROM (
+                SELECT 'tutti_work_orders' AS source_table, work_order_no, lot_no, form_data, created_at, updated_at
+                FROM panel_production.tutti_work_orders
+                WHERE lot_no = ANY(%s) OR work_order_no = ANY(%s)
+                UNION ALL
+                SELECT 'tutti_work_orders_water' AS source_table, work_order_no, lot_no, form_data, created_at, updated_at
+                FROM panel_production.tutti_work_orders_water
+                WHERE lot_no = ANY(%s) OR work_order_no = ANY(%s)
+            ) q
+            ORDER BY updated_at DESC NULLS LAST, created_at DESC NULLS LAST
+            LIMIT 1
+            """,
+            params,
+        )
+        row = cur.fetchone()
+        if not row:
+            return {"work_order_no": "", "lot_no": lot_candidates[0] if lot_candidates else "", "form_data": None, "source_table": ""}
+        form_data = row.get("form_data")
+        if isinstance(form_data, str):
+            try:
+                form_data = json.loads(form_data)
+            except json.JSONDecodeError:
+                form_data = None
+        return {
+            "work_order_no": _clean_text(row.get("work_order_no")),
+            "lot_no": _clean_text(row.get("lot_no")),
+            "form_data": form_data if isinstance(form_data, dict) else None,
+            "source_table": _clean_text(row.get("source_table")),
+        }
+    finally:
+        pg.close()
+
+
+def _marker_batch_text(batch_info: dict[str, str]) -> str:
+    parts = []
+    for label, key in (("d", "d_lot"), ("D", "bigD_lot"), ("U", "u_lot")):
+        value = _clean_text(batch_info.get(key))
+        if value:
+            parts.append(f"{label}:{value}")
+    return " / ".join(parts)
+
+
+def _cs_real_context(dataset: dict[str, Any], group: dict[str, Any] | None, markers: list[str]) -> dict[str, Any]:
+    records = group.get("records", []) if group else []
+    work_order = _fetch_work_order_info(group)
+    mfg_lot_no = _first_non_empty(records, "mfg_lot_no") or work_order.get("lot_no", "") or _first_non_empty(records, "lot_code")
+    product_code = _fetch_product_code(dataset.get("panel_name", ""), dataset.get("group_key", ""))
+    test_times = sorted({_clean_text(rec.get("analyze_time")) for rec in records if _clean_text(rec.get("analyze_time"))})
+    device_sns = sorted({_clean_text(rec.get("device_sn")) for rec in records if _clean_text(rec.get("device_sn"))})
+    batch_lookup = _fetch_batch_info(mfg_lot_no, dataset.get("panel_name", ""), dataset.get("analyze_date", ""), markers)
+    maker_batches = [_marker_batch_text(batch_lookup.get(marker, batch_lookup.get(marker.upper(), {}))) for marker in markers]
+    return {
+        "page_info": [
+            {"label": "Panel Name", "value": dataset.get("panel_name", "")},
+            {"label": "Product Code (REF)", "value": product_code},
+            {"label": "Lot No.", "value": dataset.get("display_lot_code", "")},
+            {"label": "Work Order", "value": work_order.get("work_order_no", "")},
+            {"label": "MFG Lot No.", "value": work_order.get("lot_no") or mfg_lot_no},
+            {"label": "Production Date", "value": dataset.get("production_date", "")},
+            {"label": "Test Date", "value": dataset.get("analyze_date", "")},
+            {"label": "Test Time", "value": " / ".join(test_times[:3])},
+            {"label": "Device SN", "value": " / ".join(device_sns[:3])},
+            {"label": "Maker Batch Source", "value": "baseline_service._fetch_batch_info"},
+        ],
+        "maker_batch": {"markers": markers, "values": maker_batches},
+    }
+
+
+def _write_cs_real(ws, dataset: dict[str, Any], group: dict[str, Any] | None, summaries: dict[str, dict[str, Any]], markers: list[str] | None = None) -> None:
     _clear_sheet_values(ws, range(2, ws.max_row + 1), range(4, min(ws.max_column, 35) + 1))
     if not group:
         return
-    markers = list(summaries.keys())[:10]
-    ws.cell(2, 4, group["panel_name"])
-    ws.cell(3, 14, group["production_date"])
-    ws.cell(4, 4, group["display_lot_code"])
-    ws.cell(4, 14, group["analyze_date"])
+    markers = (markers or list(summaries.keys()))[:10]
+    context = _cs_real_context(dataset, group, markers)
+    info = {item["label"]: item["value"] for item in context["page_info"]}
+    ws.cell(2, 4, info.get("Panel Name"))
+    ws.cell(2, 14, info.get("Work Order"))
+    ws.cell(3, 4, info.get("Product Code (REF)"))
+    ws.cell(3, 14, info.get("Production Date"))
+    ws.cell(4, 4, info.get("Lot No."))
+    ws.cell(4, 8, info.get("MFG Lot No."))
+    ws.cell(4, 14, info.get("Test Date"))
+    ws.cell(5, 4, info.get("Device SN"))
+    ws.cell(5, 14, info.get("Test Time"))
     for idx, marker in enumerate(markers):
         col = 4 + idx * 2
         od_col = 26 + idx
         ws.cell(20, col, marker)
         ws.cell(20, col + 1, f"{marker}\n換線後")
         ws.cell(20, od_col, marker)
+        ws.cell(21, col, context["maker_batch"]["values"][idx] if idx < len(context["maker_batch"]["values"]) else None)
+        summary = summaries.get(marker, _empty_marker_summary())
         for patient_id, rows in CONTROL_SUMMARY_ROWS.items():
-            control = summaries[marker]["controls"].get(patient_id, {})
+            control = summary["controls"].get(patient_id, {})
             row_offset = {"Control-1": 24, "Control-2": 27, "Control-3": 30, "Control-4": 33}[patient_id]
             ws.cell(row_offset, col, control.get("mean"))
             ws.cell(row_offset + 1, col, control.get("bias"))
@@ -715,9 +851,28 @@ def _report_markers(summaries_by_kind: dict[str, dict[str, dict[str, Any]]]) -> 
     markers = sorted({marker for summary in summaries_by_kind.values() for marker in summary.keys()})
     return markers[:10]
 
+def _cs_real_preview(dataset: dict[str, Any], group: dict[str, Any] | None, summaries: dict[str, dict[str, Any]], markers: list[str]) -> dict[str, Any]:
+    context = _cs_real_context(dataset, group, markers)
+    conc = _summary_table(markers, summaries, "control", "conc", group)
+    od = _summary_table(markers, summaries, "control", "od", group)
+    return {
+        "sheet_name": "CS-real彙總",
+        "markers": markers,
+        "test_count": _test_record_count(group, "control"),
+        "page_info": context["page_info"],
+        "maker_batch": context["maker_batch"],
+        "summary_conc": conc,
+        "summary_od": od,
+        "rows": [],
+    }
+
+
 def _preview_for_dataset(report_path: Path, dataset: dict[str, Any], summaries_by_kind: dict[str, dict[str, dict[str, Any]]]) -> dict[str, Any]:
     sheets = {}
     report_markers = _report_markers(summaries_by_kind)
+    control_group = dataset["groups_by_kind"].get("control")
+    control_summary = summaries_by_kind.get("control", {})
+    sheets["CS-real彙總"] = _cs_real_preview(dataset, control_group, control_summary, report_markers)
     for kind, sheet_name in {"control": "Control", **SPECIES_SHEETS}.items():
         group = dataset["groups_by_kind"].get(kind)
         summary = summaries_by_kind.get(kind, {})
@@ -897,7 +1052,7 @@ def generate_lot_report(output_date: str | None = None, dataset_id: str = "", lo
         group = dataset["groups_by_kind"].get(kind)
         _write_summary_sheet(wb[sheet], group, summaries_by_kind.get(kind, {}), kind, report_markers)
 
-    _write_cs_real(wb["CS-real彙整"], control_group, summaries_by_kind.get("control", {}))
+    _write_cs_real(wb["CS-real彙整"], dataset, control_group, summaries_by_kind.get("control", {}), report_markers)
 
     stamp = output_date or datetime.now().strftime("%y%m%d")
     stem = _safe_report_stem(dataset["display_lot_code"])

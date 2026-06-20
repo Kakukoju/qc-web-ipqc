@@ -2,7 +2,7 @@
   "ok": true,
   "file_name": "100526061102&200526061102_260620.xlsx",
   "download_url": "/api/assayprocess/lot-reports/100526061102&200526061102_260620.xlsx/download",
-  "generated_at": "2026-06-20T14:44:16",
+  "generated_at": "2026-06-20T19:51:49",
   "id": "00526061102::Diabetes 10",
   "panel_name": "Diabetes 10",
   "display_lot_code": "100526061102 & 200526061102",
@@ -17,7 +17,8 @@
     "control"
   ],
   "sheets": {
-    "Control": {
+    "CS-real彙總": {
+      "sheet_name": "CS-real彙總",
       "markers": [
         "ALB",
         "AMY",
@@ -28,6 +29,71 @@
         "TP",
         "TRIG"
       ],
+      "test_count": 8,
+      "page_info": [
+        {
+          "label": "Panel Name",
+          "value": "Diabetes 10"
+        },
+        {
+          "label": "Product Code (REF)",
+          "value": "905-112"
+        },
+        {
+          "label": "Lot No.",
+          "value": "100526061102 & 200526061102"
+        },
+        {
+          "label": "Work Order",
+          "value": "TMQP26F003"
+        },
+        {
+          "label": "MFG Lot No.",
+          "value": "1-000005-26061102"
+        },
+        {
+          "label": "Production Date",
+          "value": "2026-06-11"
+        },
+        {
+          "label": "Test Date",
+          "value": "2026-06-11"
+        },
+        {
+          "label": "Test Time",
+          "value": "18:08:54 / 18:10:15 / 18:11:06"
+        },
+        {
+          "label": "Device SN",
+          "value": "Q1H250619013 / Q1H250619026 / Q1H250619034"
+        },
+        {
+          "label": "Maker Batch Source",
+          "value": "baseline_service._fetch_batch_info"
+        }
+      ],
+      "maker_batch": {
+        "markers": [
+          "ALB",
+          "AMY",
+          "CHOL",
+          "FRU",
+          "GLU",
+          "P-LIPA",
+          "TP",
+          "TRIG"
+        ],
+        "values": [
+          "D:2312614W\n2312614X\n2312614Y",
+          "D:2612605Z",
+          "D:2852618Y / U:2862618Y",
+          "D:2462602Z / U:2952602Z",
+          "D:21926151\n21926153\n21926154",
+          "",
+          "D:10326193",
+          "D:2772620Z / U:2782620Z"
+        ]
+      },
       "summary_conc": {
         "markers": [
           "ALB",
@@ -44,14 +110,14 @@
             "label": "",
             "stat": "TEa",
             "values": [
-              0.08,
-              0.1,
-              0.1,
-              0.1,
-              0.08,
-              0.3,
-              0.08,
-              0.15
+              "8%",
+              "10%",
+              "10%",
+              "30 umol/L  or 10%",
+              "6 mg/dL or 8%",
+              "30%",
+              "8%",
+              "15%"
             ]
           },
           {
@@ -74,11 +140,11 @@
             "values": [
               3.8640000000000003,
               70.2,
-              205.20000000000002,
+              205.2,
               null,
               82.9472,
               null,
-              5.888000000000001,
+              5.888,
               null
             ]
           },
@@ -87,7 +153,7 @@
             "stat": "UCL",
             "values": [
               4.5360000000000005,
-              85.80000000000001,
+              85.8,
               250.8,
               null,
               97.3728,
@@ -282,14 +348,14 @@
             "label": "",
             "stat": "TEa",
             "values": [
-              0.08,
-              0.1,
-              0.1,
-              0.1,
-              0.08,
-              0.3,
-              0.08,
-              0.15
+              "8%",
+              "10%",
+              "10%",
+              "30 umol/L  or 10%",
+              "6 mg/dL or 8%",
+              "30%",
+              "8%",
+              "15%"
             ]
           },
           {
@@ -350,30 +416,16 @@
           },
           {
             "label": "Control 1",
-            "stat": "Bias",
-            "values": [
-              null,
-              null,
-              null,
-              null,
-              null,
-              null,
-              null,
-              null
-            ]
-          },
-          {
-            "label": "Control 1",
             "stat": "CV%",
             "values": [
-              null,
-              null,
-              null,
-              null,
-              null,
-              null,
-              null,
-              null
+              0.21,
+              1.34,
+              10.5,
+              2.02,
+              0.69,
+              0.26,
+              0.82,
+              0.58
             ]
           },
           {
@@ -392,30 +444,16 @@
           },
           {
             "label": "Control 2",
-            "stat": "Bias",
-            "values": [
-              null,
-              null,
-              null,
-              null,
-              null,
-              null,
-              null,
-              null
-            ]
-          },
-          {
-            "label": "Control 2",
             "stat": "CV%",
             "values": [
-              null,
-              null,
-              null,
-              null,
-              null,
-              null,
-              null,
-              null
+              1.29,
+              2.71,
+              26.41,
+              0.8,
+              3.13,
+              2.4,
+              1.51,
+              2.26
             ]
           },
           {
@@ -434,30 +472,16 @@
           },
           {
             "label": "Control 3",
-            "stat": "Bias",
-            "values": [
-              null,
-              null,
-              null,
-              null,
-              null,
-              null,
-              null,
-              null
-            ]
-          },
-          {
-            "label": "Control 3",
             "stat": "CV%",
             "values": [
-              null,
-              null,
-              null,
-              null,
-              null,
-              null,
-              null,
-              null
+              0.48,
+              1.15,
+              24.98,
+              0.39,
+              0.32,
+              3.73,
+              0.3,
+              0.75
             ]
           },
           {
@@ -476,7 +500,301 @@
           },
           {
             "label": "Control 4",
+            "stat": "CV%",
+            "values": [
+              0.25,
+              0.22,
+              2.4,
+              0.0,
+              0.01,
+              0.02,
+              0.02,
+              0.72
+            ]
+          }
+        ]
+      },
+      "rows": []
+    },
+    "Control": {
+      "markers": [
+        "ALB",
+        "AMY",
+        "CHOL",
+        "FRU",
+        "GLU",
+        "P-LIPA",
+        "TP",
+        "TRIG"
+      ],
+      "test_count": 8,
+      "summary_conc": {
+        "markers": [
+          "ALB",
+          "AMY",
+          "CHOL",
+          "FRU",
+          "GLU",
+          "P-LIPA",
+          "TP",
+          "TRIG"
+        ],
+        "rows": [
+          {
+            "label": "",
+            "stat": "TEa",
+            "values": [
+              "8%",
+              "10%",
+              "10%",
+              "30 umol/L  or 10%",
+              "6 mg/dL or 8%",
+              "30%",
+              "8%",
+              "15%"
+            ]
+          },
+          {
+            "label": "",
+            "stat": "Assign value",
+            "values": [
+              4.2,
+              78.0,
+              228.0,
+              null,
+              90.16,
+              null,
+              6.4,
+              null
+            ]
+          },
+          {
+            "label": "",
+            "stat": "LCL",
+            "values": [
+              3.8640000000000003,
+              70.2,
+              205.2,
+              null,
+              82.9472,
+              null,
+              5.888,
+              null
+            ]
+          },
+          {
+            "label": "",
+            "stat": "UCL",
+            "values": [
+              4.5360000000000005,
+              85.8,
+              250.8,
+              null,
+              97.3728,
+              null,
+              6.912000000000001,
+              null
+            ]
+          },
+          {
+            "label": "Control 1",
+            "stat": "Mean",
+            "values": [
+              4.169,
+              76.983,
+              215.327,
+              216.176,
+              93.378,
+              72.632,
+              6.732,
+              183.342
+            ]
+          },
+          {
+            "label": "Control 1",
             "stat": "Bias",
+            "values": [
+              -0.73,
+              -1.3,
+              -5.56,
+              null,
+              3.57,
+              null,
+              5.19,
+              null
+            ]
+          },
+          {
+            "label": "Control 1",
+            "stat": "CV%",
+            "values": [
+              0.34,
+              0.68,
+              10.2,
+              1.46,
+              0.78,
+              0.17,
+              1.15,
+              0.62
+            ]
+          },
+          {
+            "label": "Control 2",
+            "stat": "Mean",
+            "values": [
+              2.798,
+              416.103,
+              84.185,
+              281.964,
+              310.028,
+              91.747,
+              4.548,
+              101.34
+            ]
+          },
+          {
+            "label": "Control 2",
+            "stat": "Bias",
+            "values": [
+              3.62,
+              3.0,
+              -14.96,
+              null,
+              5.8,
+              null,
+              10.92,
+              null
+            ]
+          },
+          {
+            "label": "Control 2",
+            "stat": "CV%",
+            "values": [
+              2.41,
+              2.46,
+              24.49,
+              0.63,
+              3.26,
+              1.76,
+              2.41,
+              5.08
+            ]
+          },
+          {
+            "label": "Control 3",
+            "stat": "Mean",
+            "values": [
+              2.518,
+              65.322,
+              81.369,
+              149.743,
+              67.589,
+              44.17,
+              4.138,
+              111.676
+            ]
+          },
+          {
+            "label": "Control 3",
+            "stat": "Bias",
+            "values": [
+              -3.17,
+              3.69,
+              -29.24,
+              null,
+              2.94,
+              null,
+              -1.48,
+              null
+            ]
+          },
+          {
+            "label": "Control 3",
+            "stat": "CV%",
+            "values": [
+              0.78,
+              1.95,
+              12.5,
+              0.04,
+              0.46,
+              8.41,
+              1.33,
+              1.27
+            ]
+          },
+          {
+            "label": "Control 4",
+            "stat": "Mean",
+            "values": [
+              4.066,
+              300.294,
+              256.486,
+              224.72,
+              371.497,
+              113.13,
+              7.491,
+              226.582
+            ]
+          },
+          {
+            "label": "Control 4",
+            "stat": "Bias",
+            "values": [
+              -3.19,
+              1.11,
+              -4.65,
+              null,
+              3.29,
+              null,
+              -0.12,
+              null
+            ]
+          },
+          {
+            "label": "Control 4",
+            "stat": "CV%",
+            "values": [
+              0.4,
+              0.19,
+              2.35,
+              0.0,
+              0.01,
+              0.01,
+              0.03,
+              0.61
+            ]
+          }
+        ]
+      },
+      "summary_od": {
+        "markers": [
+          "ALB",
+          "AMY",
+          "CHOL",
+          "FRU",
+          "GLU",
+          "P-LIPA",
+          "TP",
+          "TRIG"
+        ],
+        "rows": [
+          {
+            "label": "",
+            "stat": "TEa",
+            "values": [
+              "8%",
+              "10%",
+              "10%",
+              "30 umol/L  or 10%",
+              "6 mg/dL or 8%",
+              "30%",
+              "8%",
+              "15%"
+            ]
+          },
+          {
+            "label": "",
+            "stat": "Assay Value",
             "values": [
               null,
               null,
@@ -489,8 +807,8 @@
             ]
           },
           {
-            "label": "Control 4",
-            "stat": "CV%",
+            "label": "",
+            "stat": "LCL",
             "values": [
               null,
               null,
@@ -500,6 +818,132 @@
               null,
               null,
               null
+            ]
+          },
+          {
+            "label": "",
+            "stat": "UCL",
+            "values": [
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null
+            ]
+          },
+          {
+            "label": "Control 1",
+            "stat": "Mean",
+            "values": [
+              2.6344,
+              0.0336,
+              1.5338,
+              0.409,
+              0.6181,
+              0.2451,
+              0.7169,
+              1.4234
+            ]
+          },
+          {
+            "label": "Control 1",
+            "stat": "CV%",
+            "values": [
+              0.21,
+              1.34,
+              10.5,
+              2.02,
+              0.69,
+              0.26,
+              0.82,
+              0.58
+            ]
+          },
+          {
+            "label": "Control 2",
+            "stat": "Mean",
+            "values": [
+              2.0862,
+              0.3259,
+              0.5723,
+              0.5815,
+              1.8888,
+              0.3425,
+              0.5515,
+              0.8093
+            ]
+          },
+          {
+            "label": "Control 2",
+            "stat": "CV%",
+            "values": [
+              1.29,
+              2.71,
+              26.41,
+              0.8,
+              3.13,
+              2.4,
+              1.51,
+              2.26
+            ]
+          },
+          {
+            "label": "Control 3",
+            "stat": "Mean",
+            "values": [
+              1.9727,
+              0.0222,
+              0.6359,
+              0.2356,
+              0.4702,
+              0.0842,
+              0.5231,
+              0.9068
+            ]
+          },
+          {
+            "label": "Control 3",
+            "stat": "CV%",
+            "values": [
+              0.48,
+              1.15,
+              24.98,
+              0.39,
+              0.32,
+              3.73,
+              0.3,
+              0.75
+            ]
+          },
+          {
+            "label": "Control 4",
+            "stat": "Mean",
+            "values": [
+              2.5932,
+              0.2261,
+              1.8355,
+              0.4314,
+              2.2493,
+              0.4515,
+              0.7744,
+              1.6347
+            ]
+          },
+          {
+            "label": "Control 4",
+            "stat": "CV%",
+            "values": [
+              0.25,
+              0.22,
+              2.4,
+              0.0,
+              0.01,
+              0.02,
+              0.02,
+              0.72
             ]
           }
         ]
@@ -836,7 +1280,8 @@
               }
             }
           }
-        ]
+        ],
+        "value_mode": "conc"
       },
       "detail_od": {
         "markers": [
@@ -1170,14 +1615,15 @@
               }
             }
           }
-        ]
+        ],
+        "value_mode": "od"
       },
       "sheet_name": "Control",
       "rows": [
         {
           "type": "Control-1",
           "marker": "ALB",
-          "tea": 0.08,
+          "tea": "8%",
           "assigned": 4.2,
           "lcl": 3.8640000000000003,
           "ucl": 4.5360000000000005,
@@ -1190,9 +1636,9 @@
         {
           "type": "Control-2",
           "marker": "ALB",
-          "tea": 0.08,
+          "tea": "8%",
           "assigned": 2.7,
-          "lcl": 2.4840000000000004,
+          "lcl": 2.484,
           "ucl": 2.9160000000000004,
           "mean": 2.798,
           "bias": 3.62,
@@ -1203,9 +1649,9 @@
         {
           "type": "Control-3",
           "marker": "ALB",
-          "tea": 0.08,
+          "tea": "8%",
           "assigned": 2.6,
-          "lcl": 2.3920000000000003,
+          "lcl": 2.392,
           "ucl": 2.8080000000000003,
           "mean": 2.518,
           "bias": -3.17,
@@ -1216,7 +1662,7 @@
         {
           "type": "Control-4",
           "marker": "ALB",
-          "tea": 0.08,
+          "tea": "8%",
           "assigned": 4.2,
           "lcl": 3.8640000000000003,
           "ucl": 4.5360000000000005,
@@ -1229,10 +1675,10 @@
         {
           "type": "Control-1",
           "marker": "AMY",
-          "tea": 0.1,
+          "tea": "10%",
           "assigned": 78.0,
           "lcl": 70.2,
-          "ucl": 85.80000000000001,
+          "ucl": 85.8,
           "mean": 76.983,
           "bias": -1.3,
           "cv": 0.68,
@@ -1242,10 +1688,10 @@
         {
           "type": "Control-2",
           "marker": "AMY",
-          "tea": 0.1,
+          "tea": "10%",
           "assigned": 404.0,
           "lcl": 363.6,
-          "ucl": 444.40000000000003,
+          "ucl": 444.4,
           "mean": 416.103,
           "bias": 3.0,
           "cv": 2.46,
@@ -1255,10 +1701,10 @@
         {
           "type": "Control-3",
           "marker": "AMY",
-          "tea": 0.1,
+          "tea": "10%",
           "assigned": 63.0,
           "lcl": 56.7,
-          "ucl": 69.30000000000001,
+          "ucl": 69.3,
           "mean": 65.322,
           "bias": 3.69,
           "cv": 1.95,
@@ -1268,10 +1714,10 @@
         {
           "type": "Control-4",
           "marker": "AMY",
-          "tea": 0.1,
+          "tea": "10%",
           "assigned": 297.0,
           "lcl": 267.3,
-          "ucl": 326.70000000000005,
+          "ucl": 326.7,
           "mean": 300.294,
           "bias": 1.11,
           "cv": 0.19,
@@ -1281,9 +1727,9 @@
         {
           "type": "Control-1",
           "marker": "CHOL",
-          "tea": 0.1,
+          "tea": "10%",
           "assigned": 228.0,
-          "lcl": 205.20000000000002,
+          "lcl": 205.2,
           "ucl": 250.8,
           "mean": 215.327,
           "bias": -5.56,
@@ -1294,9 +1740,9 @@
         {
           "type": "Control-2",
           "marker": "CHOL",
-          "tea": 0.1,
+          "tea": "10%",
           "assigned": 99.0,
-          "lcl": 89.10000000000001,
+          "lcl": 89.1,
           "ucl": 108.9,
           "mean": 84.185,
           "bias": -14.96,
@@ -1307,10 +1753,10 @@
         {
           "type": "Control-3",
           "marker": "CHOL",
-          "tea": 0.1,
+          "tea": "10%",
           "assigned": 115.0,
           "lcl": 103.5,
-          "ucl": 126.50000000000001,
+          "ucl": 126.5,
           "mean": 81.369,
           "bias": -29.24,
           "cv": 12.5,
@@ -1320,10 +1766,10 @@
         {
           "type": "Control-4",
           "marker": "CHOL",
-          "tea": 0.1,
+          "tea": "10%",
           "assigned": 269.0,
           "lcl": 242.1,
-          "ucl": 295.90000000000003,
+          "ucl": 295.9,
           "mean": 256.486,
           "bias": -4.65,
           "cv": 2.35,
@@ -1333,7 +1779,7 @@
         {
           "type": "Control-1",
           "marker": "FRU",
-          "tea": 0.1,
+          "tea": "30 umol/L  or 10%",
           "assigned": null,
           "lcl": null,
           "ucl": null,
@@ -1346,7 +1792,7 @@
         {
           "type": "Control-2",
           "marker": "FRU",
-          "tea": 0.1,
+          "tea": "30 umol/L  or 10%",
           "assigned": null,
           "lcl": null,
           "ucl": null,
@@ -1359,7 +1805,7 @@
         {
           "type": "Control-3",
           "marker": "FRU",
-          "tea": 0.1,
+          "tea": "30 umol/L  or 10%",
           "assigned": null,
           "lcl": null,
           "ucl": null,
@@ -1372,7 +1818,7 @@
         {
           "type": "Control-4",
           "marker": "FRU",
-          "tea": 0.1,
+          "tea": "30 umol/L  or 10%",
           "assigned": null,
           "lcl": null,
           "ucl": null,
@@ -1385,7 +1831,7 @@
         {
           "type": "Control-1",
           "marker": "GLU",
-          "tea": 0.08,
+          "tea": "6 mg/dL or 8%",
           "assigned": 90.16,
           "lcl": 82.9472,
           "ucl": 97.3728,
@@ -1398,7 +1844,7 @@
         {
           "type": "Control-2",
           "marker": "GLU",
-          "tea": 0.08,
+          "tea": "6 mg/dL or 8%",
           "assigned": 293.02,
           "lcl": 269.5784,
           "ucl": 316.4616,
@@ -1411,10 +1857,10 @@
         {
           "type": "Control-3",
           "marker": "GLU",
-          "tea": 0.08,
+          "tea": "6 mg/dL or 8%",
           "assigned": 65.66,
-          "lcl": 60.407199999999996,
-          "ucl": 70.9128,
+          "lcl": 59.66,
+          "ucl": 71.66,
           "mean": 67.589,
           "bias": 2.94,
           "cv": 0.46,
@@ -1424,9 +1870,9 @@
         {
           "type": "Control-4",
           "marker": "GLU",
-          "tea": 0.08,
+          "tea": "6 mg/dL or 8%",
           "assigned": 359.65999999999997,
-          "lcl": 330.8872,
+          "lcl": 330.88719999999995,
           "ucl": 388.4328,
           "mean": 371.497,
           "bias": 3.29,
@@ -1437,7 +1883,7 @@
         {
           "type": "Control-1",
           "marker": "P-LIPA",
-          "tea": 0.3,
+          "tea": "30%",
           "assigned": null,
           "lcl": null,
           "ucl": null,
@@ -1450,7 +1896,7 @@
         {
           "type": "Control-2",
           "marker": "P-LIPA",
-          "tea": 0.3,
+          "tea": "30%",
           "assigned": null,
           "lcl": null,
           "ucl": null,
@@ -1463,7 +1909,7 @@
         {
           "type": "Control-3",
           "marker": "P-LIPA",
-          "tea": 0.3,
+          "tea": "30%",
           "assigned": null,
           "lcl": null,
           "ucl": null,
@@ -1476,7 +1922,7 @@
         {
           "type": "Control-4",
           "marker": "P-LIPA",
-          "tea": 0.3,
+          "tea": "30%",
           "assigned": null,
           "lcl": null,
           "ucl": null,
@@ -1489,9 +1935,9 @@
         {
           "type": "Control-1",
           "marker": "TP",
-          "tea": 0.08,
+          "tea": "8%",
           "assigned": 6.4,
-          "lcl": 5.888000000000001,
+          "lcl": 5.888,
           "ucl": 6.912000000000001,
           "mean": 6.732,
           "bias": 5.19,
@@ -1502,7 +1948,7 @@
         {
           "type": "Control-2",
           "marker": "TP",
-          "tea": 0.08,
+          "tea": "8%",
           "assigned": 4.1,
           "lcl": 3.772,
           "ucl": 4.428,
@@ -1515,7 +1961,7 @@
         {
           "type": "Control-3",
           "marker": "TP",
-          "tea": 0.08,
+          "tea": "8%",
           "assigned": 4.2,
           "lcl": 3.8640000000000003,
           "ucl": 4.5360000000000005,
@@ -1528,10 +1974,10 @@
         {
           "type": "Control-4",
           "marker": "TP",
-          "tea": 0.08,
+          "tea": "8%",
           "assigned": 7.5,
           "lcl": 6.9,
-          "ucl": 8.100000000000001,
+          "ucl": 8.1,
           "mean": 7.491,
           "bias": -0.12,
           "cv": 0.03,
@@ -1541,7 +1987,7 @@
         {
           "type": "Control-1",
           "marker": "TRIG",
-          "tea": 0.15,
+          "tea": "15%",
           "assigned": null,
           "lcl": null,
           "ucl": null,
@@ -1554,7 +2000,7 @@
         {
           "type": "Control-2",
           "marker": "TRIG",
-          "tea": 0.15,
+          "tea": "15%",
           "assigned": null,
           "lcl": null,
           "ucl": null,
@@ -1567,7 +2013,7 @@
         {
           "type": "Control-3",
           "marker": "TRIG",
-          "tea": 0.15,
+          "tea": "15%",
           "assigned": null,
           "lcl": null,
           "ucl": null,
@@ -1580,7 +2026,7 @@
         {
           "type": "Control-4",
           "marker": "TRIG",
-          "tea": 0.15,
+          "tea": "15%",
           "assigned": null,
           "lcl": null,
           "ucl": null,
@@ -1593,190 +2039,466 @@
       ]
     },
     "Canine": {
-      "markers": [],
+      "markers": [
+        "ALB",
+        "AMY",
+        "CHOL",
+        "FRU",
+        "GLU",
+        "P-LIPA",
+        "TP",
+        "TRIG"
+      ],
+      "test_count": 0,
       "summary_conc": {
-        "markers": [],
+        "markers": [
+          "ALB",
+          "AMY",
+          "CHOL",
+          "FRU",
+          "GLU",
+          "P-LIPA",
+          "TP",
+          "TRIG"
+        ],
         "rows": [
           {
             "label": "",
             "stat": "TEa",
-            "values": []
+            "values": [
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null
+            ]
           },
           {
             "label": "",
             "stat": "Assign value",
-            "values": []
+            "values": [
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null
+            ]
           },
           {
             "label": "",
             "stat": "LCL",
-            "values": []
+            "values": [
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null
+            ]
           },
           {
             "label": "",
             "stat": "UCL",
-            "values": []
+            "values": [
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null
+            ]
           }
         ]
       },
       "summary_od": {
-        "markers": [],
+        "markers": [
+          "ALB",
+          "AMY",
+          "CHOL",
+          "FRU",
+          "GLU",
+          "P-LIPA",
+          "TP",
+          "TRIG"
+        ],
         "rows": [
           {
             "label": "",
             "stat": "TEa",
-            "values": []
+            "values": [
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null
+            ]
           },
           {
             "label": "",
             "stat": "Assay Value",
-            "values": []
+            "values": [
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null
+            ]
           },
           {
             "label": "",
             "stat": "LCL",
-            "values": []
+            "values": [
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null
+            ]
           },
           {
             "label": "",
             "stat": "UCL",
-            "values": []
+            "values": [
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null
+            ]
           }
         ]
-      },
-      "detail_conc": {
-        "markers": [],
-        "rows": []
-      },
-      "detail_od": {
-        "markers": [],
-        "rows": []
       },
       "sheet_name": "Canine",
       "rows": []
     },
     "Feline": {
-      "markers": [],
+      "markers": [
+        "ALB",
+        "AMY",
+        "CHOL",
+        "FRU",
+        "GLU",
+        "P-LIPA",
+        "TP",
+        "TRIG"
+      ],
+      "test_count": 0,
       "summary_conc": {
-        "markers": [],
+        "markers": [
+          "ALB",
+          "AMY",
+          "CHOL",
+          "FRU",
+          "GLU",
+          "P-LIPA",
+          "TP",
+          "TRIG"
+        ],
         "rows": [
           {
             "label": "",
             "stat": "TEa",
-            "values": []
+            "values": [
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null
+            ]
           },
           {
             "label": "",
             "stat": "Assign value",
-            "values": []
+            "values": [
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null
+            ]
           },
           {
             "label": "",
             "stat": "LCL",
-            "values": []
+            "values": [
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null
+            ]
           },
           {
             "label": "",
             "stat": "UCL",
-            "values": []
+            "values": [
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null
+            ]
           }
         ]
       },
       "summary_od": {
-        "markers": [],
+        "markers": [
+          "ALB",
+          "AMY",
+          "CHOL",
+          "FRU",
+          "GLU",
+          "P-LIPA",
+          "TP",
+          "TRIG"
+        ],
         "rows": [
           {
             "label": "",
             "stat": "TEa",
-            "values": []
+            "values": [
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null
+            ]
           },
           {
             "label": "",
             "stat": "Assay Value",
-            "values": []
+            "values": [
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null
+            ]
           },
           {
             "label": "",
             "stat": "LCL",
-            "values": []
+            "values": [
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null
+            ]
           },
           {
             "label": "",
             "stat": "UCL",
-            "values": []
+            "values": [
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null
+            ]
           }
         ]
-      },
-      "detail_conc": {
-        "markers": [],
-        "rows": []
-      },
-      "detail_od": {
-        "markers": [],
-        "rows": []
       },
       "sheet_name": "Feline",
       "rows": []
     },
     "Equine": {
-      "markers": [],
+      "markers": [
+        "ALB",
+        "AMY",
+        "CHOL",
+        "FRU",
+        "GLU",
+        "P-LIPA",
+        "TP",
+        "TRIG"
+      ],
+      "test_count": 0,
       "summary_conc": {
-        "markers": [],
+        "markers": [
+          "ALB",
+          "AMY",
+          "CHOL",
+          "FRU",
+          "GLU",
+          "P-LIPA",
+          "TP",
+          "TRIG"
+        ],
         "rows": [
           {
             "label": "",
             "stat": "TEa",
-            "values": []
+            "values": [
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null
+            ]
           },
           {
             "label": "",
             "stat": "Assign value",
-            "values": []
+            "values": [
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null
+            ]
           },
           {
             "label": "",
             "stat": "LCL",
-            "values": []
+            "values": [
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null
+            ]
           },
           {
             "label": "",
             "stat": "UCL",
-            "values": []
+            "values": [
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null
+            ]
           }
         ]
       },
       "summary_od": {
-        "markers": [],
+        "markers": [
+          "ALB",
+          "AMY",
+          "CHOL",
+          "FRU",
+          "GLU",
+          "P-LIPA",
+          "TP",
+          "TRIG"
+        ],
         "rows": [
           {
             "label": "",
             "stat": "TEa",
-            "values": []
+            "values": [
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null
+            ]
           },
           {
             "label": "",
             "stat": "Assay Value",
-            "values": []
+            "values": [
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null
+            ]
           },
           {
             "label": "",
             "stat": "LCL",
-            "values": []
+            "values": [
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null
+            ]
           },
           {
             "label": "",
             "stat": "UCL",
-            "values": []
+            "values": [
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null
+            ]
           }
         ]
-      },
-      "detail_conc": {
-        "markers": [],
-        "rows": []
-      },
-      "detail_od": {
-        "markers": [],
-        "rows": []
       },
       "sheet_name": "Equine",
       "rows": []

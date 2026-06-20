@@ -2,7 +2,7 @@
   "ok": true,
   "file_name": "200326061002_260620.xlsx",
   "download_url": "/api/assayprocess/lot-reports/200326061002_260620.xlsx/download",
-  "generated_at": "2026-06-20T15:29:06",
+  "generated_at": "2026-06-20T19:51:53",
   "id": "00326061002::Electrolyte 7",
   "panel_name": "Electrolyte 7",
   "display_lot_code": "200326061002",
@@ -16,6 +16,406 @@
     "control"
   ],
   "sheets": {
+    "CS-real彙總": {
+      "sheet_name": "CS-real彙總",
+      "markers": [
+        "ALP",
+        "Cl",
+        "K",
+        "Na",
+        "TCO2"
+      ],
+      "test_count": 12,
+      "page_info": [
+        {
+          "label": "Panel Name",
+          "value": "Electrolyte 7"
+        },
+        {
+          "label": "Product Code (REF)",
+          "value": "905-107"
+        },
+        {
+          "label": "Lot No.",
+          "value": "200326061002"
+        },
+        {
+          "label": "Work Order",
+          "value": "TMQP26F001"
+        },
+        {
+          "label": "MFG Lot No.",
+          "value": "1-000003-26061002"
+        },
+        {
+          "label": "Production Date",
+          "value": "2026-06-10"
+        },
+        {
+          "label": "Test Date",
+          "value": "2026-06-12"
+        },
+        {
+          "label": "Test Time",
+          "value": "14:30:35 / 14:34:14 / 14:35:43"
+        },
+        {
+          "label": "Device SN",
+          "value": "Q1H250619013 / Q1H250619026 / Q1H250619034"
+        },
+        {
+          "label": "Maker Batch Source",
+          "value": "baseline_service._fetch_batch_info"
+        }
+      ],
+      "maker_batch": {
+        "markers": [
+          "ALP",
+          "Cl",
+          "K",
+          "Na",
+          "TCO2"
+        ],
+        "values": [
+          "D:10626203 / U:10526203",
+          "D:13926231 / U:14026231",
+          "D:2642621Z / U:2652621Z",
+          "D:2692615Z / U:2682615Z",
+          "D:2822623Z / U:2812623Z"
+        ]
+      },
+      "summary_conc": {
+        "markers": [
+          "ALP",
+          "Cl",
+          "K",
+          "Na",
+          "TCO2"
+        ],
+        "rows": [
+          {
+            "label": "",
+            "stat": "TEa",
+            "values": [
+              "20%",
+              "5%",
+              "0.3 mmol/L",
+              "4 mmol/L",
+              "20%"
+            ]
+          },
+          {
+            "label": "",
+            "stat": "Assign value",
+            "values": [
+              136.0,
+              90.0,
+              3.9,
+              141.0,
+              32.5
+            ]
+          },
+          {
+            "label": "",
+            "stat": "LCL",
+            "values": [
+              108.8,
+              85.5,
+              3.6,
+              137.0,
+              26.0
+            ]
+          },
+          {
+            "label": "",
+            "stat": "UCL",
+            "values": [
+              163.2,
+              94.5,
+              4.2,
+              145.0,
+              39.0
+            ]
+          },
+          {
+            "label": "Control 1",
+            "stat": "Mean",
+            "values": [
+              148.934,
+              98.3,
+              3.642,
+              142.285,
+              23.88
+            ]
+          },
+          {
+            "label": "Control 1",
+            "stat": "Bias",
+            "values": [
+              9.51,
+              9.22,
+              -6.61,
+              0.91,
+              -26.52
+            ]
+          },
+          {
+            "label": "Control 1",
+            "stat": "CV%",
+            "values": [
+              0.66,
+              0.99,
+              2.07,
+              0.65,
+              1.8
+            ]
+          },
+          {
+            "label": "Control 2",
+            "stat": "Mean",
+            "values": [
+              484.721,
+              90.395,
+              6.112,
+              130.494,
+              11.814
+            ]
+          },
+          {
+            "label": "Control 2",
+            "stat": "Bias",
+            "values": [
+              6.3,
+              -0.66,
+              1.87,
+              1.16,
+              -44.28
+            ]
+          },
+          {
+            "label": "Control 2",
+            "stat": "CV%",
+            "values": [
+              1.16,
+              1.31,
+              0.31,
+              0.25,
+              4.36
+            ]
+          },
+          {
+            "label": "Control 3",
+            "stat": "Mean",
+            "values": [
+              75.704,
+              81.303,
+              2.28,
+              120.815,
+              11.968
+            ]
+          },
+          {
+            "label": "Control 3",
+            "stat": "Bias",
+            "values": [
+              0.94,
+              5.59,
+              3.62,
+              2.39,
+              -30.82
+            ]
+          },
+          {
+            "label": "Control 3",
+            "stat": "CV%",
+            "values": [
+              0.18,
+              1.06,
+              1.56,
+              0.91,
+              27.61
+            ]
+          },
+          {
+            "label": "Control 4",
+            "stat": "Mean",
+            "values": [
+              257.674,
+              126.345,
+              8.397,
+              157.862,
+              18.669
+            ]
+          },
+          {
+            "label": "Control 4",
+            "stat": "Bias",
+            "values": [
+              2.66,
+              7.07,
+              -0.03,
+              -4.9,
+              -30.08
+            ]
+          },
+          {
+            "label": "Control 4",
+            "stat": "CV%",
+            "values": [
+              3.66,
+              1.73,
+              2.13,
+              0.41,
+              4.35
+            ]
+          }
+        ]
+      },
+      "summary_od": {
+        "markers": [
+          "ALP",
+          "Cl",
+          "K",
+          "Na",
+          "TCO2"
+        ],
+        "rows": [
+          {
+            "label": "",
+            "stat": "TEa",
+            "values": [
+              "20%",
+              "5%",
+              "0.3 mmol/L",
+              "4 mmol/L",
+              "20%"
+            ]
+          },
+          {
+            "label": "",
+            "stat": "Assay Value",
+            "values": [
+              null,
+              null,
+              null,
+              null,
+              null
+            ]
+          },
+          {
+            "label": "",
+            "stat": "LCL",
+            "values": [
+              null,
+              null,
+              null,
+              null,
+              null
+            ]
+          },
+          {
+            "label": "",
+            "stat": "UCL",
+            "values": [
+              null,
+              null,
+              null,
+              null,
+              null
+            ]
+          },
+          {
+            "label": "Control 1",
+            "stat": "Mean",
+            "values": [
+              0.2059,
+              1.1721,
+              0.4301,
+              0.7142,
+              1.3481
+            ]
+          },
+          {
+            "label": "Control 1",
+            "stat": "CV%",
+            "values": [
+              1.09,
+              0.89,
+              1.36,
+              0.98,
+              1.2
+            ]
+          },
+          {
+            "label": "Control 2",
+            "stat": "Mean",
+            "values": [
+              0.9695,
+              1.0771,
+              0.6222,
+              0.6258,
+              0.8578
+            ]
+          },
+          {
+            "label": "Control 2",
+            "stat": "CV%",
+            "values": [
+              1.03,
+              0.6,
+              0.18,
+              0.45,
+              3.92
+            ]
+          },
+          {
+            "label": "Control 3",
+            "stat": "Mean",
+            "values": [
+              0.0398,
+              0.9897,
+              0.3243,
+              0.5525,
+              0.8984
+            ]
+          },
+          {
+            "label": "Control 3",
+            "stat": "CV%",
+            "values": [
+              0.77,
+              0.94,
+              0.85,
+              1.49,
+              13.89
+            ]
+          },
+          {
+            "label": "Control 4",
+            "stat": "Mean",
+            "values": [
+              0.4519,
+              1.473,
+              0.798,
+              0.8336,
+              1.159
+            ]
+          },
+          {
+            "label": "Control 4",
+            "stat": "CV%",
+            "values": [
+              4.84,
+              1.6,
+              1.51,
+              0.67,
+              2.58
+            ]
+          }
+        ]
+      },
+      "rows": []
+    },
     "Control": {
       "markers": [
         "ALP",
@@ -24,6 +424,7 @@
         "Na",
         "TCO2"
       ],
+      "test_count": 12,
       "summary_conc": {
         "markers": [
           "ALP",
@@ -1322,6 +1723,7 @@
         "Na",
         "TCO2"
       ],
+      "test_count": 0,
       "summary_conc": {
         "markers": [
           "ALP",
@@ -1443,6 +1845,7 @@
         "Na",
         "TCO2"
       ],
+      "test_count": 0,
       "summary_conc": {
         "markers": [
           "ALP",
@@ -1564,6 +1967,7 @@
         "Na",
         "TCO2"
       ],
+      "test_count": 0,
       "summary_conc": {
         "markers": [
           "ALP",

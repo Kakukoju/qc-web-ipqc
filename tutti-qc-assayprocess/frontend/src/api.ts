@@ -236,10 +236,23 @@ export interface LotReportDetailTable {
   value_mode?: 'conc' | 'od';
 }
 
+
+export interface LotReportPageInfoItem {
+  label: string;
+  value: number | string | null;
+}
+
+export interface LotReportMakerBatch {
+  markers: string[];
+  values: Array<number | string | null>;
+}
+
 export interface LotReportSheetPreview {
   sheet_name: string;
   markers?: string[];
   test_count?: number;
+  page_info?: LotReportPageInfoItem[];
+  maker_batch?: LotReportMakerBatch;
   rows: LotReportSheetRow[];
   summary_conc?: LotReportSummaryTable;
   summary_od?: LotReportSummaryTable;

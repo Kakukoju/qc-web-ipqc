@@ -2,7 +2,7 @@
   "ok": true,
   "file_name": "111326061702_260620.xlsx",
   "download_url": "/api/assayprocess/lot-reports/111326061702_260620.xlsx/download",
-  "generated_at": "2026-06-20T18:04:54",
+  "generated_at": "2026-06-20T19:51:35",
   "id": "11326061702::S-DMA",
   "panel_name": "S-DMA",
   "display_lot_code": "111326061702",
@@ -16,6 +16,274 @@
     "control"
   ],
   "sheets": {
+    "CS-real彙總": {
+      "sheet_name": "CS-real彙總",
+      "markers": [
+        "S-DMA"
+      ],
+      "test_count": 17,
+      "page_info": [
+        {
+          "label": "Panel Name",
+          "value": "S-DMA"
+        },
+        {
+          "label": "Product Code (REF)",
+          "value": "905-204"
+        },
+        {
+          "label": "Lot No.",
+          "value": "111326061702"
+        },
+        {
+          "label": "Work Order",
+          "value": ""
+        },
+        {
+          "label": "MFG Lot No.",
+          "value": "1-000113-26061702"
+        },
+        {
+          "label": "Production Date",
+          "value": "2026-06-17"
+        },
+        {
+          "label": "Test Date",
+          "value": "2026-06-17"
+        },
+        {
+          "label": "Test Time",
+          "value": "16:28:54 / 16:45:38 / 17:11:46"
+        },
+        {
+          "label": "Device SN",
+          "value": "Q1H250619013 / Q1H250619026 / Q1H250826021"
+        },
+        {
+          "label": "Maker Batch Source",
+          "value": "baseline_service._fetch_batch_info"
+        }
+      ],
+      "maker_batch": {
+        "markers": [
+          "S-DMA"
+        ],
+        "values": [
+          ""
+        ]
+      },
+      "summary_conc": {
+        "markers": [
+          "S-DMA"
+        ],
+        "rows": [
+          {
+            "label": "",
+            "stat": "TEa",
+            "values": [
+              null
+            ]
+          },
+          {
+            "label": "",
+            "stat": "Assign value",
+            "values": [
+              null
+            ]
+          },
+          {
+            "label": "",
+            "stat": "LCL",
+            "values": [
+              null
+            ]
+          },
+          {
+            "label": "",
+            "stat": "UCL",
+            "values": [
+              null
+            ]
+          },
+          {
+            "label": "Control 1",
+            "stat": "Mean",
+            "values": [
+              12.04
+            ]
+          },
+          {
+            "label": "Control 1",
+            "stat": "Bias",
+            "values": [
+              null
+            ]
+          },
+          {
+            "label": "Control 1",
+            "stat": "CV%",
+            "values": [
+              7.11
+            ]
+          },
+          {
+            "label": "Control 2",
+            "stat": "Mean",
+            "values": [
+              40.864
+            ]
+          },
+          {
+            "label": "Control 2",
+            "stat": "Bias",
+            "values": [
+              null
+            ]
+          },
+          {
+            "label": "Control 2",
+            "stat": "CV%",
+            "values": [
+              47.12
+            ]
+          },
+          {
+            "label": "Control 3",
+            "stat": "Mean",
+            "values": [
+              null
+            ]
+          },
+          {
+            "label": "Control 3",
+            "stat": "Bias",
+            "values": [
+              null
+            ]
+          },
+          {
+            "label": "Control 3",
+            "stat": "CV%",
+            "values": [
+              null
+            ]
+          },
+          {
+            "label": "Control 4",
+            "stat": "Mean",
+            "values": [
+              null
+            ]
+          },
+          {
+            "label": "Control 4",
+            "stat": "Bias",
+            "values": [
+              null
+            ]
+          },
+          {
+            "label": "Control 4",
+            "stat": "CV%",
+            "values": [
+              null
+            ]
+          }
+        ]
+      },
+      "summary_od": {
+        "markers": [
+          "S-DMA"
+        ],
+        "rows": [
+          {
+            "label": "",
+            "stat": "TEa",
+            "values": [
+              null
+            ]
+          },
+          {
+            "label": "",
+            "stat": "Assay Value",
+            "values": [
+              null
+            ]
+          },
+          {
+            "label": "",
+            "stat": "LCL",
+            "values": [
+              null
+            ]
+          },
+          {
+            "label": "",
+            "stat": "UCL",
+            "values": [
+              null
+            ]
+          },
+          {
+            "label": "Control 1",
+            "stat": "Mean",
+            "values": [
+              1.2305
+            ]
+          },
+          {
+            "label": "Control 1",
+            "stat": "CV%",
+            "values": [
+              0.95
+            ]
+          },
+          {
+            "label": "Control 2",
+            "stat": "Mean",
+            "values": [
+              1.4126
+            ]
+          },
+          {
+            "label": "Control 2",
+            "stat": "CV%",
+            "values": [
+              5.35
+            ]
+          },
+          {
+            "label": "Control 3",
+            "stat": "Mean",
+            "values": [
+              null
+            ]
+          },
+          {
+            "label": "Control 3",
+            "stat": "CV%",
+            "values": [
+              null
+            ]
+          },
+          {
+            "label": "Control 4",
+            "stat": "Mean",
+            "values": [
+              null
+            ]
+          },
+          {
+            "label": "Control 4",
+            "stat": "CV%",
+            "values": [
+              null
+            ]
+          }
+        ]
+      },
+      "rows": []
+    },
     "Control": {
       "markers": [
         "S-DMA"

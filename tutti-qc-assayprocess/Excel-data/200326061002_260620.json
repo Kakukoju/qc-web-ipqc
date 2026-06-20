@@ -1,0 +1,1703 @@
+{
+  "ok": true,
+  "file_name": "200326061002_260620.xlsx",
+  "download_url": "/api/assayprocess/lot-reports/200326061002_260620.xlsx/download",
+  "generated_at": "2026-06-20T15:29:06",
+  "id": "00326061002::Electrolyte 7",
+  "panel_name": "Electrolyte 7",
+  "display_lot_code": "200326061002",
+  "lot_codes": [
+    "200326061002"
+  ],
+  "production_date": "2026-06-10",
+  "analyze_date": "2026-06-12",
+  "record_count": 72,
+  "kinds": [
+    "control"
+  ],
+  "sheets": {
+    "Control": {
+      "markers": [
+        "ALP",
+        "Cl",
+        "K",
+        "Na",
+        "TCO2"
+      ],
+      "summary_conc": {
+        "markers": [
+          "ALP",
+          "Cl",
+          "K",
+          "Na",
+          "TCO2"
+        ],
+        "rows": [
+          {
+            "label": "",
+            "stat": "TEa",
+            "values": [
+              "20%",
+              "5%",
+              "0.3 mmol/L",
+              "4 mmol/L",
+              "20%"
+            ]
+          },
+          {
+            "label": "",
+            "stat": "Assign value",
+            "values": [
+              136.0,
+              90.0,
+              3.9,
+              141.0,
+              32.5
+            ]
+          },
+          {
+            "label": "",
+            "stat": "LCL",
+            "values": [
+              108.8,
+              85.5,
+              3.6,
+              137.0,
+              26.0
+            ]
+          },
+          {
+            "label": "",
+            "stat": "UCL",
+            "values": [
+              163.2,
+              94.5,
+              4.2,
+              145.0,
+              39.0
+            ]
+          },
+          {
+            "label": "Control 1",
+            "stat": "Mean",
+            "values": [
+              148.934,
+              98.3,
+              3.642,
+              142.285,
+              23.88
+            ]
+          },
+          {
+            "label": "Control 1",
+            "stat": "Bias",
+            "values": [
+              9.51,
+              9.22,
+              -6.61,
+              0.91,
+              -26.52
+            ]
+          },
+          {
+            "label": "Control 1",
+            "stat": "CV%",
+            "values": [
+              0.66,
+              0.99,
+              2.07,
+              0.65,
+              1.8
+            ]
+          },
+          {
+            "label": "Control 2",
+            "stat": "Mean",
+            "values": [
+              484.721,
+              90.395,
+              6.112,
+              130.494,
+              11.814
+            ]
+          },
+          {
+            "label": "Control 2",
+            "stat": "Bias",
+            "values": [
+              6.3,
+              -0.66,
+              1.87,
+              1.16,
+              -44.28
+            ]
+          },
+          {
+            "label": "Control 2",
+            "stat": "CV%",
+            "values": [
+              1.16,
+              1.31,
+              0.31,
+              0.25,
+              4.36
+            ]
+          },
+          {
+            "label": "Control 3",
+            "stat": "Mean",
+            "values": [
+              75.704,
+              81.303,
+              2.28,
+              120.815,
+              11.968
+            ]
+          },
+          {
+            "label": "Control 3",
+            "stat": "Bias",
+            "values": [
+              0.94,
+              5.59,
+              3.62,
+              2.39,
+              -30.82
+            ]
+          },
+          {
+            "label": "Control 3",
+            "stat": "CV%",
+            "values": [
+              0.18,
+              1.06,
+              1.56,
+              0.91,
+              27.61
+            ]
+          },
+          {
+            "label": "Control 4",
+            "stat": "Mean",
+            "values": [
+              257.674,
+              126.345,
+              8.397,
+              157.862,
+              18.669
+            ]
+          },
+          {
+            "label": "Control 4",
+            "stat": "Bias",
+            "values": [
+              2.66,
+              7.07,
+              -0.03,
+              -4.9,
+              -30.08
+            ]
+          },
+          {
+            "label": "Control 4",
+            "stat": "CV%",
+            "values": [
+              3.66,
+              1.73,
+              2.13,
+              0.41,
+              4.35
+            ]
+          }
+        ]
+      },
+      "summary_od": {
+        "markers": [
+          "ALP",
+          "Cl",
+          "K",
+          "Na",
+          "TCO2"
+        ],
+        "rows": [
+          {
+            "label": "",
+            "stat": "TEa",
+            "values": [
+              "20%",
+              "5%",
+              "0.3 mmol/L",
+              "4 mmol/L",
+              "20%"
+            ]
+          },
+          {
+            "label": "",
+            "stat": "Assay Value",
+            "values": [
+              null,
+              null,
+              null,
+              null,
+              null
+            ]
+          },
+          {
+            "label": "",
+            "stat": "LCL",
+            "values": [
+              null,
+              null,
+              null,
+              null,
+              null
+            ]
+          },
+          {
+            "label": "",
+            "stat": "UCL",
+            "values": [
+              null,
+              null,
+              null,
+              null,
+              null
+            ]
+          },
+          {
+            "label": "Control 1",
+            "stat": "Mean",
+            "values": [
+              0.2059,
+              1.1721,
+              0.4301,
+              0.7142,
+              1.3481
+            ]
+          },
+          {
+            "label": "Control 1",
+            "stat": "CV%",
+            "values": [
+              1.09,
+              0.89,
+              1.36,
+              0.98,
+              1.2
+            ]
+          },
+          {
+            "label": "Control 2",
+            "stat": "Mean",
+            "values": [
+              0.9695,
+              1.0771,
+              0.6222,
+              0.6258,
+              0.8578
+            ]
+          },
+          {
+            "label": "Control 2",
+            "stat": "CV%",
+            "values": [
+              1.03,
+              0.6,
+              0.18,
+              0.45,
+              3.92
+            ]
+          },
+          {
+            "label": "Control 3",
+            "stat": "Mean",
+            "values": [
+              0.0398,
+              0.9897,
+              0.3243,
+              0.5525,
+              0.8984
+            ]
+          },
+          {
+            "label": "Control 3",
+            "stat": "CV%",
+            "values": [
+              0.77,
+              0.94,
+              0.85,
+              1.49,
+              13.89
+            ]
+          },
+          {
+            "label": "Control 4",
+            "stat": "Mean",
+            "values": [
+              0.4519,
+              1.473,
+              0.798,
+              0.8336,
+              1.159
+            ]
+          },
+          {
+            "label": "Control 4",
+            "stat": "CV%",
+            "values": [
+              4.84,
+              1.6,
+              1.51,
+              0.67,
+              2.58
+            ]
+          }
+        ]
+      },
+      "detail_conc": {
+        "markers": [
+          "ALP",
+          "Cl",
+          "K",
+          "Na",
+          "TCO2"
+        ],
+        "rows": [
+          {
+            "sample": "Control 1",
+            "device_sn": "Q1H250619013",
+            "test_zone": "Zone-3",
+            "analyze_time": "15:47:41",
+            "values": {
+              "ALP": {
+                "original": 148.7045562074423,
+                "changed": null
+              },
+              "Cl": {
+                "original": 98.98888838810154,
+                "changed": null
+              },
+              "K": {
+                "original": 3.7104609484264337,
+                "changed": null
+              },
+              "Na": {
+                "original": 143.59099414793468,
+                "changed": null
+              },
+              "TCO2": {
+                "original": 24.34255074954376,
+                "changed": null
+              }
+            }
+          },
+          {
+            "sample": "Control 1",
+            "device_sn": "Q1H250619026",
+            "test_zone": "Zone-3",
+            "analyze_time": "14:30:35",
+            "values": {
+              "ALP": {
+                "original": 150.2390502942177,
+                "changed": null
+              },
+              "Cl": {
+                "original": 96.92491720413314,
+                "changed": null
+              },
+              "K": {
+                "original": 3.6789489156289683,
+                "changed": null
+              },
+              "Na": {
+                "original": 141.5302731419602,
+                "changed": null
+              },
+              "TCO2": {
+                "original": 23.98863138732098,
+                "changed": null
+              }
+            }
+          },
+          {
+            "sample": "Control 1",
+            "device_sn": "Q1H250619026",
+            "test_zone": "Zone-3",
+            "analyze_time": "19:51:21",
+            "values": {
+              "ALP": {
+                "original": 147.85889585615814,
+                "changed": null
+              },
+              "Cl": {
+                "original": 98.98708268573458,
+                "changed": null
+              },
+              "K": {
+                "original": 3.5370460993661483,
+                "changed": null
+              },
+              "Na": {
+                "original": 141.7344224641175,
+                "changed": null
+              },
+              "TCO2": {
+                "original": 23.308705402012137,
+                "changed": null
+              }
+            }
+          },
+          {
+            "sample": "Control 2",
+            "device_sn": "Q1H250619034",
+            "test_zone": "Zone-3",
+            "analyze_time": "14:34:14",
+            "values": {
+              "ALP": {
+                "original": 487.9192431655428,
+                "changed": null
+              },
+              "Cl": {
+                "original": 88.99652843184386,
+                "changed": null
+              },
+              "K": {
+                "original": 6.133710318498622,
+                "changed": null
+              },
+              "Na": {
+                "original": 130.81052957361584,
+                "changed": null
+              },
+              "TCO2": {
+                "original": 11.188005482646764,
+                "changed": null
+              }
+            }
+          },
+          {
+            "sample": "Control 2",
+            "device_sn": "Q1H250619034",
+            "test_zone": "Zone-3",
+            "analyze_time": "19:52:43",
+            "values": {
+              "ALP": {
+                "original": 489.3940883294781,
+                "changed": null
+              },
+              "Cl": {
+                "original": 90.3041630753839,
+                "changed": null
+              },
+              "K": {
+                "original": 6.115155683266339,
+                "changed": null
+              },
+              "Na": {
+                "original": 130.63309005090906,
+                "changed": null
+              },
+              "TCO2": {
+                "original": 11.804315046761156,
+                "changed": null
+              }
+            }
+          },
+          {
+            "sample": "Control 2",
+            "device_sn": "Q1H260316001",
+            "test_zone": "Zone-3",
+            "analyze_time": "16:08:50",
+            "values": {
+              "ALP": {
+                "original": 476.8492,
+                "changed": null
+              },
+              "Cl": {
+                "original": 91.884735,
+                "changed": null
+              },
+              "K": {
+                "original": 6.087011,
+                "changed": null
+              },
+              "Na": {
+                "original": 130.03952,
+                "changed": null
+              },
+              "TCO2": {
+                "original": 12.448435,
+                "changed": null
+              }
+            }
+          },
+          {
+            "sample": "Control 3",
+            "device_sn": "Q1H250619013",
+            "test_zone": "Zone-3",
+            "analyze_time": "14:35:43",
+            "values": {
+              "ALP": {
+                "original": 75.6182321499681,
+                "changed": null
+              },
+              "Cl": {
+                "original": 81.59601296207993,
+                "changed": null
+              },
+              "K": {
+                "original": 2.2474141959641516,
+                "changed": null
+              },
+              "Na": {
+                "original": 119.39562289660887,
+                "changed": null
+              },
+              "TCO2": {
+                "original": 10.466516843338864,
+                "changed": null
+              }
+            }
+          },
+          {
+            "sample": "Control 3",
+            "device_sn": "Q1H250619013",
+            "test_zone": "Zone-3",
+            "analyze_time": "19:53:03",
+            "values": {
+              "ALP": {
+                "original": 75.89408569369866,
+                "changed": null
+              },
+              "Cl": {
+                "original": 82.18372294667647,
+                "changed": null
+              },
+              "K": {
+                "original": 2.329217110569349,
+                "changed": null
+              },
+              "Na": {
+                "original": 122.0628163615346,
+                "changed": null
+              },
+              "TCO2": {
+                "original": 8.885229455108908,
+                "changed": null
+              }
+            }
+          },
+          {
+            "sample": "Control 3",
+            "device_sn": "Q1H250619026",
+            "test_zone": "Zone-3",
+            "analyze_time": "15:43:52",
+            "values": {
+              "ALP": {
+                "original": 75.5998126164316,
+                "changed": null
+              },
+              "Cl": {
+                "original": 80.12806555645469,
+                "changed": null
+              },
+              "K": {
+                "original": 2.2620794639853994,
+                "changed": null
+              },
+              "Na": {
+                "original": 120.98700430749295,
+                "changed": null
+              },
+              "TCO2": {
+                "original": 16.551092688129117,
+                "changed": null
+              }
+            }
+          },
+          {
+            "sample": "Control 4",
+            "device_sn": "Q1H250619034",
+            "test_zone": "Zone-3",
+            "analyze_time": "15:46:36",
+            "values": {
+              "ALP": {
+                "original": 271.02063938064475,
+                "changed": null
+              },
+              "Cl": {
+                "original": 128.35423743745594,
+                "changed": null
+              },
+              "K": {
+                "original": 8.318682194870135,
+                "changed": null
+              },
+              "Na": {
+                "original": 158.05489055313163,
+                "changed": null
+              },
+              "TCO2": {
+                "original": 19.775257815833072,
+                "changed": null
+              }
+            }
+          },
+          {
+            "sample": "Control 4",
+            "device_sn": "Q1H260316001",
+            "test_zone": "Zone-3",
+            "analyze_time": "14:50:18",
+            "values": {
+              "ALP": {
+                "original": 251.3004,
+                "changed": null
+              },
+              "Cl": {
+                "original": 127.383575,
+                "changed": null
+              },
+              "K": {
+                "original": 8.644652,
+                "changed": null
+              },
+              "Na": {
+                "original": 158.53589,
+                "changed": null
+              },
+              "TCO2": {
+                "original": 18.38386,
+                "changed": null
+              }
+            }
+          },
+          {
+            "sample": "Control 4",
+            "device_sn": "Q1H260316001",
+            "test_zone": "Zone-3",
+            "analyze_time": "20:06:25",
+            "values": {
+              "ALP": {
+                "original": 250.7013358331797,
+                "changed": null
+              },
+              "Cl": {
+                "original": 123.29684261547615,
+                "changed": null
+              },
+              "K": {
+                "original": 8.228369414253404,
+                "changed": null
+              },
+              "Na": {
+                "original": 156.99480196129895,
+                "changed": null
+              },
+              "TCO2": {
+                "original": 17.84845667089286,
+                "changed": null
+              }
+            }
+          }
+        ],
+        "value_mode": "conc"
+      },
+      "detail_od": {
+        "markers": [
+          "ALP",
+          "Cl",
+          "K",
+          "Na",
+          "TCO2"
+        ],
+        "rows": [
+          {
+            "sample": "Control 1",
+            "device_sn": "Q1H250619013",
+            "test_zone": "Zone-3",
+            "analyze_time": "15:47:41",
+            "values": {
+              "ALP": {
+                "original": 0.20540838332375214,
+                "changed": null
+              },
+              "Cl": {
+                "original": 1.179436751990792,
+                "changed": null
+              },
+              "K": {
+                "original": 0.43543951462938146,
+                "changed": null
+              },
+              "Na": {
+                "original": 0.7240285703910744,
+                "changed": null
+              },
+              "TCO2": {
+                "original": 1.3655172045882884,
+                "changed": null
+              }
+            }
+          },
+          {
+            "sample": "Control 1",
+            "device_sn": "Q1H250619026",
+            "test_zone": "Zone-3",
+            "analyze_time": "14:30:35",
+            "values": {
+              "ALP": {
+                "original": 0.20888875095082263,
+                "changed": null
+              },
+              "Cl": {
+                "original": 1.1572982645514656,
+                "changed": null
+              },
+              "K": {
+                "original": 0.4329929282320627,
+                "changed": null
+              },
+              "Na": {
+                "original": 0.7085110929364474,
+                "changed": null
+              },
+              "TCO2": {
+                "original": 1.3521567152631548,
+                "changed": null
+              }
+            }
+          },
+          {
+            "sample": "Control 1",
+            "device_sn": "Q1H250619026",
+            "test_zone": "Zone-3",
+            "analyze_time": "19:51:21",
+            "values": {
+              "ALP": {
+                "original": 0.20349035122739428,
+                "changed": null
+              },
+              "Cl": {
+                "original": 1.1794173837362927,
+                "changed": null
+              },
+              "K": {
+                "original": 0.42197562883277545,
+                "changed": null
+              },
+              "Na": {
+                "original": 0.7100483619285956,
+                "changed": null
+              },
+              "TCO2": {
+                "original": 1.326489445149571,
+                "changed": null
+              }
+            }
+          },
+          {
+            "sample": "Control 2",
+            "device_sn": "Q1H250619034",
+            "test_zone": "Zone-3",
+            "analyze_time": "14:34:14",
+            "values": {
+              "ALP": {
+                "original": 0.9747771448526714,
+                "changed": null
+              },
+              "Cl": {
+                "original": 1.0722570892614378,
+                "changed": null
+              },
+              "K": {
+                "original": 0.6235799936722531,
+                "changed": null
+              },
+              "Na": {
+                "original": 0.6277901323314444,
+                "changed": null
+              },
+              "TCO2": {
+                "original": 0.8689318792996136,
+                "changed": null
+              }
+            }
+          },
+          {
+            "sample": "Control 2",
+            "device_sn": "Q1H250619034",
+            "test_zone": "Zone-3",
+            "analyze_time": "19:52:43",
+            "values": {
+              "ALP": {
+                "original": 0.9781222234735272,
+                "changed": null
+              },
+              "Cl": {
+                "original": 1.0862829891170642,
+                "changed": null
+              },
+              "K": {
+                "original": 0.622139416402666,
+                "changed": null
+              },
+              "Na": {
+                "original": 0.6278320033953995,
+                "changed": null
+              },
+              "TCO2": {
+                "original": 0.8921976235092923,
+                "changed": null
+              }
+            }
+          },
+          {
+            "sample": "Control 2",
+            "device_sn": "Q1H260316001",
+            "test_zone": "Zone-3",
+            "analyze_time": "16:08:50",
+            "values": {
+              "ALP": {
+                "original": 0.9554772187891969,
+                "changed": null
+              },
+              "Cl": {
+                "original": 1.072903195349102,
+                "changed": null
+              },
+              "K": {
+                "original": 0.6208221629547217,
+                "changed": null
+              },
+              "Na": {
+                "original": 0.621890149944426,
+                "changed": null
+              },
+              "TCO2": {
+                "original": 0.8121517048959267,
+                "changed": null
+              }
+            }
+          },
+          {
+            "sample": "Control 3",
+            "device_sn": "Q1H250619013",
+            "test_zone": "Zone-3",
+            "analyze_time": "14:35:43",
+            "values": {
+              "ALP": {
+                "original": 0.03964216863227059,
+                "changed": null
+              },
+              "Cl": {
+                "original": 0.9928779680583495,
+                "changed": null
+              },
+              "K": {
+                "original": 0.32184892825808625,
+                "changed": null
+              },
+              "Na": {
+                "original": 0.541834509763621,
+                "changed": null
+              },
+              "TCO2": {
+                "original": 0.8416956150750797,
+                "changed": null
+              }
+            }
+          },
+          {
+            "sample": "Control 3",
+            "device_sn": "Q1H250619013",
+            "test_zone": "Zone-3",
+            "analyze_time": "19:53:03",
+            "values": {
+              "ALP": {
+                "original": 0.04026782874506386,
+                "changed": null
+              },
+              "Cl": {
+                "original": 0.9991818400372892,
+                "changed": null
+              },
+              "K": {
+                "original": 0.32820008622432834,
+                "changed": null
+              },
+              "Na": {
+                "original": 0.5619187979031219,
+                "changed": null
+              },
+              "TCO2": {
+                "original": 0.7820018669350285,
+                "changed": null
+              }
+            }
+          },
+          {
+            "sample": "Control 3",
+            "device_sn": "Q1H250619026",
+            "test_zone": "Zone-3",
+            "analyze_time": "15:43:52",
+            "values": {
+              "ALP": {
+                "original": 0.039600391509257434,
+                "changed": null
+              },
+              "Cl": {
+                "original": 0.9771325276890988,
+                "changed": null
+              },
+              "K": {
+                "original": 0.3229875360237111,
+                "changed": null
+              },
+              "Na": {
+                "original": 0.5538178035202782,
+                "changed": null
+              },
+              "TCO2": {
+                "original": 1.0713889274491928,
+                "changed": null
+              }
+            }
+          },
+          {
+            "sample": "Control 4",
+            "device_sn": "Q1H250619034",
+            "test_zone": "Zone-3",
+            "analyze_time": "15:46:36",
+            "values": {
+              "ALP": {
+                "original": 0.4828320239978335,
+                "changed": null
+              },
+              "Cl": {
+                "original": 1.4944142168556895,
+                "changed": null
+              },
+              "K": {
+                "original": 0.7932206673035819,
+                "changed": null
+              },
+              "Na": {
+                "original": 0.8343907421169551,
+                "changed": null
+              },
+              "TCO2": {
+                "original": 1.1931014653013616,
+                "changed": null
+              }
+            }
+          },
+          {
+            "sample": "Control 4",
+            "device_sn": "Q1H260316001",
+            "test_zone": "Zone-3",
+            "analyze_time": "14:50:18",
+            "values": {
+              "ALP": {
+                "original": 0.4362086055667623,
+                "changed": null
+              },
+              "Cl": {
+                "original": 1.4843822075840902,
+                "changed": null
+              },
+              "K": {
+                "original": 0.814629849978021,
+                "changed": null
+              },
+              "Na": {
+                "original": 0.8400719014950668,
+                "changed": null
+              },
+              "TCO2": {
+                "original": 1.1635480364759112,
+                "changed": null
+              }
+            }
+          },
+          {
+            "sample": "Control 4",
+            "device_sn": "Q1H260316001",
+            "test_zone": "Zone-3",
+            "analyze_time": "20:06:25",
+            "values": {
+              "ALP": {
+                "original": 0.4367460554166017,
+                "changed": null
+              },
+              "Cl": {
+                "original": 1.440167785213731,
+                "changed": null
+              },
+              "K": {
+                "original": 0.7862088054544568,
+                "changed": null
+              },
+              "Na": {
+                "original": 0.826408147298938,
+                "changed": null
+              },
+              "TCO2": {
+                "original": 1.120364540237556,
+                "changed": null
+              }
+            }
+          }
+        ],
+        "value_mode": "od"
+      },
+      "sheet_name": "Control",
+      "rows": [
+        {
+          "type": "Control-1",
+          "marker": "ALP",
+          "tea": "20%",
+          "assigned": 136.0,
+          "lcl": 108.8,
+          "ucl": 163.2,
+          "mean": 148.934,
+          "bias": 9.51,
+          "cv": 0.66,
+          "od_mean": 0.2059,
+          "n": 3
+        },
+        {
+          "type": "Control-2",
+          "marker": "ALP",
+          "tea": "20%",
+          "assigned": 456.0,
+          "lcl": 364.8,
+          "ucl": 547.2,
+          "mean": 484.721,
+          "bias": 6.3,
+          "cv": 1.16,
+          "od_mean": 0.9695,
+          "n": 3
+        },
+        {
+          "type": "Control-3",
+          "marker": "ALP",
+          "tea": "20%",
+          "assigned": 75.0,
+          "lcl": 60.0,
+          "ucl": 90.0,
+          "mean": 75.704,
+          "bias": 0.94,
+          "cv": 0.18,
+          "od_mean": 0.0398,
+          "n": 3
+        },
+        {
+          "type": "Control-4",
+          "marker": "ALP",
+          "tea": "20%",
+          "assigned": 251.0,
+          "lcl": 200.8,
+          "ucl": 301.2,
+          "mean": 257.674,
+          "bias": 2.66,
+          "cv": 3.66,
+          "od_mean": 0.4519,
+          "n": 3
+        },
+        {
+          "type": "Control-1",
+          "marker": "Cl",
+          "tea": "5%",
+          "assigned": 90.0,
+          "lcl": 85.5,
+          "ucl": 94.5,
+          "mean": 98.3,
+          "bias": 9.22,
+          "cv": 0.99,
+          "od_mean": 1.1721,
+          "n": 3
+        },
+        {
+          "type": "Control-2",
+          "marker": "Cl",
+          "tea": "5%",
+          "assigned": 91.0,
+          "lcl": 86.45,
+          "ucl": 95.55,
+          "mean": 90.395,
+          "bias": -0.66,
+          "cv": 1.31,
+          "od_mean": 1.0771,
+          "n": 3
+        },
+        {
+          "type": "Control-3",
+          "marker": "Cl",
+          "tea": "5%",
+          "assigned": 77.0,
+          "lcl": 73.15,
+          "ucl": 80.85,
+          "mean": 81.303,
+          "bias": 5.59,
+          "cv": 1.06,
+          "od_mean": 0.9897,
+          "n": 3
+        },
+        {
+          "type": "Control-4",
+          "marker": "Cl",
+          "tea": "5%",
+          "assigned": 118.0,
+          "lcl": 112.1,
+          "ucl": 123.9,
+          "mean": 126.345,
+          "bias": 7.07,
+          "cv": 1.73,
+          "od_mean": 1.473,
+          "n": 3
+        },
+        {
+          "type": "Control-1",
+          "marker": "K",
+          "tea": "0.3 mmol/L",
+          "assigned": 3.9,
+          "lcl": 3.6,
+          "ucl": 4.2,
+          "mean": 3.642,
+          "bias": -6.61,
+          "cv": 2.07,
+          "od_mean": 0.4301,
+          "n": 3
+        },
+        {
+          "type": "Control-2",
+          "marker": "K",
+          "tea": "0.3 mmol/L",
+          "assigned": 6.0,
+          "lcl": 5.7,
+          "ucl": 6.3,
+          "mean": 6.112,
+          "bias": 1.87,
+          "cv": 0.31,
+          "od_mean": 0.6222,
+          "n": 3
+        },
+        {
+          "type": "Control-3",
+          "marker": "K",
+          "tea": "0.3 mmol/L",
+          "assigned": 2.2,
+          "lcl": 1.9000000000000001,
+          "ucl": 2.5,
+          "mean": 2.28,
+          "bias": 3.62,
+          "cv": 1.56,
+          "od_mean": 0.3243,
+          "n": 3
+        },
+        {
+          "type": "Control-4",
+          "marker": "K",
+          "tea": "0.3 mmol/L",
+          "assigned": 8.4,
+          "lcl": 8.1,
+          "ucl": 8.700000000000001,
+          "mean": 8.397,
+          "bias": -0.03,
+          "cv": 2.13,
+          "od_mean": 0.798,
+          "n": 3
+        },
+        {
+          "type": "Control-1",
+          "marker": "Na",
+          "tea": "4 mmol/L",
+          "assigned": 141.0,
+          "lcl": 137.0,
+          "ucl": 145.0,
+          "mean": 142.285,
+          "bias": 0.91,
+          "cv": 0.65,
+          "od_mean": 0.7142,
+          "n": 3
+        },
+        {
+          "type": "Control-2",
+          "marker": "Na",
+          "tea": "4 mmol/L",
+          "assigned": 129.0,
+          "lcl": 125.0,
+          "ucl": 133.0,
+          "mean": 130.494,
+          "bias": 1.16,
+          "cv": 0.25,
+          "od_mean": 0.6258,
+          "n": 3
+        },
+        {
+          "type": "Control-3",
+          "marker": "Na",
+          "tea": "4 mmol/L",
+          "assigned": 118.0,
+          "lcl": 114.0,
+          "ucl": 122.0,
+          "mean": 120.815,
+          "bias": 2.39,
+          "cv": 0.91,
+          "od_mean": 0.5525,
+          "n": 3
+        },
+        {
+          "type": "Control-4",
+          "marker": "Na",
+          "tea": "4 mmol/L",
+          "assigned": 166.0,
+          "lcl": 162.0,
+          "ucl": 170.0,
+          "mean": 157.862,
+          "bias": -4.9,
+          "cv": 0.41,
+          "od_mean": 0.8336,
+          "n": 3
+        },
+        {
+          "type": "Control-1",
+          "marker": "TCO2",
+          "tea": "20%",
+          "assigned": 32.5,
+          "lcl": 26.0,
+          "ucl": 39.0,
+          "mean": 23.88,
+          "bias": -26.52,
+          "cv": 1.8,
+          "od_mean": 1.3481,
+          "n": 3
+        },
+        {
+          "type": "Control-2",
+          "marker": "TCO2",
+          "tea": "20%",
+          "assigned": 21.2,
+          "lcl": 16.96,
+          "ucl": 25.439999999999998,
+          "mean": 11.814,
+          "bias": -44.28,
+          "cv": 4.36,
+          "od_mean": 0.8578,
+          "n": 3
+        },
+        {
+          "type": "Control-3",
+          "marker": "TCO2",
+          "tea": "20%",
+          "assigned": 17.3,
+          "lcl": 13.84,
+          "ucl": 20.76,
+          "mean": 11.968,
+          "bias": -30.82,
+          "cv": 27.61,
+          "od_mean": 0.8984,
+          "n": 3
+        },
+        {
+          "type": "Control-4",
+          "marker": "TCO2",
+          "tea": "20%",
+          "assigned": 26.7,
+          "lcl": 21.36,
+          "ucl": 32.04,
+          "mean": 18.669,
+          "bias": -30.08,
+          "cv": 4.35,
+          "od_mean": 1.159,
+          "n": 3
+        }
+      ]
+    },
+    "Canine": {
+      "markers": [
+        "ALP",
+        "Cl",
+        "K",
+        "Na",
+        "TCO2"
+      ],
+      "summary_conc": {
+        "markers": [
+          "ALP",
+          "Cl",
+          "K",
+          "Na",
+          "TCO2"
+        ],
+        "rows": [
+          {
+            "label": "",
+            "stat": "TEa",
+            "values": [
+              null,
+              null,
+              null,
+              null,
+              null
+            ]
+          },
+          {
+            "label": "",
+            "stat": "Assign value",
+            "values": [
+              null,
+              null,
+              null,
+              null,
+              null
+            ]
+          },
+          {
+            "label": "",
+            "stat": "LCL",
+            "values": [
+              null,
+              null,
+              null,
+              null,
+              null
+            ]
+          },
+          {
+            "label": "",
+            "stat": "UCL",
+            "values": [
+              null,
+              null,
+              null,
+              null,
+              null
+            ]
+          }
+        ]
+      },
+      "summary_od": {
+        "markers": [
+          "ALP",
+          "Cl",
+          "K",
+          "Na",
+          "TCO2"
+        ],
+        "rows": [
+          {
+            "label": "",
+            "stat": "TEa",
+            "values": [
+              null,
+              null,
+              null,
+              null,
+              null
+            ]
+          },
+          {
+            "label": "",
+            "stat": "Assay Value",
+            "values": [
+              null,
+              null,
+              null,
+              null,
+              null
+            ]
+          },
+          {
+            "label": "",
+            "stat": "LCL",
+            "values": [
+              null,
+              null,
+              null,
+              null,
+              null
+            ]
+          },
+          {
+            "label": "",
+            "stat": "UCL",
+            "values": [
+              null,
+              null,
+              null,
+              null,
+              null
+            ]
+          }
+        ]
+      },
+      "sheet_name": "Canine",
+      "rows": []
+    },
+    "Feline": {
+      "markers": [
+        "ALP",
+        "Cl",
+        "K",
+        "Na",
+        "TCO2"
+      ],
+      "summary_conc": {
+        "markers": [
+          "ALP",
+          "Cl",
+          "K",
+          "Na",
+          "TCO2"
+        ],
+        "rows": [
+          {
+            "label": "",
+            "stat": "TEa",
+            "values": [
+              null,
+              null,
+              null,
+              null,
+              null
+            ]
+          },
+          {
+            "label": "",
+            "stat": "Assign value",
+            "values": [
+              null,
+              null,
+              null,
+              null,
+              null
+            ]
+          },
+          {
+            "label": "",
+            "stat": "LCL",
+            "values": [
+              null,
+              null,
+              null,
+              null,
+              null
+            ]
+          },
+          {
+            "label": "",
+            "stat": "UCL",
+            "values": [
+              null,
+              null,
+              null,
+              null,
+              null
+            ]
+          }
+        ]
+      },
+      "summary_od": {
+        "markers": [
+          "ALP",
+          "Cl",
+          "K",
+          "Na",
+          "TCO2"
+        ],
+        "rows": [
+          {
+            "label": "",
+            "stat": "TEa",
+            "values": [
+              null,
+              null,
+              null,
+              null,
+              null
+            ]
+          },
+          {
+            "label": "",
+            "stat": "Assay Value",
+            "values": [
+              null,
+              null,
+              null,
+              null,
+              null
+            ]
+          },
+          {
+            "label": "",
+            "stat": "LCL",
+            "values": [
+              null,
+              null,
+              null,
+              null,
+              null
+            ]
+          },
+          {
+            "label": "",
+            "stat": "UCL",
+            "values": [
+              null,
+              null,
+              null,
+              null,
+              null
+            ]
+          }
+        ]
+      },
+      "sheet_name": "Feline",
+      "rows": []
+    },
+    "Equine": {
+      "markers": [
+        "ALP",
+        "Cl",
+        "K",
+        "Na",
+        "TCO2"
+      ],
+      "summary_conc": {
+        "markers": [
+          "ALP",
+          "Cl",
+          "K",
+          "Na",
+          "TCO2"
+        ],
+        "rows": [
+          {
+            "label": "",
+            "stat": "TEa",
+            "values": [
+              null,
+              null,
+              null,
+              null,
+              null
+            ]
+          },
+          {
+            "label": "",
+            "stat": "Assign value",
+            "values": [
+              null,
+              null,
+              null,
+              null,
+              null
+            ]
+          },
+          {
+            "label": "",
+            "stat": "LCL",
+            "values": [
+              null,
+              null,
+              null,
+              null,
+              null
+            ]
+          },
+          {
+            "label": "",
+            "stat": "UCL",
+            "values": [
+              null,
+              null,
+              null,
+              null,
+              null
+            ]
+          }
+        ]
+      },
+      "summary_od": {
+        "markers": [
+          "ALP",
+          "Cl",
+          "K",
+          "Na",
+          "TCO2"
+        ],
+        "rows": [
+          {
+            "label": "",
+            "stat": "TEa",
+            "values": [
+              null,
+              null,
+              null,
+              null,
+              null
+            ]
+          },
+          {
+            "label": "",
+            "stat": "Assay Value",
+            "values": [
+              null,
+              null,
+              null,
+              null,
+              null
+            ]
+          },
+          {
+            "label": "",
+            "stat": "LCL",
+            "values": [
+              null,
+              null,
+              null,
+              null,
+              null
+            ]
+          },
+          {
+            "label": "",
+            "stat": "UCL",
+            "values": [
+              null,
+              null,
+              null,
+              null,
+              null
+            ]
+          }
+        ]
+      },
+      "sheet_name": "Equine",
+      "rows": []
+    }
+  },
+  "groups": [
+    {
+      "id": "00326061002::Electrolyte 7",
+      "panel_name": "Electrolyte 7",
+      "kind": "control",
+      "display_lot_code": "200326061002",
+      "lot_codes": [
+        "200326061002"
+      ],
+      "production_date": "2026-06-10",
+      "analyze_date": "2026-06-12",
+      "record_count": 72,
+      "marker_count": 5,
+      "markers": [
+        "ALP",
+        "Cl",
+        "K",
+        "Na",
+        "TCO2"
+      ]
+    }
+  ]
+}

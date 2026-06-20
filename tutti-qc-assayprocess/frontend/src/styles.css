@@ -138,6 +138,13 @@ h1 {
   background: #121a2b;
 }
 
+.icon-button--labeled {
+  width: auto;
+  min-width: 128px;
+  padding: 0 12px;
+  white-space: nowrap;
+}
+
 .icon-button:hover {
   color: #eaf2ff;
   border-color: #00d4aa;
@@ -805,4 +812,209 @@ tbody tr:hover {
   font-size: 10px;
   color: #ff8a9a;
   font-weight: 400;
+}
+
+
+.lot-report-layout {
+  display: grid;
+  grid-template-columns: 280px minmax(0, 1fr);
+  gap: 16px;
+  align-items: start;
+}
+
+.lot-report-list,
+.lot-report-preview {
+  border: 1px solid #2a3754;
+  border-radius: 8px;
+  background: rgba(18, 26, 43, 0.92);
+}
+
+.lot-report-list {
+  display: grid;
+  gap: 6px;
+  padding: 10px;
+}
+
+.lot-report-list__head {
+  padding: 4px 4px 8px;
+  color: #00d4aa;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.lot-report-list button {
+  display: grid;
+  gap: 4px;
+  width: 100%;
+  padding: 10px;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  color: #b9c8df;
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+}
+
+.lot-report-list button:hover,
+.lot-report-list button.active {
+  border-color: rgba(0, 212, 170, 0.34);
+  color: #eaf2ff;
+  background: rgba(0, 212, 170, 0.08);
+}
+
+.lot-report-list small {
+  color: #697d9d;
+  font-size: 11px;
+}
+
+.lot-report-preview {
+  min-width: 0;
+  padding: 14px;
+}
+
+.lot-report-summary {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.lot-report-summary > div {
+  display: grid;
+  gap: 3px;
+  min-width: 120px;
+  padding: 8px 10px;
+  border: 1px solid #22304a;
+  border-radius: 8px;
+  background: rgba(11, 18, 32, 0.55);
+}
+
+.lot-report-summary span {
+  color: #697d9d;
+  font-size: 11px;
+  text-transform: uppercase;
+}
+
+.lot-report-summary strong {
+  color: #eaf2ff;
+  font-size: 13px;
+}
+
+.lot-report-empty {
+  padding: 28px 12px;
+  color: #93a4c3;
+  text-align: center;
+  font-size: 13px;
+}
+
+.secondary-button {
+  padding: 0 12px;
+  border: 1px solid #2a3754;
+  color: #b9c8df;
+  background: #121a2b;
+}
+
+.secondary-button:hover {
+  color: #eaf2ff;
+  border-color: #4da3ff;
+}
+
+@media (max-width: 860px) {
+  .lot-report-layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+
+.sheet-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0 0 12px;
+}
+
+.sheet-tabs button {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 34px;
+  padding: 0 10px;
+  border: 1px solid #2a3754;
+  border-radius: 8px;
+  color: #93a4c3;
+  background: #121a2b;
+  cursor: pointer;
+}
+
+.sheet-tabs button.active,
+.sheet-tabs button:hover {
+  border-color: rgba(0, 212, 170, 0.42);
+  color: #eaf2ff;
+  background: rgba(0, 212, 170, 0.1);
+}
+
+.sheet-tabs small {
+  min-width: 18px;
+  padding: 1px 5px;
+  border-radius: 999px;
+  color: #0b1220;
+  background: #00d4aa;
+  font-size: 11px;
+  font-weight: 800;
+  text-align: center;
+}
+
+.excel-sheet-view {
+  display: grid;
+  gap: 14px;
+}
+
+.excel-block {
+  border: 1px solid #2a3754;
+  border-radius: 8px;
+  overflow: hidden;
+  background: rgba(11, 18, 32, 0.38);
+}
+
+.excel-block__title {
+  padding: 9px 12px;
+  border-bottom: 1px solid #2a3754;
+  color: #00d4aa;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.excel-like-table {
+  min-width: 980px;
+  border-collapse: collapse;
+}
+
+.excel-like-table th,
+.excel-like-table td {
+  border: 1px solid #26344f;
+  padding: 6px 8px;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.excel-like-table th {
+  color: #d9e7ff;
+  background: #18243a;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.excel-like-table td {
+  color: #d9e7ff;
+  background: rgba(18, 26, 43, 0.42);
+  font-size: 12px;
+}
+
+.excel-like-table .sticky-col {
+  position: sticky;
+  left: 0;
+  z-index: 1;
+  text-align: left;
+  background: #121a2b;
 }

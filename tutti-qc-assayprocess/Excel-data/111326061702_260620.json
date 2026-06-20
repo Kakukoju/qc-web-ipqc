@@ -1,0 +1,967 @@
+{
+  "ok": true,
+  "file_name": "111326061702_260620.xlsx",
+  "download_url": "/api/assayprocess/lot-reports/111326061702_260620.xlsx/download",
+  "generated_at": "2026-06-20T18:04:54",
+  "id": "11326061702::S-DMA",
+  "panel_name": "S-DMA",
+  "display_lot_code": "111326061702",
+  "lot_codes": [
+    "111326061702"
+  ],
+  "production_date": "2026-06-17",
+  "analyze_date": "2026-06-17",
+  "record_count": 17,
+  "kinds": [
+    "control"
+  ],
+  "sheets": {
+    "Control": {
+      "markers": [
+        "S-DMA"
+      ],
+      "test_count": 17,
+      "summary_conc": {
+        "markers": [
+          "S-DMA"
+        ],
+        "rows": [
+          {
+            "label": "",
+            "stat": "TEa",
+            "values": [
+              null
+            ]
+          },
+          {
+            "label": "",
+            "stat": "Assign value",
+            "values": [
+              null
+            ]
+          },
+          {
+            "label": "",
+            "stat": "LCL",
+            "values": [
+              null
+            ]
+          },
+          {
+            "label": "",
+            "stat": "UCL",
+            "values": [
+              null
+            ]
+          },
+          {
+            "label": "Control 1",
+            "stat": "Mean",
+            "values": [
+              12.04
+            ]
+          },
+          {
+            "label": "Control 1",
+            "stat": "Bias",
+            "values": [
+              null
+            ]
+          },
+          {
+            "label": "Control 1",
+            "stat": "CV%",
+            "values": [
+              7.11
+            ]
+          },
+          {
+            "label": "Control 2",
+            "stat": "Mean",
+            "values": [
+              40.864
+            ]
+          },
+          {
+            "label": "Control 2",
+            "stat": "Bias",
+            "values": [
+              null
+            ]
+          },
+          {
+            "label": "Control 2",
+            "stat": "CV%",
+            "values": [
+              47.12
+            ]
+          },
+          {
+            "label": "Control 3",
+            "stat": "Mean",
+            "values": [
+              null
+            ]
+          },
+          {
+            "label": "Control 3",
+            "stat": "Bias",
+            "values": [
+              null
+            ]
+          },
+          {
+            "label": "Control 3",
+            "stat": "CV%",
+            "values": [
+              null
+            ]
+          },
+          {
+            "label": "Control 4",
+            "stat": "Mean",
+            "values": [
+              null
+            ]
+          },
+          {
+            "label": "Control 4",
+            "stat": "Bias",
+            "values": [
+              null
+            ]
+          },
+          {
+            "label": "Control 4",
+            "stat": "CV%",
+            "values": [
+              null
+            ]
+          }
+        ]
+      },
+      "summary_od": {
+        "markers": [
+          "S-DMA"
+        ],
+        "rows": [
+          {
+            "label": "",
+            "stat": "TEa",
+            "values": [
+              null
+            ]
+          },
+          {
+            "label": "",
+            "stat": "Assay Value",
+            "values": [
+              null
+            ]
+          },
+          {
+            "label": "",
+            "stat": "LCL",
+            "values": [
+              null
+            ]
+          },
+          {
+            "label": "",
+            "stat": "UCL",
+            "values": [
+              null
+            ]
+          },
+          {
+            "label": "Control 1",
+            "stat": "Mean",
+            "values": [
+              1.2305
+            ]
+          },
+          {
+            "label": "Control 1",
+            "stat": "CV%",
+            "values": [
+              0.95
+            ]
+          },
+          {
+            "label": "Control 2",
+            "stat": "Mean",
+            "values": [
+              1.4126
+            ]
+          },
+          {
+            "label": "Control 2",
+            "stat": "CV%",
+            "values": [
+              5.35
+            ]
+          },
+          {
+            "label": "Control 3",
+            "stat": "Mean",
+            "values": [
+              null
+            ]
+          },
+          {
+            "label": "Control 3",
+            "stat": "CV%",
+            "values": [
+              null
+            ]
+          },
+          {
+            "label": "Control 4",
+            "stat": "Mean",
+            "values": [
+              null
+            ]
+          },
+          {
+            "label": "Control 4",
+            "stat": "CV%",
+            "values": [
+              null
+            ]
+          }
+        ]
+      },
+      "detail_conc": {
+        "markers": [
+          "S-DMA"
+        ],
+        "rows": [
+          {
+            "sample": "Control 1",
+            "device_sn": "Q1H250619013",
+            "test_zone": "Zone-1",
+            "analyze_time": "18:16:54",
+            "values": {
+              "S-DMA": {
+                "original": 12.29609705905964,
+                "changed": null
+              }
+            }
+          },
+          {
+            "sample": "Control 1",
+            "device_sn": "Q1H250619026",
+            "test_zone": "Zone-1",
+            "analyze_time": "18:15:00",
+            "values": {
+              "S-DMA": {
+                "original": 12.227948410932678,
+                "changed": null
+              }
+            }
+          },
+          {
+            "sample": "Control 1",
+            "device_sn": "Q1H250619026",
+            "test_zone": "Zone-1",
+            "analyze_time": "19:44:45",
+            "values": {
+              "S-DMA": {
+                "original": 11.811638967212717,
+                "changed": null
+              }
+            }
+          },
+          {
+            "sample": "Control 1",
+            "device_sn": "Q1H250826021",
+            "test_zone": "Zone-1",
+            "analyze_time": "16:28:54",
+            "values": {
+              "S-DMA": {
+                "original": 10.506733926977798,
+                "changed": null
+              }
+            }
+          },
+          {
+            "sample": "Control 1",
+            "device_sn": "Q1H260316001",
+            "test_zone": "Zone-1",
+            "analyze_time": "18:31:28",
+            "values": {
+              "S-DMA": {
+                "original": 13.4165367809915,
+                "changed": null
+              }
+            }
+          },
+          {
+            "sample": "Control 1",
+            "device_sn": "Q1H260316001",
+            "test_zone": "Zone-1",
+            "analyze_time": "20:00:53",
+            "values": {
+              "S-DMA": {
+                "original": 11.98320546697026,
+                "changed": null
+              }
+            }
+          },
+          {
+            "sample": "Control 2",
+            "device_sn": "Q1H250619013",
+            "test_zone": "Zone-1",
+            "analyze_time": "18:33:26",
+            "values": {
+              "S-DMA": {
+                "original": 95.41189823494045,
+                "changed": null
+              }
+            }
+          },
+          {
+            "sample": "Control 2",
+            "device_sn": "Q1H250619013",
+            "test_zone": "Zone-1",
+            "analyze_time": "18:48:45",
+            "values": {
+              "S-DMA": {
+                "original": 36.9111739808427,
+                "changed": null
+              }
+            }
+          },
+          {
+            "sample": "Control 2",
+            "device_sn": "Q1H250619013",
+            "test_zone": "Zone-1",
+            "analyze_time": "19:46:27",
+            "values": {
+              "S-DMA": {
+                "original": 36.64445945425198,
+                "changed": null
+              }
+            }
+          },
+          {
+            "sample": "Control 2",
+            "device_sn": "Q1H250619026",
+            "test_zone": "Zone-1",
+            "analyze_time": "18:31:44",
+            "values": {
+              "S-DMA": {
+                "original": 35.833274679657386,
+                "changed": null
+              }
+            }
+          },
+          {
+            "sample": "Control 2",
+            "device_sn": "Q1H250619026",
+            "test_zone": "Zone-1",
+            "analyze_time": "18:57:51",
+            "values": {
+              "S-DMA": {
+                "original": 39.23792710216464,
+                "changed": null
+              }
+            }
+          },
+          {
+            "sample": "Control 2",
+            "device_sn": "Q1H250826021",
+            "test_zone": "Zone-1",
+            "analyze_time": "16:45:38",
+            "values": {
+              "S-DMA": {
+                "original": 35.64289354405362,
+                "changed": null
+              }
+            }
+          },
+          {
+            "sample": "Control 2",
+            "device_sn": "Q1H250826021",
+            "test_zone": "Zone-1",
+            "analyze_time": "17:11:46",
+            "values": {
+              "S-DMA": {
+                "original": 34.67811165698809,
+                "changed": null
+              }
+            }
+          },
+          {
+            "sample": "Control 2",
+            "device_sn": "Q1H250826021",
+            "test_zone": "Zone-1",
+            "analyze_time": "17:58:39",
+            "values": {
+              "S-DMA": {
+                "original": 33.033752393162715,
+                "changed": null
+              }
+            }
+          },
+          {
+            "sample": "Control 2",
+            "device_sn": "Q1H260316001",
+            "test_zone": "Zone-1",
+            "analyze_time": "18:47:59",
+            "values": {
+              "S-DMA": {
+                "original": 47.03474533274673,
+                "changed": null
+              }
+            }
+          },
+          {
+            "sample": "Control 2",
+            "device_sn": "Q1H260316001",
+            "test_zone": "Zone-1",
+            "analyze_time": "19:03:18",
+            "values": {
+              "S-DMA": {
+                "original": 43.68212905206235,
+                "changed": null
+              }
+            }
+          },
+          {
+            "sample": "Control 2",
+            "device_sn": "Q1H260316001",
+            "test_zone": "Zone-1",
+            "analyze_time": "20:17:41",
+            "values": {
+              "S-DMA": {
+                "original": 11.393419,
+                "changed": null
+              }
+            }
+          }
+        ],
+        "value_mode": "conc"
+      },
+      "detail_od": {
+        "markers": [
+          "S-DMA"
+        ],
+        "rows": [
+          {
+            "sample": "Control 1",
+            "device_sn": "Q1H250619013",
+            "test_zone": "Zone-1",
+            "analyze_time": "18:16:54",
+            "values": {
+              "S-DMA": {
+                "original": 1.2343545959498976,
+                "changed": null
+              }
+            }
+          },
+          {
+            "sample": "Control 1",
+            "device_sn": "Q1H250619026",
+            "test_zone": "Zone-1",
+            "analyze_time": "18:15:00",
+            "values": {
+              "S-DMA": {
+                "original": 1.2334536904031541,
+                "changed": null
+              }
+            }
+          },
+          {
+            "sample": "Control 1",
+            "device_sn": "Q1H250619026",
+            "test_zone": "Zone-1",
+            "analyze_time": "19:44:45",
+            "values": {
+              "S-DMA": {
+                "original": 1.2278387430966236,
+                "changed": null
+              }
+            }
+          },
+          {
+            "sample": "Control 1",
+            "device_sn": "Q1H250826021",
+            "test_zone": "Zone-1",
+            "analyze_time": "16:28:54",
+            "values": {
+              "S-DMA": {
+                "original": 1.208861854870629,
+                "changed": null
+              }
+            }
+          },
+          {
+            "sample": "Control 1",
+            "device_sn": "Q1H260316001",
+            "test_zone": "Zone-1",
+            "analyze_time": "18:31:28",
+            "values": {
+              "S-DMA": {
+                "original": 1.2484907103486367,
+                "changed": null
+              }
+            }
+          },
+          {
+            "sample": "Control 1",
+            "device_sn": "Q1H260316001",
+            "test_zone": "Zone-1",
+            "analyze_time": "20:00:53",
+            "values": {
+              "S-DMA": {
+                "original": 1.2301763428773858,
+                "changed": null
+              }
+            }
+          },
+          {
+            "sample": "Control 2",
+            "device_sn": "Q1H250619013",
+            "test_zone": "Zone-1",
+            "analyze_time": "18:33:26",
+            "values": {
+              "S-DMA": {
+                "original": 1.5664847533286528,
+                "changed": null
+              }
+            }
+          },
+          {
+            "sample": "Control 2",
+            "device_sn": "Q1H250619013",
+            "test_zone": "Zone-1",
+            "analyze_time": "18:48:45",
+            "values": {
+              "S-DMA": {
+                "original": 1.4125401717770079,
+                "changed": null
+              }
+            }
+          },
+          {
+            "sample": "Control 2",
+            "device_sn": "Q1H250619013",
+            "test_zone": "Zone-1",
+            "analyze_time": "19:46:27",
+            "values": {
+              "S-DMA": {
+                "original": 1.411364609492364,
+                "changed": null
+              }
+            }
+          },
+          {
+            "sample": "Control 2",
+            "device_sn": "Q1H250619026",
+            "test_zone": "Zone-1",
+            "analyze_time": "18:31:44",
+            "values": {
+              "S-DMA": {
+                "original": 1.4077359490645478,
+                "changed": null
+              }
+            }
+          },
+          {
+            "sample": "Control 2",
+            "device_sn": "Q1H250619026",
+            "test_zone": "Zone-1",
+            "analyze_time": "18:57:51",
+            "values": {
+              "S-DMA": {
+                "original": 1.4224492611405095,
+                "changed": null
+              }
+            }
+          },
+          {
+            "sample": "Control 2",
+            "device_sn": "Q1H250826021",
+            "test_zone": "Zone-1",
+            "analyze_time": "16:45:38",
+            "values": {
+              "S-DMA": {
+                "original": 1.4068724205394516,
+                "changed": null
+              }
+            }
+          },
+          {
+            "sample": "Control 2",
+            "device_sn": "Q1H250826021",
+            "test_zone": "Zone-1",
+            "analyze_time": "17:11:46",
+            "values": {
+              "S-DMA": {
+                "original": 1.4024242202601638,
+                "changed": null
+              }
+            }
+          },
+          {
+            "sample": "Control 2",
+            "device_sn": "Q1H250826021",
+            "test_zone": "Zone-1",
+            "analyze_time": "17:58:39",
+            "values": {
+              "S-DMA": {
+                "original": 1.394549586829922,
+                "changed": null
+              }
+            }
+          },
+          {
+            "sample": "Control 2",
+            "device_sn": "Q1H260316001",
+            "test_zone": "Zone-1",
+            "analyze_time": "18:47:59",
+            "values": {
+              "S-DMA": {
+                "original": 1.451828716399329,
+                "changed": null
+              }
+            }
+          },
+          {
+            "sample": "Control 2",
+            "device_sn": "Q1H260316001",
+            "test_zone": "Zone-1",
+            "analyze_time": "19:03:18",
+            "values": {
+              "S-DMA": {
+                "original": 1.439841823617105,
+                "changed": null
+              }
+            }
+          },
+          {
+            "sample": "Control 2",
+            "device_sn": "Q1H260316001",
+            "test_zone": "Zone-1",
+            "analyze_time": "20:17:41",
+            "values": {
+              "S-DMA": {
+                "original": 1.2219951,
+                "changed": null
+              }
+            }
+          }
+        ],
+        "value_mode": "od"
+      },
+      "sheet_name": "Control",
+      "rows": [
+        {
+          "type": "Control-1",
+          "marker": "S-DMA",
+          "tea": null,
+          "assigned": null,
+          "lcl": null,
+          "ucl": null,
+          "mean": 12.04,
+          "bias": null,
+          "cv": 7.11,
+          "od_mean": 1.2305,
+          "n": 6
+        },
+        {
+          "type": "Control-2",
+          "marker": "S-DMA",
+          "tea": null,
+          "assigned": null,
+          "lcl": null,
+          "ucl": null,
+          "mean": 40.864,
+          "bias": null,
+          "cv": 47.12,
+          "od_mean": 1.4126,
+          "n": 11
+        },
+        {
+          "type": "Control-3",
+          "marker": "S-DMA",
+          "tea": null,
+          "assigned": null,
+          "lcl": null,
+          "ucl": null,
+          "mean": null,
+          "bias": null,
+          "cv": null,
+          "od_mean": null,
+          "n": 0
+        },
+        {
+          "type": "Control-4",
+          "marker": "S-DMA",
+          "tea": null,
+          "assigned": null,
+          "lcl": null,
+          "ucl": null,
+          "mean": null,
+          "bias": null,
+          "cv": null,
+          "od_mean": null,
+          "n": 0
+        }
+      ]
+    },
+    "Canine": {
+      "markers": [
+        "S-DMA"
+      ],
+      "test_count": 0,
+      "summary_conc": {
+        "markers": [
+          "S-DMA"
+        ],
+        "rows": [
+          {
+            "label": "",
+            "stat": "TEa",
+            "values": [
+              null
+            ]
+          },
+          {
+            "label": "",
+            "stat": "Assign value",
+            "values": [
+              null
+            ]
+          },
+          {
+            "label": "",
+            "stat": "LCL",
+            "values": [
+              null
+            ]
+          },
+          {
+            "label": "",
+            "stat": "UCL",
+            "values": [
+              null
+            ]
+          }
+        ]
+      },
+      "summary_od": {
+        "markers": [
+          "S-DMA"
+        ],
+        "rows": [
+          {
+            "label": "",
+            "stat": "TEa",
+            "values": [
+              null
+            ]
+          },
+          {
+            "label": "",
+            "stat": "Assay Value",
+            "values": [
+              null
+            ]
+          },
+          {
+            "label": "",
+            "stat": "LCL",
+            "values": [
+              null
+            ]
+          },
+          {
+            "label": "",
+            "stat": "UCL",
+            "values": [
+              null
+            ]
+          }
+        ]
+      },
+      "sheet_name": "Canine",
+      "rows": []
+    },
+    "Feline": {
+      "markers": [
+        "S-DMA"
+      ],
+      "test_count": 0,
+      "summary_conc": {
+        "markers": [
+          "S-DMA"
+        ],
+        "rows": [
+          {
+            "label": "",
+            "stat": "TEa",
+            "values": [
+              null
+            ]
+          },
+          {
+            "label": "",
+            "stat": "Assign value",
+            "values": [
+              null
+            ]
+          },
+          {
+            "label": "",
+            "stat": "LCL",
+            "values": [
+              null
+            ]
+          },
+          {
+            "label": "",
+            "stat": "UCL",
+            "values": [
+              null
+            ]
+          }
+        ]
+      },
+      "summary_od": {
+        "markers": [
+          "S-DMA"
+        ],
+        "rows": [
+          {
+            "label": "",
+            "stat": "TEa",
+            "values": [
+              null
+            ]
+          },
+          {
+            "label": "",
+            "stat": "Assay Value",
+            "values": [
+              null
+            ]
+          },
+          {
+            "label": "",
+            "stat": "LCL",
+            "values": [
+              null
+            ]
+          },
+          {
+            "label": "",
+            "stat": "UCL",
+            "values": [
+              null
+            ]
+          }
+        ]
+      },
+      "sheet_name": "Feline",
+      "rows": []
+    },
+    "Equine": {
+      "markers": [
+        "S-DMA"
+      ],
+      "test_count": 0,
+      "summary_conc": {
+        "markers": [
+          "S-DMA"
+        ],
+        "rows": [
+          {
+            "label": "",
+            "stat": "TEa",
+            "values": [
+              null
+            ]
+          },
+          {
+            "label": "",
+            "stat": "Assign value",
+            "values": [
+              null
+            ]
+          },
+          {
+            "label": "",
+            "stat": "LCL",
+            "values": [
+              null
+            ]
+          },
+          {
+            "label": "",
+            "stat": "UCL",
+            "values": [
+              null
+            ]
+          }
+        ]
+      },
+      "summary_od": {
+        "markers": [
+          "S-DMA"
+        ],
+        "rows": [
+          {
+            "label": "",
+            "stat": "TEa",
+            "values": [
+              null
+            ]
+          },
+          {
+            "label": "",
+            "stat": "Assay Value",
+            "values": [
+              null
+            ]
+          },
+          {
+            "label": "",
+            "stat": "LCL",
+            "values": [
+              null
+            ]
+          },
+          {
+            "label": "",
+            "stat": "UCL",
+            "values": [
+              null
+            ]
+          }
+        ]
+      },
+      "sheet_name": "Equine",
+      "rows": []
+    }
+  },
+  "groups": [
+    {
+      "id": "11326061702::S-DMA",
+      "panel_name": "S-DMA",
+      "kind": "control",
+      "display_lot_code": "111326061702",
+      "lot_codes": [
+        "111326061702"
+      ],
+      "production_date": "2026-06-17",
+      "analyze_date": "2026-06-17",
+      "record_count": 17,
+      "marker_count": 1,
+      "markers": [
+        "S-DMA"
+      ]
+    }
+  ]
+}

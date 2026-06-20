@@ -6,6 +6,7 @@ from contextlib import asynccontextmanager
 from dotenv import load_dotenv
 from fastapi import FastAPI, File, Form, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import FileResponse
 
 from db import DB_PATH, init_db
 from baseline_service import get_baseline_group, list_baseline_groups, update_baseline_equation
@@ -15,6 +16,7 @@ from query_service import list_headers, query_records
 from upload_service import import_assay_process_csv
 from rds_sync_service import sync_to_rds
 from all_batch_service import get_all_batch_summary
+from lot_report_service import generate_lot_report, get_lot_report_preview, list_lot_report_groups, list_lot_reports, report_file_path
 from app_config import SPEC_DB_PATH
 import skylai_fetch_service
 from skylai_fetch_service import fetch_and_save as skylai_fetch_and_save, scheduled_fetch as skylai_scheduled_fetch, TARGET_DEVICES
@@ -95,6 +97,60 @@ def all_batch_summary() -> dict:
         return get_all_batch_summary()
     except Exception as exc:
         logger.exception("Failed to build all-batch summary")
+        return {"ok": False, "error": str(exc)}
+
+
+@app.get("/api/lot-report-groups")
+def lot_report_groups() -> dict:
+    try:
+        return list_lot_report_groups()
+    except Exception as exc:
+        logger.exception("Failed to list lot report groups")
+        return {"ok": False, "error": str(exc)}
+
+
+@app.get("/api/lot-reports")
+def lot_reports() -> dict:
+    try:
+        return list_lot_reports()
+    except Exception as exc:
+        logger.exception("Failed to list lot reports")
+        return {"ok": False, "error": str(exc)}
+
+
+@app.post("/api/lot-reports/generate")
+def generate_lot_report_endpoint(payload: dict | None = None) -> dict:
+    try:
+        body = payload or {}
+        output_date = body.get("output_date") or None
+        dataset_id = body.get("id") or body.get("dataset_id") or ""
+        lot_code = body.get("lot_code") or ""
+        return generate_lot_report(output_date=output_date, dataset_id=dataset_id, lot_code=lot_code)
+    except Exception as exc:
+        logger.exception("Failed to generate lot report")
+        return {"ok": False, "error": str(exc)}
+
+
+@app.get("/api/lot-reports/{file_name}/preview")
+def lot_report_preview(file_name: str) -> dict:
+    try:
+        return get_lot_report_preview(file_name)
+    except Exception as exc:
+        logger.exception("Failed to read lot report preview")
+        return {"ok": False, "error": str(exc)}
+
+
+@app.get("/api/lot-reports/{file_name}/download")
+def lot_report_download(file_name: str):
+    try:
+        path = report_file_path(file_name)
+        return FileResponse(
+            path,
+            filename=path.name,
+            media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        )
+    except Exception as exc:
+        logger.exception("Failed to download lot report")
         return {"ok": False, "error": str(exc)}
 
 

@@ -1,0 +1,2432 @@
+{
+  "ok": true,
+  "file_name": "206426061802_260620.xlsx",
+  "download_url": "/api/assayprocess/lot-reports/206426061802_260620.xlsx/download",
+  "generated_at": "2026-06-20T18:13:38",
+  "id": "06426061802::Avian & Reptile 26",
+  "panel_name": "Avian & Reptile 26",
+  "display_lot_code": "206426061802",
+  "lot_codes": [
+    "206426061802"
+  ],
+  "production_date": "2026-06-18",
+  "analyze_date": "2026-06-18",
+  "record_count": 104,
+  "kinds": [
+    "control"
+  ],
+  "sheets": {
+    "Control": {
+      "markers": [
+        "ALP",
+        "BA",
+        "BUN",
+        "CHOL",
+        "GGT",
+        "K",
+        "LDH",
+        "Na"
+      ],
+      "test_count": 13,
+      "summary_conc": {
+        "markers": [
+          "ALP",
+          "BA",
+          "BUN",
+          "CHOL",
+          "GGT",
+          "K",
+          "LDH",
+          "Na"
+        ],
+        "rows": [
+          {
+            "label": "",
+            "stat": "TEa",
+            "values": [
+              "20%",
+              null,
+              "2 mg/dL or  9%",
+              "10%",
+              "5 U/L or 15%",
+              "0.3 mmol/L",
+              "15%",
+              "4 mmol/L"
+            ]
+          },
+          {
+            "label": "",
+            "stat": "Assign value",
+            "values": [
+              136.0,
+              null,
+              14.8,
+              228.0,
+              57.0,
+              3.9,
+              null,
+              141.0
+            ]
+          },
+          {
+            "label": "",
+            "stat": "LCL",
+            "values": [
+              108.8,
+              null,
+              12.8,
+              205.2,
+              48.45,
+              3.6,
+              null,
+              137.0
+            ]
+          },
+          {
+            "label": "",
+            "stat": "UCL",
+            "values": [
+              163.2,
+              null,
+              16.8,
+              250.8,
+              65.55,
+              4.2,
+              null,
+              145.0
+            ]
+          },
+          {
+            "label": "Control 1",
+            "stat": "Mean",
+            "values": [
+              142.393,
+              7.352,
+              14.634,
+              233.304,
+              58.566,
+              3.667,
+              273.283,
+              145.609
+            ]
+          },
+          {
+            "label": "Control 1",
+            "stat": "Bias",
+            "values": [
+              4.7,
+              null,
+              -1.12,
+              2.33,
+              2.75,
+              -5.97,
+              null,
+              3.27
+            ]
+          },
+          {
+            "label": "Control 1",
+            "stat": "CV%",
+            "values": [
+              0.33,
+              6.37,
+              0.67,
+              0.86,
+              2.89,
+              2.05,
+              1.71,
+              1.51
+            ]
+          },
+          {
+            "label": "Control 2",
+            "stat": "Mean",
+            "values": [
+              457.885,
+              7.031,
+              45.589,
+              101.056,
+              180.218,
+              6.248,
+              659.81,
+              140.991
+            ]
+          },
+          {
+            "label": "Control 2",
+            "stat": "Bias",
+            "values": [
+              0.41,
+              null,
+              1.99,
+              2.08,
+              9.89,
+              4.14,
+              null,
+              9.3
+            ]
+          },
+          {
+            "label": "Control 2",
+            "stat": "CV%",
+            "values": [
+              1.29,
+              3.91,
+              1.05,
+              1.01,
+              3.69,
+              2.65,
+              2.82,
+              1.45
+            ]
+          },
+          {
+            "label": "Control 3",
+            "stat": "Mean",
+            "values": [
+              72.358,
+              15.114,
+              14.374,
+              112.726,
+              23.285,
+              2.171,
+              179.413,
+              123.868
+            ]
+          },
+          {
+            "label": "Control 3",
+            "stat": "Bias",
+            "values": [
+              -3.52,
+              null,
+              -2.22,
+              -1.98,
+              1.24,
+              -1.3,
+              null,
+              4.97
+            ]
+          },
+          {
+            "label": "Control 3",
+            "stat": "CV%",
+            "values": [
+              1.02,
+              0.6,
+              0.24,
+              0.43,
+              0.28,
+              2.77,
+              1.94,
+              0.14
+            ]
+          },
+          {
+            "label": "Control 4",
+            "stat": "Mean",
+            "values": [
+              232.198,
+              14.252,
+              66.054,
+              269.27,
+              132.347,
+              8.179,
+              806.408,
+              164.213
+            ]
+          },
+          {
+            "label": "Control 4",
+            "stat": "Bias",
+            "values": [
+              -7.49,
+              null,
+              0.54,
+              0.1,
+              5.04,
+              -2.63,
+              null,
+              -1.08
+            ]
+          },
+          {
+            "label": "Control 4",
+            "stat": "CV%",
+            "values": [
+              0.74,
+              0.44,
+              0.93,
+              0.66,
+              0.77,
+              0.03,
+              0.97,
+              0.98
+            ]
+          }
+        ]
+      },
+      "summary_od": {
+        "markers": [
+          "ALP",
+          "BA",
+          "BUN",
+          "CHOL",
+          "GGT",
+          "K",
+          "LDH",
+          "Na"
+        ],
+        "rows": [
+          {
+            "label": "",
+            "stat": "TEa",
+            "values": [
+              "20%",
+              null,
+              "2 mg/dL or  9%",
+              "10%",
+              "5 U/L or 15%",
+              "0.3 mmol/L",
+              "15%",
+              "4 mmol/L"
+            ]
+          },
+          {
+            "label": "",
+            "stat": "Assay Value",
+            "values": [
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null
+            ]
+          },
+          {
+            "label": "",
+            "stat": "LCL",
+            "values": [
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null
+            ]
+          },
+          {
+            "label": "",
+            "stat": "UCL",
+            "values": [
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null
+            ]
+          },
+          {
+            "label": "Control 1",
+            "stat": "Mean",
+            "values": [
+              0.2189,
+              0.017,
+              0.1514,
+              1.6169,
+              0.0922,
+              0.4308,
+              0.2722,
+              0.5596
+            ]
+          },
+          {
+            "label": "Control 1",
+            "stat": "CV%",
+            "values": [
+              0.53,
+              7.18,
+              0.64,
+              0.88,
+              2.51,
+              1.35,
+              1.29,
+              2.1
+            ]
+          },
+          {
+            "label": "Control 2",
+            "stat": "Mean",
+            "values": [
+              1.0112,
+              0.0161,
+              0.4534,
+              0.6809,
+              0.2588,
+              0.6311,
+              0.5635,
+              0.5353
+            ]
+          },
+          {
+            "label": "Control 2",
+            "stat": "CV%",
+            "values": [
+              1.47,
+              4.43,
+              1.03,
+              1.06,
+              3.52,
+              2.04,
+              2.49,
+              2.08
+            ]
+          },
+          {
+            "label": "Control 3",
+            "stat": "Mean",
+            "values": [
+              0.043,
+              0.0372,
+              0.1489,
+              0.7635,
+              0.0439,
+              0.3148,
+              0.2014,
+              0.444
+            ]
+          },
+          {
+            "label": "Control 3",
+            "stat": "CV%",
+            "values": [
+              4.32,
+              0.63,
+              0.22,
+              0.45,
+              0.2,
+              1.48,
+              1.3,
+              0.21
+            ]
+          },
+          {
+            "label": "Control 4",
+            "stat": "Mean",
+            "values": [
+              0.4444,
+              0.0349,
+              0.6531,
+              1.8714,
+              0.1933,
+              0.7808,
+              0.6739,
+              0.6596
+            ]
+          },
+          {
+            "label": "Control 4",
+            "stat": "CV%",
+            "values": [
+              0.97,
+              0.46,
+              0.92,
+              0.67,
+              0.72,
+              0.03,
+              0.87,
+              1.3
+            ]
+          }
+        ]
+      },
+      "detail_conc": {
+        "markers": [
+          "ALP",
+          "BA",
+          "BUN",
+          "CHOL",
+          "GGT",
+          "K",
+          "LDH",
+          "Na"
+        ],
+        "rows": [
+          {
+            "sample": "Control 1",
+            "device_sn": "Q1H250619013",
+            "test_zone": "Zone-3",
+            "analyze_time": "16:32:44",
+            "values": {
+              "ALP": {
+                "original": 142.41347156644463,
+                "changed": null
+              },
+              "BA": {
+                "original": 7.971575218745838,
+                "changed": null
+              },
+              "BUN": {
+                "original": 14.741724341681762,
+                "changed": null
+              },
+              "CHOL": {
+                "original": 235.30023538744942,
+                "changed": null
+              },
+              "GGT": {
+                "original": 58.54758251940049,
+                "changed": null
+              },
+              "K": {
+                "original": 3.731174443977852,
+                "changed": null
+              },
+              "LDH": {
+                "original": 277.0841914791261,
+                "changed": null
+              },
+              "Na": {
+                "original": 147.14031420951824,
+                "changed": null
+              }
+            }
+          },
+          {
+            "sample": "Control 1",
+            "device_sn": "Q1H250619013",
+            "test_zone": "Zone-3",
+            "analyze_time": "19:08:25",
+            "values": {
+              "ALP": {
+                "original": 141.64395659637154,
+                "changed": null
+              },
+              "BA": {
+                "original": 7.156710460028988,
+                "changed": null
+              },
+              "BUN": {
+                "original": 14.508742377460951,
+                "changed": null
+              },
+              "CHOL": {
+                "original": 229.96835598333402,
+                "changed": null
+              },
+              "GGT": {
+                "original": 56.69166300470536,
+                "changed": null
+              },
+              "K": {
+                "original": 3.689186954587666,
+                "changed": null
+              },
+              "LDH": {
+                "original": 271.20113589161974,
+                "changed": null
+              },
+              "Na": {
+                "original": 143.11996576460962,
+                "changed": null
+              }
+            }
+          },
+          {
+            "sample": "Control 1",
+            "device_sn": "Q1H250619026",
+            "test_zone": "Zone-3",
+            "analyze_time": "16:55:08",
+            "values": {
+              "ALP": {
+                "original": 142.89972756258618,
+                "changed": null
+              },
+              "BA": {
+                "original": 7.567423891321099,
+                "changed": null
+              },
+              "BUN": {
+                "original": 14.566138684946148,
+                "changed": null
+              },
+              "CHOL": {
+                "original": 234.09207062328616,
+                "changed": null
+              },
+              "GGT": {
+                "original": 61.26587249756824,
+                "changed": null
+              },
+              "K": {
+                "original": 3.7087595031927254,
+                "changed": null
+              },
+              "LDH": {
+                "original": 266.645955626145,
+                "changed": null
+              },
+              "Na": {
+                "original": 148.37317029590184,
+                "changed": null
+              }
+            }
+          },
+          {
+            "sample": "Control 1",
+            "device_sn": "Q1H250826021",
+            "test_zone": "Zone-3",
+            "analyze_time": "17:27:25",
+            "values": {
+              "ALP": {
+                "original": 142.61426518075245,
+                "changed": null
+              },
+              "BA": {
+                "original": 6.712131284579548,
+                "changed": null
+              },
+              "BUN": {
+                "original": 14.717688598460386,
+                "changed": null
+              },
+              "CHOL": {
+                "original": 233.85569044508463,
+                "changed": null
+              },
+              "GGT": {
+                "original": 57.76012868169566,
+                "changed": null
+              },
+              "K": {
+                "original": 3.539798232143963,
+                "changed": null
+              },
+              "LDH": {
+                "original": 278.19893088857754,
+                "changed": null
+              },
+              "Na": {
+                "original": 143.80329069147527,
+                "changed": null
+              }
+            }
+          },
+          {
+            "sample": "Control 2",
+            "device_sn": "Q1H250619026",
+            "test_zone": "Zone-1",
+            "analyze_time": "17:58:41",
+            "values": {
+              "ALP": {
+                "original": 451.7521205769557,
+                "changed": null
+              },
+              "BA": {
+                "original": 7.4915408362258,
+                "changed": null
+              },
+              "BUN": {
+                "original": 45.13058469989094,
+                "changed": null
+              },
+              "CHOL": {
+                "original": 100.41234013182569,
+                "changed": null
+              },
+              "GGT": {
+                "original": 178.90495709119864,
+                "changed": null
+              },
+              "K": {
+                "original": 6.348999080347336,
+                "changed": null
+              },
+              "LDH": {
+                "original": 640.4700220167927,
+                "changed": null
+              },
+              "Na": {
+                "original": 142.88621592713721,
+                "changed": null
+              }
+            }
+          },
+          {
+            "sample": "Control 2",
+            "device_sn": "Q1H250619026",
+            "test_zone": "Zone-3",
+            "analyze_time": "19:06:04",
+            "values": {
+              "ALP": {
+                "original": 452.3087747075931,
+                "changed": null
+              },
+              "BA": {
+                "original": 6.779885863077704,
+                "changed": null
+              },
+              "BUN": {
+                "original": 45.148510364817064,
+                "changed": null
+              },
+              "CHOL": {
+                "original": 99.75961438185422,
+                "changed": null
+              },
+              "GGT": {
+                "original": 170.00659279088075,
+                "changed": null
+              },
+              "K": {
+                "original": 5.963292572682873,
+                "changed": null
+              },
+              "LDH": {
+                "original": 642.2755844580081,
+                "changed": null
+              },
+              "Na": {
+                "original": 138.8737132412336,
+                "changed": null
+              }
+            }
+          },
+          {
+            "sample": "Control 2",
+            "device_sn": "Q1H250826021",
+            "test_zone": "Zone-1",
+            "analyze_time": "17:58:29",
+            "values": {
+              "ALP": {
+                "original": 462.56088492472554,
+                "changed": null
+              },
+              "BA": {
+                "original": 6.974865383400659,
+                "changed": null
+              },
+              "BUN": {
+                "original": 45.812824742453806,
+                "changed": null
+              },
+              "CHOL": {
+                "original": 102.30137181669947,
+                "changed": null
+              },
+              "GGT": {
+                "original": 187.42704953781464,
+                "changed": null
+              },
+              "K": {
+                "original": 6.313813035436678,
+                "changed": null
+              },
+              "LDH": {
+                "original": 681.8573272436831,
+                "changed": null
+              },
+              "Na": {
+                "original": 143.17592243059426,
+                "changed": null
+              }
+            }
+          },
+          {
+            "sample": "Control 2",
+            "device_sn": "Q1H260316001",
+            "test_zone": "Zone-1",
+            "analyze_time": "18:15:09",
+            "values": {
+              "ALP": {
+                "original": 464.9171333543925,
+                "changed": null
+              },
+              "BA": {
+                "original": 6.877331890878244,
+                "changed": null
+              },
+              "BUN": {
+                "original": 46.26527701025264,
+                "changed": null
+              },
+              "CHOL": {
+                "original": 101.75246627924184,
+                "changed": null
+              },
+              "GGT": {
+                "original": 184.53504322949374,
+                "changed": null
+              },
+              "K": {
+                "original": 6.367698602317991,
+                "changed": null
+              },
+              "LDH": {
+                "original": 674.6375910093027,
+                "changed": null
+              },
+              "Na": {
+                "original": 139.02958418411728,
+                "changed": null
+              }
+            }
+          },
+          {
+            "sample": "Control 3",
+            "device_sn": "Q1H250619026",
+            "test_zone": "Zone-3",
+            "analyze_time": "18:13:09",
+            "values": {
+              "ALP": {
+                "original": 73.33299056241425,
+                "changed": null
+              },
+              "BA": {
+                "original": 15.138765591985152,
+                "changed": null
+              },
+              "BUN": {
+                "original": 14.421547025698382,
+                "changed": null
+              },
+              "CHOL": {
+                "original": 112.37051602027707,
+                "changed": null
+              },
+              "GGT": {
+                "original": 23.351776883282824,
+                "changed": null
+              },
+              "K": {
+                "original": 2.1086562646946607,
+                "changed": null
+              },
+              "LDH": {
+                "original": 174.65482618706778,
+                "changed": null
+              },
+              "Na": {
+                "original": 124.02682233258153,
+                "changed": null
+              }
+            }
+          },
+          {
+            "sample": "Control 3",
+            "device_sn": "Q1H250826021",
+            "test_zone": "Zone-3",
+            "analyze_time": "18:12:56",
+            "values": {
+              "ALP": {
+                "original": 72.19839416702838,
+                "changed": null
+              },
+              "BA": {
+                "original": 15.210003115485781,
+                "changed": null
+              },
+              "BUN": {
+                "original": 14.356326348722218,
+                "changed": null
+              },
+              "CHOL": {
+                "original": 113.40953001559355,
+                "changed": null
+              },
+              "GGT": {
+                "original": 23.30816184753298,
+                "changed": null
+              },
+              "K": {
+                "original": 2.2523761174759036,
+                "changed": null
+              },
+              "LDH": {
+                "original": 182.89150792700383,
+                "changed": null
+              },
+              "Na": {
+                "original": 123.62584161205902,
+                "changed": null
+              }
+            }
+          },
+          {
+            "sample": "Control 3",
+            "device_sn": "Q1H250826021",
+            "test_zone": "Zone-3",
+            "analyze_time": "19:05:51",
+            "values": {
+              "ALP": {
+                "original": 71.54267073354566,
+                "changed": null
+              },
+              "BA": {
+                "original": 14.992685191811873,
+                "changed": null
+              },
+              "BUN": {
+                "original": 14.344355845779246,
+                "changed": null
+              },
+              "CHOL": {
+                "original": 112.39729283304666,
+                "changed": null
+              },
+              "GGT": {
+                "original": 23.196075901727866,
+                "changed": null
+              },
+              "K": {
+                "original": 2.153116921900269,
+                "changed": null
+              },
+              "LDH": {
+                "original": 180.69275814054942,
+                "changed": null
+              },
+              "Na": {
+                "original": 123.95197281911152,
+                "changed": null
+              }
+            }
+          },
+          {
+            "sample": "Control 4",
+            "device_sn": "Q1H250619013",
+            "test_zone": "Zone-3",
+            "analyze_time": "18:14:58",
+            "values": {
+              "ALP": {
+                "original": 233.92044218102222,
+                "changed": null
+              },
+              "BA": {
+                "original": 14.314078139071562,
+                "changed": null
+              },
+              "BUN": {
+                "original": 66.66966673131711,
+                "changed": null
+              },
+              "CHOL": {
+                "original": 267.49779892524253,
+                "changed": null
+              },
+              "GGT": {
+                "original": 131.32773367257903,
+                "changed": null
+              },
+              "K": {
+                "original": 8.176578711533661,
+                "changed": null
+              },
+              "LDH": {
+                "original": 814.2047734772243,
+                "changed": null
+              },
+              "Na": {
+                "original": 162.59841046135006,
+                "changed": null
+              }
+            }
+          },
+          {
+            "sample": "Control 4",
+            "device_sn": "Q1H250619013",
+            "test_zone": "Zone-3",
+            "analyze_time": "19:28:56",
+            "values": {
+              "ALP": {
+                "original": 230.47460321684432,
+                "changed": null
+              },
+              "BA": {
+                "original": 14.18990420121195,
+                "changed": null
+              },
+              "BUN": {
+                "original": 65.43804940724385,
+                "changed": null
+              },
+              "CHOL": {
+                "original": 271.0412630424498,
+                "changed": null
+              },
+              "GGT": {
+                "original": 133.36581508696548,
+                "changed": null
+              },
+              "K": {
+                "original": 8.181714855603651,
+                "changed": null
+              },
+              "LDH": {
+                "original": 798.6102489989305,
+                "changed": null
+              },
+              "Na": {
+                "original": 165.82719055344253,
+                "changed": null
+              }
+            }
+          }
+        ],
+        "value_mode": "conc"
+      },
+      "detail_od": {
+        "markers": [
+          "ALP",
+          "BA",
+          "BUN",
+          "CHOL",
+          "GGT",
+          "K",
+          "LDH",
+          "Na"
+        ],
+        "rows": [
+          {
+            "sample": "Control 1",
+            "device_sn": "Q1H250619013",
+            "test_zone": "Zone-3",
+            "analyze_time": "16:32:44",
+            "values": {
+              "ALP": {
+                "original": 0.21896903959428587,
+                "changed": null
+              },
+              "BA": {
+                "original": 0.018598217179760054,
+                "changed": null
+              },
+              "BUN": {
+                "original": 0.1524656033334806,
+                "changed": null
+              },
+              "CHOL": {
+                "original": 1.6309783113053744,
+                "changed": null
+              },
+              "GGT": {
+                "original": 0.09215970208137053,
+                "changed": null
+              },
+              "K": {
+                "original": 0.43577769154211426,
+                "changed": null
+              },
+              "LDH": {
+                "original": 0.2750446054854002,
+                "changed": null
+              },
+              "Na": {
+                "original": 0.5677676287740332,
+                "changed": null
+              }
+            }
+          },
+          {
+            "sample": "Control 1",
+            "device_sn": "Q1H250619013",
+            "test_zone": "Zone-3",
+            "analyze_time": "19:08:25",
+            "values": {
+              "ALP": {
+                "original": 0.2170365559928969,
+                "changed": null
+              },
+              "BA": {
+                "original": 0.016476726008927328,
+                "changed": null
+              },
+              "BUN": {
+                "original": 0.15019260856059466,
+                "changed": null
+              },
+              "CHOL": {
+                "original": 1.5932438498466668,
+                "changed": null
+              },
+              "GGT": {
+                "original": 0.08961734658178816,
+                "changed": null
+              },
+              "K": {
+                "original": 0.43252032231091286,
+                "changed": null
+              },
+              "LDH": {
+                "original": 0.2706112553817782,
+                "changed": null
+              },
+              "Na": {
+                "original": 0.5463827966202639,
+                "changed": null
+              }
+            }
+          },
+          {
+            "sample": "Control 1",
+            "device_sn": "Q1H250619026",
+            "test_zone": "Zone-3",
+            "analyze_time": "16:55:08",
+            "values": {
+              "ALP": {
+                "original": 0.22019017469258204,
+                "changed": null
+              },
+              "BA": {
+                "original": 0.017546013775894556,
+                "changed": null
+              },
+              "BUN": {
+                "original": 0.15075257253606,
+                "changed": null
+              },
+              "CHOL": {
+                "original": 1.6224279591173825,
+                "changed": null
+              },
+              "GGT": {
+                "original": 0.09588338698297019,
+                "changed": null
+              },
+              "K": {
+                "original": 0.4340387512174341,
+                "changed": null
+              },
+              "LDH": {
+                "original": 0.2671785649028975,
+                "changed": null
+              },
+              "Na": {
+                "original": 0.5743253739143716,
+                "changed": null
+              }
+            }
+          },
+          {
+            "sample": "Control 1",
+            "device_sn": "Q1H250826021",
+            "test_zone": "Zone-3",
+            "analyze_time": "17:27:25",
+            "values": {
+              "ALP": {
+                "original": 0.21947329276934313,
+                "changed": null
+              },
+              "BA": {
+                "original": 0.015319269160582002,
+                "changed": null
+              },
+              "BUN": {
+                "original": 0.1522311082776623,
+                "changed": null
+              },
+              "CHOL": {
+                "original": 1.6207550633056236,
+                "changed": null
+              },
+              "GGT": {
+                "original": 0.09108099819410365,
+                "changed": null
+              },
+              "K": {
+                "original": 0.4209308170786628,
+                "changed": null
+              },
+              "LDH": {
+                "original": 0.2758846502551451,
+                "changed": null
+              },
+              "Na": {
+                "original": 0.55001750367806,
+                "changed": null
+              }
+            }
+          },
+          {
+            "sample": "Control 2",
+            "device_sn": "Q1H250619026",
+            "test_zone": "Zone-1",
+            "analyze_time": "17:58:41",
+            "values": {
+              "ALP": {
+                "original": 0.9958114529808028,
+                "changed": null
+              },
+              "BA": {
+                "original": 0.01734845310134288,
+                "changed": null
+              },
+              "BUN": {
+                "original": 0.44894228975503364,
+                "changed": null
+              },
+              "CHOL": {
+                "original": 0.676357679630755,
+                "changed": null
+              },
+              "GGT": {
+                "original": 0.2570328179331488,
+                "changed": null
+              },
+              "K": {
+                "original": 0.6388672676762868,
+                "changed": null
+              },
+              "LDH": {
+                "original": 0.5488847189275001,
+                "changed": null
+              },
+              "Na": {
+                "original": 0.5451394464209426,
+                "changed": null
+              }
+            }
+          },
+          {
+            "sample": "Control 2",
+            "device_sn": "Q1H250619026",
+            "test_zone": "Zone-3",
+            "analyze_time": "19:06:04",
+            "values": {
+              "ALP": {
+                "original": 0.9972093789743673,
+                "changed": null
+              },
+              "BA": {
+                "original": 0.015495667438369443,
+                "changed": null
+              },
+              "BUN": {
+                "original": 0.44911717429089826,
+                "changed": null
+              },
+              "CHOL": {
+                "original": 0.6717382475715089,
+                "changed": null
+              },
+              "GGT": {
+                "original": 0.24484327779572707,
+                "changed": null
+              },
+              "K": {
+                "original": 0.6089443423338149,
+                "changed": null
+              },
+              "LDH": {
+                "original": 0.5502453537739322,
+                "changed": null
+              },
+              "Na": {
+                "original": 0.5237963470278382,
+                "changed": null
+              }
+            }
+          },
+          {
+            "sample": "Control 2",
+            "device_sn": "Q1H250826021",
+            "test_zone": "Zone-1",
+            "analyze_time": "17:58:29",
+            "values": {
+              "ALP": {
+                "original": 1.0229555121163374,
+                "changed": null
+              },
+              "BA": {
+                "original": 0.016003294411352925,
+                "changed": null
+              },
+              "BUN": {
+                "original": 0.45559829017028114,
+                "changed": null
+              },
+              "CHOL": {
+                "original": 0.6897266229065779,
+                "changed": null
+              },
+              "GGT": {
+                "original": 0.26870691717508854,
+                "changed": null
+              },
+              "K": {
+                "original": 0.63613755123636,
+                "changed": null
+              },
+              "LDH": {
+                "original": 0.5800733438158878,
+                "changed": null
+              },
+              "Na": {
+                "original": 0.5476538427159269,
+                "changed": null
+              }
+            }
+          },
+          {
+            "sample": "Control 2",
+            "device_sn": "Q1H260316001",
+            "test_zone": "Zone-1",
+            "analyze_time": "18:15:09",
+            "values": {
+              "ALP": {
+                "original": 1.0288727608096244,
+                "changed": null
+              },
+              "BA": {
+                "original": 0.01574936706815476,
+                "changed": null
+              },
+              "BUN": {
+                "original": 0.4600124586366112,
+                "changed": null
+              },
+              "CHOL": {
+                "original": 0.6858419411128226,
+                "changed": null
+              },
+              "GGT": {
+                "original": 0.26474526469793663,
+                "changed": null
+              },
+              "K": {
+                "original": 0.6403179675964307,
+                "changed": null
+              },
+              "LDH": {
+                "original": 0.5746326985752093,
+                "changed": null
+              },
+              "Na": {
+                "original": 0.5246254477878579,
+                "changed": null
+              }
+            }
+          },
+          {
+            "sample": "Control 3",
+            "device_sn": "Q1H250619026",
+            "test_zone": "Zone-3",
+            "analyze_time": "18:13:09",
+            "values": {
+              "ALP": {
+                "original": 0.04548716866502825,
+                "changed": null
+              },
+              "BA": {
+                "original": 0.037257916146798103,
+                "changed": null
+              },
+              "BUN": {
+                "original": 0.14934192220193546,
+                "changed": null
+              },
+              "CHOL": {
+                "original": 0.7609873745242537,
+                "changed": null
+              },
+              "GGT": {
+                "original": 0.04394626970312716,
+                "changed": null
+              },
+              "K": {
+                "original": 0.3099035116132398,
+                "changed": null
+              },
+              "LDH": {
+                "original": 0.1978559353331332,
+                "changed": null
+              },
+              "Na": {
+                "original": 0.4448235230456465,
+                "changed": null
+              }
+            }
+          },
+          {
+            "sample": "Control 3",
+            "device_sn": "Q1H250826021",
+            "test_zone": "Zone-3",
+            "analyze_time": "18:12:56",
+            "values": {
+              "ALP": {
+                "original": 0.042637855768529326,
+                "changed": null
+              },
+              "BA": {
+                "original": 0.03744338223245452,
+                "changed": null
+              },
+              "BUN": {
+                "original": 0.14870562291436312,
+                "changed": null
+              },
+              "CHOL": {
+                "original": 0.7683406228987512,
+                "changed": null
+              },
+              "GGT": {
+                "original": 0.0438865230788123,
+                "changed": null
+              },
+              "K": {
+                "original": 0.3210532286637629,
+                "changed": null
+              },
+              "LDH": {
+                "original": 0.2040629298620978,
+                "changed": null
+              },
+              "Na": {
+                "original": 0.4426906468726543,
+                "changed": null
+              }
+            }
+          },
+          {
+            "sample": "Control 3",
+            "device_sn": "Q1H250826021",
+            "test_zone": "Zone-3",
+            "analyze_time": "19:05:51",
+            "values": {
+              "ALP": {
+                "original": 0.04099113695013979,
+                "changed": null
+              },
+              "BA": {
+                "original": 0.036877597479333175,
+                "changed": null
+              },
+              "BUN": {
+                "original": 0.14858883751979754,
+                "changed": null
+              },
+              "CHOL": {
+                "original": 0.7611768777993394,
+                "changed": null
+              },
+              "GGT": {
+                "original": 0.043732980687298445,
+                "changed": null
+              },
+              "K": {
+                "original": 0.3133527480139852,
+                "changed": null
+              },
+              "LDH": {
+                "original": 0.20240599709159712,
+                "changed": null
+              },
+              "Na": {
+                "original": 0.44442538733569964,
+                "changed": null
+              }
+            }
+          },
+          {
+            "sample": "Control 4",
+            "device_sn": "Q1H250619013",
+            "test_zone": "Zone-3",
+            "analyze_time": "18:14:58",
+            "values": {
+              "ALP": {
+                "original": 0.4487705730311959,
+                "changed": null
+              },
+              "BA": {
+                "original": 0.0351108517028679,
+                "changed": null
+              },
+              "BUN": {
+                "original": 0.659079675427484,
+                "changed": null
+              },
+              "CHOL": {
+                "original": 1.8588450030095012,
+                "changed": null
+              },
+              "GGT": {
+                "original": 0.19185853927750549,
+                "changed": null
+              },
+              "K": {
+                "original": 0.7806500164106797,
+                "changed": null
+              },
+              "LDH": {
+                "original": 0.6798076665239068,
+                "changed": null
+              },
+              "Na": {
+                "original": 0.6510383535178195,
+                "changed": null
+              }
+            }
+          },
+          {
+            "sample": "Control 4",
+            "device_sn": "Q1H250619013",
+            "test_zone": "Zone-3",
+            "analyze_time": "19:28:56",
+            "values": {
+              "ALP": {
+                "original": 0.44011703469825286,
+                "changed": null
+              },
+              "BA": {
+                "original": 0.03478756626194207,
+                "changed": null
+              },
+              "BUN": {
+                "original": 0.6470638966560376,
+                "changed": null
+              },
+              "CHOL": {
+                "original": 1.8839225976111098,
+                "changed": null
+              },
+              "GGT": {
+                "original": 0.19465043162598009,
+                "changed": null
+              },
+              "K": {
+                "original": 0.7810484759971801,
+                "changed": null
+              },
+              "LDH": {
+                "original": 0.6680559525236853,
+                "changed": null
+              },
+              "Na": {
+                "original": 0.6682004816672475,
+                "changed": null
+              }
+            }
+          }
+        ],
+        "value_mode": "od"
+      },
+      "sheet_name": "Control",
+      "rows": [
+        {
+          "type": "Control-1",
+          "marker": "ALP",
+          "tea": "20%",
+          "assigned": 136.0,
+          "lcl": 108.8,
+          "ucl": 163.2,
+          "mean": 142.393,
+          "bias": 4.7,
+          "cv": 0.33,
+          "od_mean": 0.2189,
+          "n": 4
+        },
+        {
+          "type": "Control-2",
+          "marker": "ALP",
+          "tea": "20%",
+          "assigned": 456.0,
+          "lcl": 364.8,
+          "ucl": 547.2,
+          "mean": 457.885,
+          "bias": 0.41,
+          "cv": 1.29,
+          "od_mean": 1.0112,
+          "n": 4
+        },
+        {
+          "type": "Control-3",
+          "marker": "ALP",
+          "tea": "20%",
+          "assigned": 75.0,
+          "lcl": 60.0,
+          "ucl": 90.0,
+          "mean": 72.358,
+          "bias": -3.52,
+          "cv": 1.02,
+          "od_mean": 0.043,
+          "n": 3
+        },
+        {
+          "type": "Control-4",
+          "marker": "ALP",
+          "tea": "20%",
+          "assigned": 251.0,
+          "lcl": 200.8,
+          "ucl": 301.2,
+          "mean": 232.198,
+          "bias": -7.49,
+          "cv": 0.74,
+          "od_mean": 0.4444,
+          "n": 2
+        },
+        {
+          "type": "Control-1",
+          "marker": "BA",
+          "tea": null,
+          "assigned": null,
+          "lcl": null,
+          "ucl": null,
+          "mean": 7.352,
+          "bias": null,
+          "cv": 6.37,
+          "od_mean": 0.017,
+          "n": 4
+        },
+        {
+          "type": "Control-2",
+          "marker": "BA",
+          "tea": null,
+          "assigned": null,
+          "lcl": null,
+          "ucl": null,
+          "mean": 7.031,
+          "bias": null,
+          "cv": 3.91,
+          "od_mean": 0.0161,
+          "n": 4
+        },
+        {
+          "type": "Control-3",
+          "marker": "BA",
+          "tea": null,
+          "assigned": null,
+          "lcl": null,
+          "ucl": null,
+          "mean": 15.114,
+          "bias": null,
+          "cv": 0.6,
+          "od_mean": 0.0372,
+          "n": 3
+        },
+        {
+          "type": "Control-4",
+          "marker": "BA",
+          "tea": null,
+          "assigned": null,
+          "lcl": null,
+          "ucl": null,
+          "mean": 14.252,
+          "bias": null,
+          "cv": 0.44,
+          "od_mean": 0.0349,
+          "n": 2
+        },
+        {
+          "type": "Control-1",
+          "marker": "BUN",
+          "tea": "2 mg/dL or  9%",
+          "assigned": 14.8,
+          "lcl": 12.8,
+          "ucl": 16.8,
+          "mean": 14.634,
+          "bias": -1.12,
+          "cv": 0.67,
+          "od_mean": 0.1514,
+          "n": 4
+        },
+        {
+          "type": "Control-2",
+          "marker": "BUN",
+          "tea": "2 mg/dL or  9%",
+          "assigned": 44.7,
+          "lcl": 40.67700000000001,
+          "ucl": 48.723,
+          "mean": 45.589,
+          "bias": 1.99,
+          "cv": 1.05,
+          "od_mean": 0.4534,
+          "n": 4
+        },
+        {
+          "type": "Control-3",
+          "marker": "BUN",
+          "tea": "2 mg/dL or  9%",
+          "assigned": 14.7,
+          "lcl": 12.7,
+          "ucl": 16.7,
+          "mean": 14.374,
+          "bias": -2.22,
+          "cv": 0.24,
+          "od_mean": 0.1489,
+          "n": 3
+        },
+        {
+          "type": "Control-4",
+          "marker": "BUN",
+          "tea": "2 mg/dL or  9%",
+          "assigned": 65.7,
+          "lcl": 59.787000000000006,
+          "ucl": 71.613,
+          "mean": 66.054,
+          "bias": 0.54,
+          "cv": 0.93,
+          "od_mean": 0.6531,
+          "n": 2
+        },
+        {
+          "type": "Control-1",
+          "marker": "CHOL",
+          "tea": "10%",
+          "assigned": 228.0,
+          "lcl": 205.2,
+          "ucl": 250.8,
+          "mean": 233.304,
+          "bias": 2.33,
+          "cv": 0.86,
+          "od_mean": 1.6169,
+          "n": 4
+        },
+        {
+          "type": "Control-2",
+          "marker": "CHOL",
+          "tea": "10%",
+          "assigned": 99.0,
+          "lcl": 89.1,
+          "ucl": 108.9,
+          "mean": 101.056,
+          "bias": 2.08,
+          "cv": 1.01,
+          "od_mean": 0.6809,
+          "n": 4
+        },
+        {
+          "type": "Control-3",
+          "marker": "CHOL",
+          "tea": "10%",
+          "assigned": 115.0,
+          "lcl": 103.5,
+          "ucl": 126.5,
+          "mean": 112.726,
+          "bias": -1.98,
+          "cv": 0.43,
+          "od_mean": 0.7635,
+          "n": 3
+        },
+        {
+          "type": "Control-4",
+          "marker": "CHOL",
+          "tea": "10%",
+          "assigned": 269.0,
+          "lcl": 242.1,
+          "ucl": 295.9,
+          "mean": 269.27,
+          "bias": 0.1,
+          "cv": 0.66,
+          "od_mean": 1.8714,
+          "n": 2
+        },
+        {
+          "type": "Control-1",
+          "marker": "GGT",
+          "tea": "5 U/L or 15%",
+          "assigned": 57.0,
+          "lcl": 48.45,
+          "ucl": 65.55,
+          "mean": 58.566,
+          "bias": 2.75,
+          "cv": 2.89,
+          "od_mean": 0.0922,
+          "n": 4
+        },
+        {
+          "type": "Control-2",
+          "marker": "GGT",
+          "tea": "5 U/L or 15%",
+          "assigned": 164.0,
+          "lcl": 139.4,
+          "ucl": 188.6,
+          "mean": 180.218,
+          "bias": 9.89,
+          "cv": 3.69,
+          "od_mean": 0.2588,
+          "n": 4
+        },
+        {
+          "type": "Control-3",
+          "marker": "GGT",
+          "tea": "5 U/L or 15%",
+          "assigned": 23.0,
+          "lcl": 18.0,
+          "ucl": 28.0,
+          "mean": 23.285,
+          "bias": 1.24,
+          "cv": 0.28,
+          "od_mean": 0.0439,
+          "n": 3
+        },
+        {
+          "type": "Control-4",
+          "marker": "GGT",
+          "tea": "5 U/L or 15%",
+          "assigned": 126.0,
+          "lcl": 107.1,
+          "ucl": 144.9,
+          "mean": 132.347,
+          "bias": 5.04,
+          "cv": 0.77,
+          "od_mean": 0.1933,
+          "n": 2
+        },
+        {
+          "type": "Control-1",
+          "marker": "K",
+          "tea": "0.3 mmol/L",
+          "assigned": 3.9,
+          "lcl": 3.6,
+          "ucl": 4.2,
+          "mean": 3.667,
+          "bias": -5.97,
+          "cv": 2.05,
+          "od_mean": 0.4308,
+          "n": 4
+        },
+        {
+          "type": "Control-2",
+          "marker": "K",
+          "tea": "0.3 mmol/L",
+          "assigned": 6.0,
+          "lcl": 5.7,
+          "ucl": 6.3,
+          "mean": 6.248,
+          "bias": 4.14,
+          "cv": 2.65,
+          "od_mean": 0.6311,
+          "n": 4
+        },
+        {
+          "type": "Control-3",
+          "marker": "K",
+          "tea": "0.3 mmol/L",
+          "assigned": 2.2,
+          "lcl": 1.9000000000000001,
+          "ucl": 2.5,
+          "mean": 2.171,
+          "bias": -1.3,
+          "cv": 2.77,
+          "od_mean": 0.3148,
+          "n": 3
+        },
+        {
+          "type": "Control-4",
+          "marker": "K",
+          "tea": "0.3 mmol/L",
+          "assigned": 8.4,
+          "lcl": 8.1,
+          "ucl": 8.700000000000001,
+          "mean": 8.179,
+          "bias": -2.63,
+          "cv": 0.03,
+          "od_mean": 0.7808,
+          "n": 2
+        },
+        {
+          "type": "Control-1",
+          "marker": "LDH",
+          "tea": "15%",
+          "assigned": null,
+          "lcl": null,
+          "ucl": null,
+          "mean": 273.283,
+          "bias": null,
+          "cv": 1.71,
+          "od_mean": 0.2722,
+          "n": 4
+        },
+        {
+          "type": "Control-2",
+          "marker": "LDH",
+          "tea": "15%",
+          "assigned": null,
+          "lcl": null,
+          "ucl": null,
+          "mean": 659.81,
+          "bias": null,
+          "cv": 2.82,
+          "od_mean": 0.5635,
+          "n": 4
+        },
+        {
+          "type": "Control-3",
+          "marker": "LDH",
+          "tea": "15%",
+          "assigned": null,
+          "lcl": null,
+          "ucl": null,
+          "mean": 179.413,
+          "bias": null,
+          "cv": 1.94,
+          "od_mean": 0.2014,
+          "n": 3
+        },
+        {
+          "type": "Control-4",
+          "marker": "LDH",
+          "tea": "15%",
+          "assigned": null,
+          "lcl": null,
+          "ucl": null,
+          "mean": 806.408,
+          "bias": null,
+          "cv": 0.97,
+          "od_mean": 0.6739,
+          "n": 2
+        },
+        {
+          "type": "Control-1",
+          "marker": "Na",
+          "tea": "4 mmol/L",
+          "assigned": 141.0,
+          "lcl": 137.0,
+          "ucl": 145.0,
+          "mean": 145.609,
+          "bias": 3.27,
+          "cv": 1.51,
+          "od_mean": 0.5596,
+          "n": 4
+        },
+        {
+          "type": "Control-2",
+          "marker": "Na",
+          "tea": "4 mmol/L",
+          "assigned": 129.0,
+          "lcl": 125.0,
+          "ucl": 133.0,
+          "mean": 140.991,
+          "bias": 9.3,
+          "cv": 1.45,
+          "od_mean": 0.5353,
+          "n": 4
+        },
+        {
+          "type": "Control-3",
+          "marker": "Na",
+          "tea": "4 mmol/L",
+          "assigned": 118.0,
+          "lcl": 114.0,
+          "ucl": 122.0,
+          "mean": 123.868,
+          "bias": 4.97,
+          "cv": 0.14,
+          "od_mean": 0.444,
+          "n": 3
+        },
+        {
+          "type": "Control-4",
+          "marker": "Na",
+          "tea": "4 mmol/L",
+          "assigned": 166.0,
+          "lcl": 162.0,
+          "ucl": 170.0,
+          "mean": 164.213,
+          "bias": -1.08,
+          "cv": 0.98,
+          "od_mean": 0.6596,
+          "n": 2
+        }
+      ]
+    },
+    "Canine": {
+      "markers": [
+        "ALP",
+        "BA",
+        "BUN",
+        "CHOL",
+        "GGT",
+        "K",
+        "LDH",
+        "Na"
+      ],
+      "test_count": 0,
+      "summary_conc": {
+        "markers": [
+          "ALP",
+          "BA",
+          "BUN",
+          "CHOL",
+          "GGT",
+          "K",
+          "LDH",
+          "Na"
+        ],
+        "rows": [
+          {
+            "label": "",
+            "stat": "TEa",
+            "values": [
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null
+            ]
+          },
+          {
+            "label": "",
+            "stat": "Assign value",
+            "values": [
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null
+            ]
+          },
+          {
+            "label": "",
+            "stat": "LCL",
+            "values": [
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null
+            ]
+          },
+          {
+            "label": "",
+            "stat": "UCL",
+            "values": [
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null
+            ]
+          }
+        ]
+      },
+      "summary_od": {
+        "markers": [
+          "ALP",
+          "BA",
+          "BUN",
+          "CHOL",
+          "GGT",
+          "K",
+          "LDH",
+          "Na"
+        ],
+        "rows": [
+          {
+            "label": "",
+            "stat": "TEa",
+            "values": [
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null
+            ]
+          },
+          {
+            "label": "",
+            "stat": "Assay Value",
+            "values": [
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null
+            ]
+          },
+          {
+            "label": "",
+            "stat": "LCL",
+            "values": [
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null
+            ]
+          },
+          {
+            "label": "",
+            "stat": "UCL",
+            "values": [
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null
+            ]
+          }
+        ]
+      },
+      "sheet_name": "Canine",
+      "rows": []
+    },
+    "Feline": {
+      "markers": [
+        "ALP",
+        "BA",
+        "BUN",
+        "CHOL",
+        "GGT",
+        "K",
+        "LDH",
+        "Na"
+      ],
+      "test_count": 0,
+      "summary_conc": {
+        "markers": [
+          "ALP",
+          "BA",
+          "BUN",
+          "CHOL",
+          "GGT",
+          "K",
+          "LDH",
+          "Na"
+        ],
+        "rows": [
+          {
+            "label": "",
+            "stat": "TEa",
+            "values": [
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null
+            ]
+          },
+          {
+            "label": "",
+            "stat": "Assign value",
+            "values": [
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null
+            ]
+          },
+          {
+            "label": "",
+            "stat": "LCL",
+            "values": [
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null
+            ]
+          },
+          {
+            "label": "",
+            "stat": "UCL",
+            "values": [
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null
+            ]
+          }
+        ]
+      },
+      "summary_od": {
+        "markers": [
+          "ALP",
+          "BA",
+          "BUN",
+          "CHOL",
+          "GGT",
+          "K",
+          "LDH",
+          "Na"
+        ],
+        "rows": [
+          {
+            "label": "",
+            "stat": "TEa",
+            "values": [
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null
+            ]
+          },
+          {
+            "label": "",
+            "stat": "Assay Value",
+            "values": [
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null
+            ]
+          },
+          {
+            "label": "",
+            "stat": "LCL",
+            "values": [
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null
+            ]
+          },
+          {
+            "label": "",
+            "stat": "UCL",
+            "values": [
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null
+            ]
+          }
+        ]
+      },
+      "sheet_name": "Feline",
+      "rows": []
+    },
+    "Equine": {
+      "markers": [
+        "ALP",
+        "BA",
+        "BUN",
+        "CHOL",
+        "GGT",
+        "K",
+        "LDH",
+        "Na"
+      ],
+      "test_count": 0,
+      "summary_conc": {
+        "markers": [
+          "ALP",
+          "BA",
+          "BUN",
+          "CHOL",
+          "GGT",
+          "K",
+          "LDH",
+          "Na"
+        ],
+        "rows": [
+          {
+            "label": "",
+            "stat": "TEa",
+            "values": [
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null
+            ]
+          },
+          {
+            "label": "",
+            "stat": "Assign value",
+            "values": [
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null
+            ]
+          },
+          {
+            "label": "",
+            "stat": "LCL",
+            "values": [
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null
+            ]
+          },
+          {
+            "label": "",
+            "stat": "UCL",
+            "values": [
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null
+            ]
+          }
+        ]
+      },
+      "summary_od": {
+        "markers": [
+          "ALP",
+          "BA",
+          "BUN",
+          "CHOL",
+          "GGT",
+          "K",
+          "LDH",
+          "Na"
+        ],
+        "rows": [
+          {
+            "label": "",
+            "stat": "TEa",
+            "values": [
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null
+            ]
+          },
+          {
+            "label": "",
+            "stat": "Assay Value",
+            "values": [
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null
+            ]
+          },
+          {
+            "label": "",
+            "stat": "LCL",
+            "values": [
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null
+            ]
+          },
+          {
+            "label": "",
+            "stat": "UCL",
+            "values": [
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null
+            ]
+          }
+        ]
+      },
+      "sheet_name": "Equine",
+      "rows": []
+    }
+  },
+  "groups": [
+    {
+      "id": "06426061802::Avian & Reptile 26",
+      "panel_name": "Avian & Reptile 26",
+      "kind": "control",
+      "display_lot_code": "206426061802",
+      "lot_codes": [
+        "206426061802"
+      ],
+      "production_date": "2026-06-18",
+      "analyze_date": "2026-06-18",
+      "record_count": 104,
+      "marker_count": 8,
+      "markers": [
+        "ALP",
+        "BA",
+        "BUN",
+        "CHOL",
+        "GGT",
+        "K",
+        "LDH",
+        "Na"
+      ]
+    }
+  ]
+}

@@ -16,6 +16,7 @@ import {
 import QueryPanel from './components/QueryPanel';
 import ResultTable from './components/ResultTable';
 import ControlSheet from './components/ControlSheet';
+import LotReports from './components/LotReports';
 
 const defaultQueryState = {
   logic: 'AND' as Logic,
@@ -53,6 +54,7 @@ export default function App() {
 
   const [showControlSheet, setShowControlSheet] = useState(false);
   const [controlParams, setControlParams] = useState({ panelName: '', analyzeDate: '', fwVersion: '' });
+  const [showLotReports, setShowLotReports] = useState(false);
   const [skylaiLoading, setSkylaiLoading] = useState(false);
   const [skylaiResult, setSkylaiResult] = useState<SkylaiDeviceFetchResult | null>(null);
 
@@ -164,6 +166,10 @@ export default function App() {
       && c2?.header === 'analyze_date' && !!c2?.value?.trim();
   };
 
+  if (showLotReports) {
+    return <LotReports onBack={() => setShowLotReports(false)} />;
+  }
+
   if (showControlSheet) {
     return (
       <ControlSheet
@@ -197,6 +203,10 @@ export default function App() {
             <Server size={15} />
             Backend OK
           </div>
+          <button className="icon-button icon-button--labeled" type="button" onClick={() => setShowLotReports(true)} title="產生 Assay報表">
+            <FileSpreadsheet size={17} />
+            <span>產生 Assay報表</span>
+          </button>
           <button
             className="icon-button"
             type="button"

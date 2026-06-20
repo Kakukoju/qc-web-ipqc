@@ -1,0 +1,2325 @@
+{
+  "ok": true,
+  "file_name": "103226061801&203226061801_260620.xlsx",
+  "download_url": "/api/assayprocess/lot-reports/103226061801&203226061801_260620.xlsx/download",
+  "generated_at": "2026-06-20T18:08:32",
+  "id": "03226061801::Specific Test 2",
+  "panel_name": "Specific Test 2",
+  "display_lot_code": "103226061801 & 203226061801",
+  "lot_codes": [
+    "103226061801",
+    "203226061801"
+  ],
+  "production_date": "2026-06-18",
+  "analyze_date": "2026-06-18",
+  "record_count": 132,
+  "kinds": [
+    "control"
+  ],
+  "sheets": {
+    "Control": {
+      "markers": [
+        "ALB",
+        "BUN",
+        "CREA",
+        "GLU",
+        "TP"
+      ],
+      "test_count": 23,
+      "summary_conc": {
+        "markers": [
+          "ALB",
+          "BUN",
+          "CREA",
+          "GLU",
+          "TP"
+        ],
+        "rows": [
+          {
+            "label": "",
+            "stat": "TEa",
+            "values": [
+              "8%",
+              "2 mg/dL or  9%",
+              "0.2 mg/dL or 10%",
+              "6 mg/dL or 8%",
+              "8%"
+            ]
+          },
+          {
+            "label": "",
+            "stat": "Assign value",
+            "values": [
+              4.2,
+              14.8,
+              1.5,
+              90.16,
+              6.4
+            ]
+          },
+          {
+            "label": "",
+            "stat": "LCL",
+            "values": [
+              3.8640000000000003,
+              12.8,
+              1.3,
+              82.9472,
+              5.888
+            ]
+          },
+          {
+            "label": "",
+            "stat": "UCL",
+            "values": [
+              4.5360000000000005,
+              16.8,
+              1.7,
+              97.3728,
+              6.912000000000001
+            ]
+          },
+          {
+            "label": "Control 1",
+            "stat": "Mean",
+            "values": [
+              4.129,
+              14.578,
+              1.258,
+              91.633,
+              6.58
+            ]
+          },
+          {
+            "label": "Control 1",
+            "stat": "Bias",
+            "values": [
+              -1.7,
+              -1.5,
+              -16.12,
+              1.63,
+              2.82
+            ]
+          },
+          {
+            "label": "Control 1",
+            "stat": "CV%",
+            "values": [
+              2.28,
+              1.31,
+              2.14,
+              0.89,
+              1.11
+            ]
+          },
+          {
+            "label": "Control 2",
+            "stat": "Mean",
+            "values": [
+              2.78,
+              45.277,
+              4.707,
+              309.57,
+              4.359
+            ]
+          },
+          {
+            "label": "Control 2",
+            "stat": "Bias",
+            "values": [
+              2.96,
+              1.29,
+              -15.19,
+              5.65,
+              6.32
+            ]
+          },
+          {
+            "label": "Control 2",
+            "stat": "CV%",
+            "values": [
+              1.82,
+              0.52,
+              1.66,
+              0.92,
+              1.32
+            ]
+          },
+          {
+            "label": "Control 3",
+            "stat": "Mean",
+            "values": [
+              2.516,
+              14.814,
+              0.681,
+              67.353,
+              4.087
+            ]
+          },
+          {
+            "label": "Control 3",
+            "stat": "Bias",
+            "values": [
+              -3.21,
+              0.77,
+              -29.75,
+              2.58,
+              -2.68
+            ]
+          },
+          {
+            "label": "Control 3",
+            "stat": "CV%",
+            "values": [
+              1.55,
+              0.99,
+              4.31,
+              1.6,
+              1.61
+            ]
+          },
+          {
+            "label": "Control 4",
+            "stat": "Mean",
+            "values": [
+              4.116,
+              65.558,
+              5.489,
+              380.028,
+              7.587
+            ]
+          },
+          {
+            "label": "Control 4",
+            "stat": "Bias",
+            "values": [
+              -2.0,
+              -0.22,
+              -7.74,
+              5.66,
+              1.16
+            ]
+          },
+          {
+            "label": "Control 4",
+            "stat": "CV%",
+            "values": [
+              0.86,
+              1.15,
+              1.33,
+              1.01,
+              0.69
+            ]
+          }
+        ]
+      },
+      "summary_od": {
+        "markers": [
+          "ALB",
+          "BUN",
+          "CREA",
+          "GLU",
+          "TP"
+        ],
+        "rows": [
+          {
+            "label": "",
+            "stat": "TEa",
+            "values": [
+              "8%",
+              "2 mg/dL or  9%",
+              "0.2 mg/dL or 10%",
+              "6 mg/dL or 8%",
+              "8%"
+            ]
+          },
+          {
+            "label": "",
+            "stat": "Assay Value",
+            "values": [
+              null,
+              null,
+              null,
+              null,
+              null
+            ]
+          },
+          {
+            "label": "",
+            "stat": "LCL",
+            "values": [
+              null,
+              null,
+              null,
+              null,
+              null
+            ]
+          },
+          {
+            "label": "",
+            "stat": "UCL",
+            "values": [
+              null,
+              null,
+              null,
+              null,
+              null
+            ]
+          },
+          {
+            "label": "Control 1",
+            "stat": "Mean",
+            "values": [
+              2.6648,
+              0.1536,
+              0.0559,
+              0.6113,
+              0.7007
+            ]
+          },
+          {
+            "label": "Control 1",
+            "stat": "CV%",
+            "values": [
+              1.43,
+              1.24,
+              2.43,
+              0.77,
+              0.77
+            ]
+          },
+          {
+            "label": "Control 2",
+            "stat": "Mean",
+            "values": [
+              2.1197,
+              0.4597,
+              0.2297,
+              1.8739,
+              0.5376
+            ]
+          },
+          {
+            "label": "Control 2",
+            "stat": "CV%",
+            "values": [
+              0.96,
+              0.51,
+              1.72,
+              0.88,
+              0.78
+            ]
+          },
+          {
+            "label": "Control 3",
+            "stat": "Mean",
+            "values": [
+              2.0131,
+              0.156,
+              0.0268,
+              0.4706,
+              0.5176
+            ]
+          },
+          {
+            "label": "Control 3",
+            "stat": "CV%",
+            "values": [
+              0.78,
+              0.94,
+              5.53,
+              1.33,
+              0.94
+            ]
+          },
+          {
+            "label": "Control 4",
+            "stat": "Mean",
+            "values": [
+              2.6605,
+              0.6619,
+              0.2457,
+              2.2821,
+              0.7746
+            ]
+          },
+          {
+            "label": "Control 4",
+            "stat": "CV%",
+            "values": [
+              0.54,
+              1.13,
+              1.25,
+              0.98,
+              0.49
+            ]
+          }
+        ]
+      },
+      "detail_conc": {
+        "markers": [
+          "ALB",
+          "BUN",
+          "CREA",
+          "GLU",
+          "TP"
+        ],
+        "rows": [
+          {
+            "sample": "Control 1",
+            "device_sn": "Q1H250619013",
+            "test_zone": "Zone-1",
+            "analyze_time": "14:42:43",
+            "values": {
+              "ALB": {
+                "original": 4.121471535969338,
+                "changed": null
+              },
+              "BUN": {
+                "original": 14.361106721761725,
+                "changed": null
+              },
+              "CREA": {
+                "original": 1.2227754800424542,
+                "changed": null
+              },
+              "GLU": {
+                "original": 90.93080898658962,
+                "changed": null
+              },
+              "TP": {
+                "original": 6.56974412859548,
+                "changed": null
+              }
+            }
+          },
+          {
+            "sample": "Control 1",
+            "device_sn": "Q1H250619013",
+            "test_zone": "Zone-1",
+            "analyze_time": "15:44:12",
+            "values": {
+              "ALB": {
+                "original": 4.09809350951234,
+                "changed": null
+              },
+              "BUN": {
+                "original": 14.618717115111659,
+                "changed": null
+              },
+              "CREA": {
+                "original": 1.2823291328625017,
+                "changed": null
+              },
+              "GLU": {
+                "original": 92.15007521787624,
+                "changed": null
+              },
+              "TP": {
+                "original": 6.708610181505425,
+                "changed": null
+              }
+            }
+          },
+          {
+            "sample": "Control 1",
+            "device_sn": "Q1H250619026",
+            "test_zone": "Zone-1",
+            "analyze_time": "15:42:42",
+            "values": {
+              "ALB": {
+                "original": 4.33210654248777,
+                "changed": null
+              },
+              "BUN": {
+                "original": 14.827052683582131,
+                "changed": null
+              },
+              "CREA": {
+                "original": 1.2828379338639606,
+                "changed": null
+              },
+              "GLU": {
+                "original": 92.46260342020828,
+                "changed": null
+              },
+              "TP": {
+                "original": 6.624803974642124,
+                "changed": null
+              }
+            }
+          },
+          {
+            "sample": "Control 1",
+            "device_sn": "Q1H250619026",
+            "test_zone": "Zone-3",
+            "analyze_time": "14:41:00",
+            "values": {
+              "ALB": {
+                "original": 4.093723015530317,
+                "changed": null
+              },
+              "BUN": {
+                "original": 14.306870875045417,
+                "changed": null
+              },
+              "CREA": {
+                "original": 1.2828249981864324,
+                "changed": null
+              },
+              "GLU": {
+                "original": 90.5377441631226,
+                "changed": null
+              },
+              "TP": {
+                "original": 6.476563474518287,
+                "changed": null
+              }
+            }
+          },
+          {
+            "sample": "Control 1",
+            "device_sn": "Q1H260316001",
+            "test_zone": "Zone-1",
+            "analyze_time": "15:58:45",
+            "values": {
+              "ALB": {
+                "original": 4.082717176346094,
+                "changed": null
+              },
+              "BUN": {
+                "original": 14.762082988129453,
+                "changed": null
+              },
+              "CREA": {
+                "original": 1.2565933885915301,
+                "changed": null
+              },
+              "GLU": {
+                "original": 91.06752123255764,
+                "changed": null
+              },
+              "TP": {
+                "original": 6.575694820972493,
+                "changed": null
+              }
+            }
+          },
+          {
+            "sample": "Control 1",
+            "device_sn": "Q1H260316001",
+            "test_zone": "Zone-3",
+            "analyze_time": "14:57:15",
+            "values": {
+              "ALB": {
+                "original": 4.043516917612541,
+                "changed": null
+              },
+              "BUN": {
+                "original": 14.589250483204394,
+                "changed": null
+              },
+              "CREA": {
+                "original": 1.2220059602200752,
+                "changed": null
+              },
+              "GLU": {
+                "original": 92.64716687858649,
+                "changed": null
+              },
+              "TP": {
+                "original": 6.526080011767967,
+                "changed": null
+              }
+            }
+          },
+          {
+            "sample": "Control 2",
+            "device_sn": "Q1H250619013",
+            "test_zone": "Zone-1",
+            "analyze_time": "15:57:53",
+            "values": {
+              "ALB": {
+                "original": 2.8131292522119504,
+                "changed": null
+              },
+              "BUN": {
+                "original": 45.40358353057857,
+                "changed": null
+              },
+              "CREA": {
+                "original": 4.705752064019365,
+                "changed": null
+              },
+              "GLU": {
+                "original": 313.1212595119149,
+                "changed": null
+              },
+              "TP": {
+                "original": 4.477091493284658,
+                "changed": null
+              }
+            }
+          },
+          {
+            "sample": "Control 2",
+            "device_sn": "Q1H250619013",
+            "test_zone": "Zone-3",
+            "analyze_time": "14:57:45",
+            "values": {
+              "ALB": {
+                "original": 2.817006138777154,
+                "changed": null
+              },
+              "BUN": {
+                "original": 45.45359024550885,
+                "changed": null
+              },
+              "CREA": {
+                "original": 4.574041084576728,
+                "changed": null
+              },
+              "GLU": {
+                "original": 304.8730457831477,
+                "changed": null
+              },
+              "TP": {
+                "original": 4.337980560574329,
+                "changed": null
+              }
+            }
+          },
+          {
+            "sample": "Control 2",
+            "device_sn": "Q1H250619026",
+            "test_zone": "Zone-1",
+            "analyze_time": "15:56:12",
+            "values": {
+              "ALB": {
+                "original": 2.8000908228981296,
+                "changed": null
+              },
+              "BUN": {
+                "original": 45.469546129626806,
+                "changed": null
+              },
+              "CREA": {
+                "original": 4.7866848509483715,
+                "changed": null
+              },
+              "GLU": {
+                "original": 311.3994557443349,
+                "changed": null
+              },
+              "TP": {
+                "original": 4.298393262452253,
+                "changed": null
+              }
+            }
+          },
+          {
+            "sample": "Control 2",
+            "device_sn": "Q1H250619026",
+            "test_zone": "Zone-3",
+            "analyze_time": "14:56:07",
+            "values": {
+              "ALB": {
+                "original": 2.826247299819267,
+                "changed": null
+              },
+              "BUN": {
+                "original": 45.437593964395866,
+                "changed": null
+              },
+              "CREA": {
+                "original": 4.81197516621166,
+                "changed": null
+              },
+              "GLU": {
+                "original": 312.0118759204186,
+                "changed": null
+              },
+              "TP": {
+                "original": 4.368778846603934,
+                "changed": null
+              }
+            }
+          },
+          {
+            "sample": "Control 2",
+            "device_sn": "Q1H260316001",
+            "test_zone": "Zone-1",
+            "analyze_time": "15:12:14",
+            "values": {
+              "ALB": {
+                "original": 2.734372812150881,
+                "changed": null
+              },
+              "BUN": {
+                "original": 45.00149562256266,
+                "changed": null
+              },
+              "CREA": {
+                "original": 4.667068023161713,
+                "changed": null
+              },
+              "GLU": {
+                "original": 308.2509279683759,
+                "changed": null
+              },
+              "TP": {
+                "original": 4.319932312351714,
+                "changed": null
+              }
+            }
+          },
+          {
+            "sample": "Control 2",
+            "device_sn": "Q1H260316001",
+            "test_zone": "Zone-1",
+            "analyze_time": "16:12:24",
+            "values": {
+              "ALB": {
+                "original": 2.6894111563323304,
+                "changed": null
+              },
+              "BUN": {
+                "original": 44.89746675005564,
+                "changed": null
+              },
+              "CREA": {
+                "original": 4.694731743571833,
+                "changed": null
+              },
+              "GLU": {
+                "original": 307.7654202190783,
+                "changed": null
+              },
+              "TP": {
+                "original": 4.353017172707031,
+                "changed": null
+              }
+            }
+          },
+          {
+            "sample": "Control 2",
+            "device_sn": "Q1H260316001",
+            "test_zone": "Zone-3",
+            "analyze_time": "15:12:14",
+            "values": {
+              "ALB": {
+                "original": null,
+                "changed": null
+              },
+              "BUN": {
+                "original": null,
+                "changed": null
+              },
+              "CREA": {
+                "original": null,
+                "changed": null
+              },
+              "GLU": {
+                "original": null,
+                "changed": null
+              },
+              "TP": {
+                "original": null,
+                "changed": null
+              }
+            }
+          },
+          {
+            "sample": "Control 3",
+            "device_sn": "Q1H250619013",
+            "test_zone": "Zone-3",
+            "analyze_time": "15:15:52",
+            "values": {
+              "ALB": {
+                "original": 2.515733277506286,
+                "changed": null
+              },
+              "BUN": {
+                "original": 14.674413953410697,
+                "changed": null
+              },
+              "CREA": {
+                "original": 0.6722025784040795,
+                "changed": null
+              },
+              "GLU": {
+                "original": 67.04540690257616,
+                "changed": null
+              },
+              "TP": {
+                "original": 4.089036224819696,
+                "changed": null
+              }
+            }
+          },
+          {
+            "sample": "Control 3",
+            "device_sn": "Q1H250619026",
+            "test_zone": "Zone-1",
+            "analyze_time": "15:14:23",
+            "values": {
+              "ALB": {
+                "original": 2.5785885378973803,
+                "changed": null
+              },
+              "BUN": {
+                "original": 14.869057406931727,
+                "changed": null
+              },
+              "CREA": {
+                "original": 0.7139590288009865,
+                "changed": null
+              },
+              "GLU": {
+                "original": 68.01390423904567,
+                "changed": null
+              },
+              "TP": {
+                "original": 4.140365942197173,
+                "changed": null
+              }
+            }
+          },
+          {
+            "sample": "Control 3",
+            "device_sn": "Q1H250619026",
+            "test_zone": "Zone-1",
+            "analyze_time": "16:10:07",
+            "values": {
+              "ALB": {
+                "original": 2.5047308774319306,
+                "changed": null
+              },
+              "BUN": {
+                "original": 14.605475329089355,
+                "changed": null
+              },
+              "CREA": {
+                "original": 0.6341315361338116,
+                "changed": null
+              },
+              "GLU": {
+                "original": 66.01758730092057,
+                "changed": null
+              },
+              "TP": {
+                "original": 3.964399671419275,
+                "changed": null
+              }
+            }
+          },
+          {
+            "sample": "Control 3",
+            "device_sn": "Q1H260316001",
+            "test_zone": "Zone-1",
+            "analyze_time": "15:30:23",
+            "values": {
+              "ALB": {
+                "original": 2.457061019388122,
+                "changed": null
+              },
+              "BUN": {
+                "original": 14.9484203967013,
+                "changed": null
+              },
+              "CREA": {
+                "original": 0.6753485515513603,
+                "changed": null
+              },
+              "GLU": {
+                "original": 66.61163807268483,
+                "changed": null
+              },
+              "TP": {
+                "original": 4.094356648278634,
+                "changed": null
+              }
+            }
+          },
+          {
+            "sample": "Control 3",
+            "device_sn": "Q1H260316001",
+            "test_zone": "Zone-1",
+            "analyze_time": "16:26:10",
+            "values": {
+              "ALB": {
+                "original": 2.5262902783138075,
+                "changed": null
+              },
+              "BUN": {
+                "original": 14.970511765851418,
+                "changed": null
+              },
+              "CREA": {
+                "original": 0.7114932773069034,
+                "changed": null
+              },
+              "GLU": {
+                "original": 69.07862307397288,
+                "changed": null
+              },
+              "TP": {
+                "original": 4.148798077535151,
+                "changed": null
+              }
+            }
+          },
+          {
+            "sample": "Control 4",
+            "device_sn": "Q1H250619013",
+            "test_zone": "Zone-1",
+            "analyze_time": "16:14:18",
+            "values": {
+              "ALB": {
+                "original": 4.105103196056067,
+                "changed": null
+              },
+              "BUN": {
+                "original": 65.56961265759821,
+                "changed": null
+              },
+              "CREA": {
+                "original": 5.38762785040494,
+                "changed": null
+              },
+              "GLU": {
+                "original": 378.11825811202414,
+                "changed": null
+              },
+              "TP": {
+                "original": 7.6107558826214765,
+                "changed": null
+              }
+            }
+          },
+          {
+            "sample": "Control 4",
+            "device_sn": "Q1H250619013",
+            "test_zone": "Zone-3",
+            "analyze_time": "15:29:03",
+            "values": {
+              "ALB": {
+                "original": 4.101279949601426,
+                "changed": null
+              },
+              "BUN": {
+                "original": 64.10726003455883,
+                "changed": null
+              },
+              "CREA": {
+                "original": 5.43175299465128,
+                "changed": null
+              },
+              "GLU": {
+                "original": 373.85336766745144,
+                "changed": null
+              },
+              "TP": {
+                "original": 7.505846737494893,
+                "changed": null
+              }
+            }
+          },
+          {
+            "sample": "Control 4",
+            "device_sn": "Q1H250619026",
+            "test_zone": "Zone-1",
+            "analyze_time": "15:27:24",
+            "values": {
+              "ALB": {
+                "original": 4.115945960508253,
+                "changed": null
+              },
+              "BUN": {
+                "original": 65.88786460072048,
+                "changed": null
+              },
+              "CREA": {
+                "original": 5.49705056296621,
+                "changed": null
+              },
+              "GLU": {
+                "original": 380.34249123078206,
+                "changed": null
+              },
+              "TP": {
+                "original": 7.547322268315617,
+                "changed": null
+              }
+            }
+          },
+          {
+            "sample": "Control 4",
+            "device_sn": "Q1H250619026",
+            "test_zone": "Zone-1",
+            "analyze_time": "16:25:09",
+            "values": {
+              "ALB": {
+                "original": 4.181482549503636,
+                "changed": null
+              },
+              "BUN": {
+                "original": 66.14795829394502,
+                "changed": null
+              },
+              "CREA": {
+                "original": 5.593115253529804,
+                "changed": null
+              },
+              "GLU": {
+                "original": 384.8580596379427,
+                "changed": null
+              },
+              "TP": {
+                "original": 7.621635624772675,
+                "changed": null
+              }
+            }
+          },
+          {
+            "sample": "Control 4",
+            "device_sn": "Q1H260316001",
+            "test_zone": "Zone-1",
+            "analyze_time": "15:43:34",
+            "values": {
+              "ALB": {
+                "original": 4.076328425370276,
+                "changed": null
+              },
+              "BUN": {
+                "original": 66.07911175753271,
+                "changed": null
+              },
+              "CREA": {
+                "original": 5.536681072523811,
+                "changed": null
+              },
+              "GLU": {
+                "original": 382.96942710198755,
+                "changed": null
+              },
+              "TP": {
+                "original": 7.647734731576894,
+                "changed": null
+              }
+            }
+          }
+        ],
+        "value_mode": "conc"
+      },
+      "detail_od": {
+        "markers": [
+          "ALB",
+          "BUN",
+          "CREA",
+          "GLU",
+          "TP"
+        ],
+        "rows": [
+          {
+            "sample": "Control 1",
+            "device_sn": "Q1H250619013",
+            "test_zone": "Zone-1",
+            "analyze_time": "14:42:43",
+            "values": {
+              "ALB": {
+                "original": 2.6618720840619794,
+                "changed": null
+              },
+              "BUN": {
+                "original": 0.151486607395431,
+                "changed": null
+              },
+              "CREA": {
+                "original": 0.05407134476020434,
+                "changed": null
+              },
+              "GLU": {
+                "original": 0.6071889280798936,
+                "changed": null
+              },
+              "TP": {
+                "original": 0.6999077921142055,
+                "changed": null
+              }
+            }
+          },
+          {
+            "sample": "Control 1",
+            "device_sn": "Q1H250619013",
+            "test_zone": "Zone-1",
+            "analyze_time": "15:44:12",
+            "values": {
+              "ALB": {
+                "original": 2.652422598832797,
+                "changed": null
+              },
+              "BUN": {
+                "original": 0.15405500613271847,
+                "changed": null
+              },
+              "CREA": {
+                "original": 0.05707304097089223,
+                "changed": null
+              },
+              "GLU": {
+                "original": 0.6142530429772668,
+                "changed": null
+              },
+              "TP": {
+                "original": 0.7101035375554644,
+                "changed": null
+              }
+            }
+          },
+          {
+            "sample": "Control 1",
+            "device_sn": "Q1H250619026",
+            "test_zone": "Zone-1",
+            "analyze_time": "15:42:42",
+            "values": {
+              "ALB": {
+                "original": 2.747011536979697,
+                "changed": null
+              },
+              "BUN": {
+                "original": 0.15613213044448787,
+                "changed": null
+              },
+              "CREA": {
+                "original": 0.05709868618265931,
+                "changed": null
+              },
+              "GLU": {
+                "original": 0.6160637509861431,
+                "changed": null
+              },
+              "TP": {
+                "original": 0.7039503652453836,
+                "changed": null
+              }
+            }
+          },
+          {
+            "sample": "Control 1",
+            "device_sn": "Q1H250619026",
+            "test_zone": "Zone-3",
+            "analyze_time": "14:41:00",
+            "values": {
+              "ALB": {
+                "original": 2.6506560289128203,
+                "changed": null
+              },
+              "BUN": {
+                "original": 0.15094587113704308,
+                "changed": null
+              },
+              "CREA": {
+                "original": 0.05709803418278389,
+                "changed": null
+              },
+              "GLU": {
+                "original": 0.604911611605577,
+                "changed": null
+              },
+              "TP": {
+                "original": 0.6930663343992869,
+                "changed": null
+              }
+            }
+          },
+          {
+            "sample": "Control 1",
+            "device_sn": "Q1H260316001",
+            "test_zone": "Zone-1",
+            "analyze_time": "15:58:45",
+            "values": {
+              "ALB": {
+                "original": 2.646207427787427,
+                "changed": null
+              },
+              "BUN": {
+                "original": 0.15548437675104143,
+                "changed": null
+              },
+              "CREA": {
+                "original": 0.05577587644110535,
+                "changed": null
+              },
+              "GLU": {
+                "original": 0.6079810036648763,
+                "changed": null
+              },
+              "TP": {
+                "original": 0.7003447005119304,
+                "changed": null
+              }
+            }
+          },
+          {
+            "sample": "Control 1",
+            "device_sn": "Q1H260316001",
+            "test_zone": "Zone-3",
+            "analyze_time": "14:57:15",
+            "values": {
+              "ALB": {
+                "original": 2.630362537434333,
+                "changed": null
+              },
+              "BUN": {
+                "original": 0.15376122116853835,
+                "changed": null
+              },
+              "CREA": {
+                "original": 0.05403255847883444,
+                "changed": null
+              },
+              "GLU": {
+                "original": 0.6171330641864803,
+                "changed": null
+              },
+              "TP": {
+                "original": 0.6967019098214366,
+                "changed": null
+              }
+            }
+          },
+          {
+            "sample": "Control 2",
+            "device_sn": "Q1H250619013",
+            "test_zone": "Zone-1",
+            "analyze_time": "15:57:53",
+            "values": {
+              "ALB": {
+                "original": 2.1330352676685327,
+                "changed": null
+              },
+              "BUN": {
+                "original": 0.46098288664584824,
+                "changed": null
+              },
+              "CREA": {
+                "original": 0.22962460000097604,
+                "changed": null
+              },
+              "GLU": {
+                "original": 1.894503241668105,
+                "changed": null
+              },
+              "TP": {
+                "original": 0.5462622241765535,
+                "changed": null
+              }
+            }
+          },
+          {
+            "sample": "Control 2",
+            "device_sn": "Q1H250619013",
+            "test_zone": "Zone-3",
+            "analyze_time": "14:57:45",
+            "values": {
+              "ALB": {
+                "original": 2.134602319635066,
+                "changed": null
+              },
+              "BUN": {
+                "original": 0.461481458080846,
+                "changed": null
+              },
+              "CREA": {
+                "original": 0.2229859417629399,
+                "changed": null
+              },
+              "GLU": {
+                "original": 1.8467152131120956,
+                "changed": null
+              },
+              "TP": {
+                "original": 0.5360484993079536,
+                "changed": null
+              }
+            }
+          },
+          {
+            "sample": "Control 2",
+            "device_sn": "Q1H250619026",
+            "test_zone": "Zone-1",
+            "analyze_time": "15:56:12",
+            "values": {
+              "ALB": {
+                "original": 2.1277650860542154,
+                "changed": null
+              },
+              "BUN": {
+                "original": 0.4616405396772364,
+                "changed": null
+              },
+              "CREA": {
+                "original": 0.2337038735357042,
+                "changed": null
+              },
+              "GLU": {
+                "original": 1.8845275535592985,
+                "changed": null
+              },
+              "TP": {
+                "original": 0.5331419429113254,
+                "changed": null
+              }
+            }
+          },
+          {
+            "sample": "Control 2",
+            "device_sn": "Q1H250619026",
+            "test_zone": "Zone-3",
+            "analyze_time": "14:56:07",
+            "values": {
+              "ALB": {
+                "original": 2.1383376312931555,
+                "changed": null
+              },
+              "BUN": {
+                "original": 0.4613219737227904,
+                "changed": null
+              },
+              "CREA": {
+                "original": 0.23497858700663607,
+                "changed": null
+              },
+              "GLU": {
+                "original": 1.8880757585192274,
+                "changed": null
+              },
+              "TP": {
+                "original": 0.538309753788835,
+                "changed": null
+              }
+            }
+          },
+          {
+            "sample": "Control 2",
+            "device_sn": "Q1H260316001",
+            "test_zone": "Zone-1",
+            "analyze_time": "15:12:14",
+            "values": {
+              "ALB": {
+                "original": 2.1012016217263056,
+                "changed": null
+              },
+              "BUN": {
+                "original": 0.4569740341232569,
+                "changed": null
+              },
+              "CREA": {
+                "original": 0.2276747995545218,
+                "changed": null
+              },
+              "GLU": {
+                "original": 1.8662857935595358,
+                "changed": null
+              },
+              "TP": {
+                "original": 0.5347233709509335,
+                "changed": null
+              }
+            }
+          },
+          {
+            "sample": "Control 2",
+            "device_sn": "Q1H260316001",
+            "test_zone": "Zone-1",
+            "analyze_time": "16:12:24",
+            "values": {
+              "ALB": {
+                "original": 2.0830279532466975,
+                "changed": null
+              },
+              "BUN": {
+                "original": 0.4559368569297672,
+                "changed": null
+              },
+              "CREA": {
+                "original": 0.22906914030099965,
+                "changed": null
+              },
+              "GLU": {
+                "original": 1.8634728865531767,
+                "changed": null
+              },
+              "TP": {
+                "original": 0.5371525090093268,
+                "changed": null
+              }
+            }
+          },
+          {
+            "sample": "Control 2",
+            "device_sn": "Q1H260316001",
+            "test_zone": "Zone-3",
+            "analyze_time": "15:12:14",
+            "values": {
+              "ALB": {
+                "original": null,
+                "changed": null
+              },
+              "BUN": {
+                "original": null,
+                "changed": null
+              },
+              "CREA": {
+                "original": null,
+                "changed": null
+              },
+              "GLU": {
+                "original": null,
+                "changed": null
+              },
+              "TP": {
+                "original": null,
+                "changed": null
+              }
+            }
+          },
+          {
+            "sample": "Control 3",
+            "device_sn": "Q1H250619013",
+            "test_zone": "Zone-3",
+            "analyze_time": "15:15:52",
+            "values": {
+              "ALB": {
+                "original": 2.0128267087737615,
+                "changed": null
+              },
+              "BUN": {
+                "original": 0.15461030860828215,
+                "changed": null
+              },
+              "CREA": {
+                "original": 0.02632069447601207,
+                "changed": null
+              },
+              "GLU": {
+                "original": 0.4688030527379847,
+                "changed": null
+              },
+              "TP": {
+                "original": 0.5177706479309615,
+                "changed": null
+              }
+            }
+          },
+          {
+            "sample": "Control 3",
+            "device_sn": "Q1H250619026",
+            "test_zone": "Zone-1",
+            "analyze_time": "15:14:23",
+            "values": {
+              "ALB": {
+                "original": 2.0382330387620775,
+                "changed": null
+              },
+              "BUN": {
+                "original": 0.1565509213054011,
+                "changed": null
+              },
+              "CREA": {
+                "original": 0.02842535427424327,
+                "changed": null
+              },
+              "GLU": {
+                "original": 0.4744142771671245,
+                "changed": null
+              },
+              "TP": {
+                "original": 0.5215393496473695,
+                "changed": null
+              }
+            }
+          },
+          {
+            "sample": "Control 3",
+            "device_sn": "Q1H250619026",
+            "test_zone": "Zone-1",
+            "analyze_time": "16:10:07",
+            "values": {
+              "ALB": {
+                "original": 2.0083794977493654,
+                "changed": null
+              },
+              "BUN": {
+                "original": 0.15392298433787993,
+                "changed": null
+              },
+              "CREA": {
+                "original": 0.024401791135776788,
+                "changed": null
+              },
+              "GLU": {
+                "original": 0.46284813036454564,
+                "changed": null
+              },
+              "TP": {
+                "original": 0.5086196528207985,
+                "changed": null
+              }
+            }
+          },
+          {
+            "sample": "Control 3",
+            "device_sn": "Q1H260316001",
+            "test_zone": "Zone-1",
+            "analyze_time": "15:30:23",
+            "values": {
+              "ALB": {
+                "original": 1.9891111638593864,
+                "changed": null
+              },
+              "BUN": {
+                "original": 0.1573421774347089,
+                "changed": null
+              },
+              "CREA": {
+                "original": 0.0264792616709355,
+                "changed": null
+              },
+              "GLU": {
+                "original": 0.46628990772123313,
+                "changed": null
+              },
+              "TP": {
+                "original": 0.5181612810777264,
+                "changed": null
+              }
+            }
+          },
+          {
+            "sample": "Control 3",
+            "device_sn": "Q1H260316001",
+            "test_zone": "Zone-1",
+            "analyze_time": "16:26:10",
+            "values": {
+              "ALB": {
+                "original": 2.0170938877582083,
+                "changed": null
+              },
+              "BUN": {
+                "original": 0.15756243036741197,
+                "changed": null
+              },
+              "CREA": {
+                "original": 0.028301072444904405,
+                "changed": null
+              },
+              "GLU": {
+                "original": 0.4805829842061002,
+                "changed": null
+              },
+              "TP": {
+                "original": 0.5221584491582343,
+                "changed": null
+              }
+            }
+          },
+          {
+            "sample": "Control 4",
+            "device_sn": "Q1H250619013",
+            "test_zone": "Zone-1",
+            "analyze_time": "16:14:18",
+            "values": {
+              "ALB": {
+                "original": 2.6568727550752085,
+                "changed": null
+              },
+              "BUN": {
+                "original": 0.6620400065563133,
+                "changed": null
+              },
+              "CREA": {
+                "original": 0.24146523406932183,
+                "changed": null
+              },
+              "GLU": {
+                "original": 2.2710791315876255,
+                "changed": null
+              },
+              "TP": {
+                "original": 0.776340373173383,
+                "changed": null
+              }
+            }
+          },
+          {
+            "sample": "Control 4",
+            "device_sn": "Q1H250619013",
+            "test_zone": "Zone-3",
+            "analyze_time": "15:29:03",
+            "values": {
+              "ALB": {
+                "original": 2.653225525303729,
+                "changed": null
+              },
+              "BUN": {
+                "original": 0.6474602196865288,
+                "changed": null
+              },
+              "CREA": {
+                "original": 0.2435047765229339,
+                "changed": null
+              },
+              "GLU": {
+                "original": 2.24636945346148,
+                "changed": null
+              },
+              "TP": {
+                "original": 0.7686377927676132,
+                "changed": null
+              }
+            }
+          },
+          {
+            "sample": "Control 4",
+            "device_sn": "Q1H250619026",
+            "test_zone": "Zone-1",
+            "analyze_time": "15:27:24",
+            "values": {
+              "ALB": {
+                "original": 2.6623063704560437,
+                "changed": null
+              },
+              "BUN": {
+                "original": 0.6652130069862461,
+                "changed": null
+              },
+              "CREA": {
+                "original": 0.24545623001991498,
+                "changed": null
+              },
+              "GLU": {
+                "original": 2.283965766111136,
+                "changed": null
+              },
+              "TP": {
+                "original": 0.7716829859262567,
+                "changed": null
+              }
+            }
+          },
+          {
+            "sample": "Control 4",
+            "device_sn": "Q1H250619026",
+            "test_zone": "Zone-1",
+            "analyze_time": "16:25:09",
+            "values": {
+              "ALB": {
+                "original": 2.686694644100095,
+                "changed": null
+              },
+              "BUN": {
+                "original": 0.6678061644461121,
+                "changed": null
+              },
+              "CREA": {
+                "original": 0.24987786886950006,
+                "changed": null
+              },
+              "GLU": {
+                "original": 2.3101278078675707,
+                "changed": null
+              },
+              "TP": {
+                "original": 0.7771391794987279,
+                "changed": null
+              }
+            }
+          },
+          {
+            "sample": "Control 4",
+            "device_sn": "Q1H260316001",
+            "test_zone": "Zone-1",
+            "analyze_time": "15:43:34",
+            "values": {
+              "ALB": {
+                "original": 2.6436250708853173,
+                "changed": null
+              },
+              "BUN": {
+                "original": 0.667119758300426,
+                "changed": null
+              },
+              "CREA": {
+                "original": 0.24835473844492106,
+                "changed": null
+              },
+              "GLU": {
+                "original": 2.2991855567901944,
+                "changed": null
+              },
+              "TP": {
+                "original": 0.7790554134784796,
+                "changed": null
+              }
+            }
+          }
+        ],
+        "value_mode": "od"
+      },
+      "sheet_name": "Control",
+      "rows": [
+        {
+          "type": "Control-1",
+          "marker": "ALB",
+          "tea": "8%",
+          "assigned": 4.2,
+          "lcl": 3.8640000000000003,
+          "ucl": 4.5360000000000005,
+          "mean": 4.129,
+          "bias": -1.7,
+          "cv": 2.28,
+          "od_mean": 2.6648,
+          "n": 6
+        },
+        {
+          "type": "Control-2",
+          "marker": "ALB",
+          "tea": "8%",
+          "assigned": 2.7,
+          "lcl": 2.484,
+          "ucl": 2.9160000000000004,
+          "mean": 2.78,
+          "bias": 2.96,
+          "cv": 1.82,
+          "od_mean": 2.1197,
+          "n": 6
+        },
+        {
+          "type": "Control-3",
+          "marker": "ALB",
+          "tea": "8%",
+          "assigned": 2.6,
+          "lcl": 2.392,
+          "ucl": 2.8080000000000003,
+          "mean": 2.516,
+          "bias": -3.21,
+          "cv": 1.55,
+          "od_mean": 2.0131,
+          "n": 5
+        },
+        {
+          "type": "Control-4",
+          "marker": "ALB",
+          "tea": "8%",
+          "assigned": 4.2,
+          "lcl": 3.8640000000000003,
+          "ucl": 4.5360000000000005,
+          "mean": 4.116,
+          "bias": -2.0,
+          "cv": 0.86,
+          "od_mean": 2.6605,
+          "n": 5
+        },
+        {
+          "type": "Control-1",
+          "marker": "BUN",
+          "tea": "2 mg/dL or  9%",
+          "assigned": 14.8,
+          "lcl": 12.8,
+          "ucl": 16.8,
+          "mean": 14.578,
+          "bias": -1.5,
+          "cv": 1.31,
+          "od_mean": 0.1536,
+          "n": 6
+        },
+        {
+          "type": "Control-2",
+          "marker": "BUN",
+          "tea": "2 mg/dL or  9%",
+          "assigned": 44.7,
+          "lcl": 40.67700000000001,
+          "ucl": 48.723,
+          "mean": 45.277,
+          "bias": 1.29,
+          "cv": 0.52,
+          "od_mean": 0.4597,
+          "n": 6
+        },
+        {
+          "type": "Control-3",
+          "marker": "BUN",
+          "tea": "2 mg/dL or  9%",
+          "assigned": 14.7,
+          "lcl": 12.7,
+          "ucl": 16.7,
+          "mean": 14.814,
+          "bias": 0.77,
+          "cv": 0.99,
+          "od_mean": 0.156,
+          "n": 5
+        },
+        {
+          "type": "Control-4",
+          "marker": "BUN",
+          "tea": "2 mg/dL or  9%",
+          "assigned": 65.7,
+          "lcl": 59.787000000000006,
+          "ucl": 71.613,
+          "mean": 65.558,
+          "bias": -0.22,
+          "cv": 1.15,
+          "od_mean": 0.6619,
+          "n": 5
+        },
+        {
+          "type": "Control-1",
+          "marker": "CREA",
+          "tea": "0.2 mg/dL or 10%",
+          "assigned": 1.5,
+          "lcl": 1.3,
+          "ucl": 1.7,
+          "mean": 1.258,
+          "bias": -16.12,
+          "cv": 2.14,
+          "od_mean": 0.0559,
+          "n": 6
+        },
+        {
+          "type": "Control-2",
+          "marker": "CREA",
+          "tea": "0.2 mg/dL or 10%",
+          "assigned": 5.55,
+          "lcl": 4.995,
+          "ucl": 6.1049999999999995,
+          "mean": 4.707,
+          "bias": -15.19,
+          "cv": 1.66,
+          "od_mean": 0.2297,
+          "n": 6
+        },
+        {
+          "type": "Control-3",
+          "marker": "CREA",
+          "tea": "0.2 mg/dL or 10%",
+          "assigned": 0.97,
+          "lcl": 0.77,
+          "ucl": 1.17,
+          "mean": 0.681,
+          "bias": -29.75,
+          "cv": 4.31,
+          "od_mean": 0.0268,
+          "n": 5
+        },
+        {
+          "type": "Control-4",
+          "marker": "CREA",
+          "tea": "0.2 mg/dL or 10%",
+          "assigned": 5.95,
+          "lcl": 5.355,
+          "ucl": 6.545,
+          "mean": 5.489,
+          "bias": -7.74,
+          "cv": 1.33,
+          "od_mean": 0.2457,
+          "n": 5
+        },
+        {
+          "type": "Control-1",
+          "marker": "GLU",
+          "tea": "6 mg/dL or 8%",
+          "assigned": 90.16,
+          "lcl": 82.9472,
+          "ucl": 97.3728,
+          "mean": 91.633,
+          "bias": 1.63,
+          "cv": 0.89,
+          "od_mean": 0.6113,
+          "n": 6
+        },
+        {
+          "type": "Control-2",
+          "marker": "GLU",
+          "tea": "6 mg/dL or 8%",
+          "assigned": 293.02,
+          "lcl": 269.5784,
+          "ucl": 316.4616,
+          "mean": 309.57,
+          "bias": 5.65,
+          "cv": 0.92,
+          "od_mean": 1.8739,
+          "n": 6
+        },
+        {
+          "type": "Control-3",
+          "marker": "GLU",
+          "tea": "6 mg/dL or 8%",
+          "assigned": 65.66,
+          "lcl": 59.66,
+          "ucl": 71.66,
+          "mean": 67.353,
+          "bias": 2.58,
+          "cv": 1.6,
+          "od_mean": 0.4706,
+          "n": 5
+        },
+        {
+          "type": "Control-4",
+          "marker": "GLU",
+          "tea": "6 mg/dL or 8%",
+          "assigned": 359.65999999999997,
+          "lcl": 330.88719999999995,
+          "ucl": 388.4328,
+          "mean": 380.028,
+          "bias": 5.66,
+          "cv": 1.01,
+          "od_mean": 2.2821,
+          "n": 5
+        },
+        {
+          "type": "Control-1",
+          "marker": "TP",
+          "tea": "8%",
+          "assigned": 6.4,
+          "lcl": 5.888,
+          "ucl": 6.912000000000001,
+          "mean": 6.58,
+          "bias": 2.82,
+          "cv": 1.11,
+          "od_mean": 0.7007,
+          "n": 6
+        },
+        {
+          "type": "Control-2",
+          "marker": "TP",
+          "tea": "8%",
+          "assigned": 4.1,
+          "lcl": 3.772,
+          "ucl": 4.428,
+          "mean": 4.359,
+          "bias": 6.32,
+          "cv": 1.32,
+          "od_mean": 0.5376,
+          "n": 6
+        },
+        {
+          "type": "Control-3",
+          "marker": "TP",
+          "tea": "8%",
+          "assigned": 4.2,
+          "lcl": 3.8640000000000003,
+          "ucl": 4.5360000000000005,
+          "mean": 4.087,
+          "bias": -2.68,
+          "cv": 1.61,
+          "od_mean": 0.5176,
+          "n": 5
+        },
+        {
+          "type": "Control-4",
+          "marker": "TP",
+          "tea": "8%",
+          "assigned": 7.5,
+          "lcl": 6.9,
+          "ucl": 8.1,
+          "mean": 7.587,
+          "bias": 1.16,
+          "cv": 0.69,
+          "od_mean": 0.7746,
+          "n": 5
+        }
+      ]
+    },
+    "Canine": {
+      "markers": [
+        "ALB",
+        "BUN",
+        "CREA",
+        "GLU",
+        "TP"
+      ],
+      "test_count": 0,
+      "summary_conc": {
+        "markers": [
+          "ALB",
+          "BUN",
+          "CREA",
+          "GLU",
+          "TP"
+        ],
+        "rows": [
+          {
+            "label": "",
+            "stat": "TEa",
+            "values": [
+              null,
+              null,
+              null,
+              null,
+              null
+            ]
+          },
+          {
+            "label": "",
+            "stat": "Assign value",
+            "values": [
+              null,
+              null,
+              null,
+              null,
+              null
+            ]
+          },
+          {
+            "label": "",
+            "stat": "LCL",
+            "values": [
+              null,
+              null,
+              null,
+              null,
+              null
+            ]
+          },
+          {
+            "label": "",
+            "stat": "UCL",
+            "values": [
+              null,
+              null,
+              null,
+              null,
+              null
+            ]
+          }
+        ]
+      },
+      "summary_od": {
+        "markers": [
+          "ALB",
+          "BUN",
+          "CREA",
+          "GLU",
+          "TP"
+        ],
+        "rows": [
+          {
+            "label": "",
+            "stat": "TEa",
+            "values": [
+              null,
+              null,
+              null,
+              null,
+              null
+            ]
+          },
+          {
+            "label": "",
+            "stat": "Assay Value",
+            "values": [
+              null,
+              null,
+              null,
+              null,
+              null
+            ]
+          },
+          {
+            "label": "",
+            "stat": "LCL",
+            "values": [
+              null,
+              null,
+              null,
+              null,
+              null
+            ]
+          },
+          {
+            "label": "",
+            "stat": "UCL",
+            "values": [
+              null,
+              null,
+              null,
+              null,
+              null
+            ]
+          }
+        ]
+      },
+      "sheet_name": "Canine",
+      "rows": []
+    },
+    "Feline": {
+      "markers": [
+        "ALB",
+        "BUN",
+        "CREA",
+        "GLU",
+        "TP"
+      ],
+      "test_count": 0,
+      "summary_conc": {
+        "markers": [
+          "ALB",
+          "BUN",
+          "CREA",
+          "GLU",
+          "TP"
+        ],
+        "rows": [
+          {
+            "label": "",
+            "stat": "TEa",
+            "values": [
+              null,
+              null,
+              null,
+              null,
+              null
+            ]
+          },
+          {
+            "label": "",
+            "stat": "Assign value",
+            "values": [
+              null,
+              null,
+              null,
+              null,
+              null
+            ]
+          },
+          {
+            "label": "",
+            "stat": "LCL",
+            "values": [
+              null,
+              null,
+              null,
+              null,
+              null
+            ]
+          },
+          {
+            "label": "",
+            "stat": "UCL",
+            "values": [
+              null,
+              null,
+              null,
+              null,
+              null
+            ]
+          }
+        ]
+      },
+      "summary_od": {
+        "markers": [
+          "ALB",
+          "BUN",
+          "CREA",
+          "GLU",
+          "TP"
+        ],
+        "rows": [
+          {
+            "label": "",
+            "stat": "TEa",
+            "values": [
+              null,
+              null,
+              null,
+              null,
+              null
+            ]
+          },
+          {
+            "label": "",
+            "stat": "Assay Value",
+            "values": [
+              null,
+              null,
+              null,
+              null,
+              null
+            ]
+          },
+          {
+            "label": "",
+            "stat": "LCL",
+            "values": [
+              null,
+              null,
+              null,
+              null,
+              null
+            ]
+          },
+          {
+            "label": "",
+            "stat": "UCL",
+            "values": [
+              null,
+              null,
+              null,
+              null,
+              null
+            ]
+          }
+        ]
+      },
+      "sheet_name": "Feline",
+      "rows": []
+    },
+    "Equine": {
+      "markers": [
+        "ALB",
+        "BUN",
+        "CREA",
+        "GLU",
+        "TP"
+      ],
+      "test_count": 0,
+      "summary_conc": {
+        "markers": [
+          "ALB",
+          "BUN",
+          "CREA",
+          "GLU",
+          "TP"
+        ],
+        "rows": [
+          {
+            "label": "",
+            "stat": "TEa",
+            "values": [
+              null,
+              null,
+              null,
+              null,
+              null
+            ]
+          },
+          {
+            "label": "",
+            "stat": "Assign value",
+            "values": [
+              null,
+              null,
+              null,
+              null,
+              null
+            ]
+          },
+          {
+            "label": "",
+            "stat": "LCL",
+            "values": [
+              null,
+              null,
+              null,
+              null,
+              null
+            ]
+          },
+          {
+            "label": "",
+            "stat": "UCL",
+            "values": [
+              null,
+              null,
+              null,
+              null,
+              null
+            ]
+          }
+        ]
+      },
+      "summary_od": {
+        "markers": [
+          "ALB",
+          "BUN",
+          "CREA",
+          "GLU",
+          "TP"
+        ],
+        "rows": [
+          {
+            "label": "",
+            "stat": "TEa",
+            "values": [
+              null,
+              null,
+              null,
+              null,
+              null
+            ]
+          },
+          {
+            "label": "",
+            "stat": "Assay Value",
+            "values": [
+              null,
+              null,
+              null,
+              null,
+              null
+            ]
+          },
+          {
+            "label": "",
+            "stat": "LCL",
+            "values": [
+              null,
+              null,
+              null,
+              null,
+              null
+            ]
+          },
+          {
+            "label": "",
+            "stat": "UCL",
+            "values": [
+              null,
+              null,
+              null,
+              null,
+              null
+            ]
+          }
+        ]
+      },
+      "sheet_name": "Equine",
+      "rows": []
+    }
+  },
+  "groups": [
+    {
+      "id": "03226061801::Specific Test 2",
+      "panel_name": "Specific Test 2",
+      "kind": "control",
+      "display_lot_code": "103226061801 & 203226061801",
+      "lot_codes": [
+        "103226061801",
+        "203226061801"
+      ],
+      "production_date": "2026-06-18",
+      "analyze_date": "2026-06-18",
+      "record_count": 132,
+      "marker_count": 5,
+      "markers": [
+        "ALB",
+        "BUN",
+        "CREA",
+        "GLU",
+        "TP"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,2060 @@
+{
+  "ok": true,
+  "file_name": "lot_o_260618.xlsx",
+  "download_url": "/api/assayprocess/lot-reports/lot_o_260618.xlsx/download",
+  "generated_at": "2026-06-18T16:48:47",
+  "all_batch_rows": 919,
+  "group_count": 160,
+  "groups": [
+    {
+      "id": "03226061801::Specific Test 2::control::0",
+      "panel_name": "Specific Test 2",
+      "kind": "control",
+      "display_lot_code": "103226061801 & 203226061801",
+      "lot_codes": [
+        "103226061801",
+        "203226061801"
+      ],
+      "production_date": "2026-06-18",
+      "analyze_date": "2026-06-18",
+      "record_count": 35,
+      "marker_count": 5,
+      "markers": [
+        "ALB",
+        "BUN",
+        "CREA",
+        "GLU",
+        "TP"
+      ]
+    },
+    {
+      "id": "11326061702::S-DMA::control::1",
+      "panel_name": "S-DMA",
+      "kind": "control",
+      "display_lot_code": "111326061702",
+      "lot_codes": [
+        "111326061702"
+      ],
+      "production_date": "2026-06-17",
+      "analyze_date": "2026-06-17",
+      "record_count": 17,
+      "marker_count": 1,
+      "markers": [
+        "S-DMA"
+      ]
+    },
+    {
+      "id": "11326061701::S-DMA::control::2",
+      "panel_name": "S-DMA",
+      "kind": "control",
+      "display_lot_code": "111326061701 & 211326061701",
+      "lot_codes": [
+        "111326061701",
+        "211326061701"
+      ],
+      "production_date": "2026-06-17",
+      "analyze_date": "2026-06-17",
+      "record_count": 19,
+      "marker_count": 1,
+      "markers": [
+        "S-DMA"
+      ]
+    },
+    {
+      "id": "06426061601::Avian & Reptile 26::control::4",
+      "panel_name": "Avian & Reptile 26",
+      "kind": "control",
+      "display_lot_code": "206426061601",
+      "lot_codes": [
+        "206426061601"
+      ],
+      "production_date": "2026-06-16",
+      "analyze_date": "2026-06-17",
+      "record_count": 21,
+      "marker_count": 7,
+      "markers": [
+        "ALP",
+        "BUN",
+        "CHOL",
+        "GGT",
+        "K",
+        "LDH",
+        "Na"
+      ]
+    },
+    {
+      "id": "05826061602::Critical Care 26::control::6",
+      "panel_name": "Critical Care 26",
+      "kind": "control",
+      "display_lot_code": "205826061602",
+      "lot_codes": [
+        "205826061602"
+      ],
+      "production_date": "2026-06-16",
+      "analyze_date": "2026-06-16",
+      "record_count": 208,
+      "marker_count": 7,
+      "markers": [
+        "CK",
+        "Ca",
+        "Cl",
+        "K",
+        "LAC",
+        "Na",
+        "TCO2"
+      ]
+    },
+    {
+      "id": "06326061601::Avian & Reptile 26::control::3",
+      "panel_name": "Avian & Reptile 26",
+      "kind": "control",
+      "display_lot_code": "106326061601",
+      "lot_codes": [
+        "106326061601"
+      ],
+      "production_date": "2026-06-16",
+      "analyze_date": "2026-06-17",
+      "record_count": 24,
+      "marker_count": 8,
+      "markers": [
+        "ALB",
+        "AST",
+        "CK",
+        "Ca",
+        "GLU",
+        "PHOS",
+        "TP",
+        "URIC"
+      ]
+    },
+    {
+      "id": "05726061602::Critical Care 26::control::5",
+      "panel_name": "Critical Care 26",
+      "kind": "control",
+      "display_lot_code": "105726061602",
+      "lot_codes": [
+        "105726061602"
+      ],
+      "production_date": "2026-06-16",
+      "analyze_date": "2026-06-16",
+      "record_count": 208,
+      "marker_count": 7,
+      "markers": [
+        "ALB",
+        "ALP",
+        "ALT",
+        "BUN",
+        "CREA",
+        "GLU",
+        "TP"
+      ]
+    },
+    {
+      "id": "05826061201::Critical Care 26::control::9",
+      "panel_name": "Critical Care 26",
+      "kind": "control",
+      "display_lot_code": "205826061201",
+      "lot_codes": [
+        "205826061201"
+      ],
+      "production_date": "2026-06-12",
+      "analyze_date": "2026-06-12",
+      "record_count": 128,
+      "marker_count": 7,
+      "markers": [
+        "CK",
+        "Ca",
+        "Cl",
+        "K",
+        "LAC",
+        "Na",
+        "TCO2"
+      ]
+    },
+    {
+      "id": "09126061201::Optimum Wellness 37::control::10",
+      "panel_name": "Optimum Wellness 37",
+      "kind": "control",
+      "display_lot_code": "109126061201",
+      "lot_codes": [
+        "109126061201"
+      ],
+      "production_date": "2026-06-12",
+      "analyze_date": "2026-06-12",
+      "record_count": 3,
+      "marker_count": 1,
+      "markers": [
+        "ALB"
+      ]
+    },
+    {
+      "id": "05726061201::Critical Care 26::control::8",
+      "panel_name": "Critical Care 26",
+      "kind": "control",
+      "display_lot_code": "105726061201",
+      "lot_codes": [
+        "105726061201"
+      ],
+      "production_date": "2026-06-12",
+      "analyze_date": "2026-06-12",
+      "record_count": 128,
+      "marker_count": 7,
+      "markers": [
+        "ALB",
+        "ALP",
+        "ALT",
+        "BUN",
+        "CREA",
+        "GLU",
+        "TP"
+      ]
+    },
+    {
+      "id": "00526061102::Diabetes 10::control::11",
+      "panel_name": "Diabetes 10",
+      "kind": "control",
+      "display_lot_code": "100526061102 & 200526061102",
+      "lot_codes": [
+        "100526061102",
+        "200526061102"
+      ],
+      "production_date": "2026-06-11",
+      "analyze_date": "2026-06-11",
+      "record_count": 64,
+      "marker_count": 8,
+      "markers": [
+        "ALB",
+        "AMY",
+        "CHOL",
+        "FRU",
+        "GLU",
+        "P-LIPA",
+        "TP",
+        "TRIG"
+      ]
+    },
+    {
+      "id": "00426061101::Exotic Pets 13::control::12",
+      "panel_name": "Exotic Pets 13",
+      "kind": "control",
+      "display_lot_code": "100426061101",
+      "lot_codes": [
+        "100426061101"
+      ],
+      "production_date": "2026-06-11",
+      "analyze_date": "2026-06-11",
+      "record_count": 152,
+      "marker_count": 8,
+      "markers": [
+        "ALB",
+        "AST",
+        "CK",
+        "Ca",
+        "GLU",
+        "PHOS",
+        "TP",
+        "URIC"
+      ]
+    },
+    {
+      "id": "06426061050::Avian & Reptile 26::control::14",
+      "panel_name": "Avian & Reptile 26",
+      "kind": "control",
+      "display_lot_code": "206426061050",
+      "lot_codes": [
+        "206426061050"
+      ],
+      "production_date": "2026-06-10",
+      "analyze_date": "2026-06-10",
+      "record_count": 112,
+      "marker_count": 7,
+      "markers": [
+        "ALP",
+        "BUN",
+        "CHOL",
+        "GGT",
+        "K",
+        "LDH",
+        "Na"
+      ]
+    },
+    {
+      "id": "00326061002::Electrolyte 7::control::7",
+      "panel_name": "Electrolyte 7",
+      "kind": "control",
+      "display_lot_code": "200326061002",
+      "lot_codes": [
+        "200326061002"
+      ],
+      "production_date": "2026-06-10",
+      "analyze_date": "2026-06-12",
+      "record_count": 72,
+      "marker_count": 5,
+      "markers": [
+        "ALP",
+        "Cl",
+        "K",
+        "Na",
+        "TCO2"
+      ]
+    },
+    {
+      "id": "06326061050::Avian & Reptile 26::control::13",
+      "panel_name": "Avian & Reptile 26",
+      "kind": "control",
+      "display_lot_code": "106326061050",
+      "lot_codes": [
+        "106326061050"
+      ],
+      "production_date": "2026-06-10",
+      "analyze_date": "2026-06-10",
+      "record_count": 192,
+      "marker_count": 8,
+      "markers": [
+        "ALB",
+        "AST",
+        "CK",
+        "Ca",
+        "GLU",
+        "PHOS",
+        "TP",
+        "URIC"
+      ]
+    },
+    {
+      "id": "00326061001::Electrolyte 7::control::15",
+      "panel_name": "Electrolyte 7",
+      "kind": "control",
+      "display_lot_code": "100326061001 & 200326061001",
+      "lot_codes": [
+        "100326061001",
+        "200326061001"
+      ],
+      "production_date": "2026-06-10",
+      "analyze_date": "2026-06-10",
+      "record_count": 138,
+      "marker_count": 5,
+      "markers": [
+        "ALP",
+        "Cl",
+        "K",
+        "Na",
+        "TCO2"
+      ]
+    },
+    {
+      "id": "05226060901::Diagnosis Plus 27::control::18",
+      "panel_name": "Diagnosis Plus 27",
+      "kind": "control",
+      "display_lot_code": "205226060901",
+      "lot_codes": [
+        "205226060901"
+      ],
+      "production_date": "2026-06-09",
+      "analyze_date": "2026-06-10",
+      "record_count": 336,
+      "marker_count": 8,
+      "markers": [
+        "AMY",
+        "CHOL",
+        "Ca",
+        "GGT",
+        "K",
+        "Na",
+        "PHOS",
+        "TBIL"
+      ]
+    },
+    {
+      "id": "05126060901::Diagnosis Plus 27::control::17",
+      "panel_name": "Diagnosis Plus 27",
+      "kind": "control",
+      "display_lot_code": "105126060901",
+      "lot_codes": [
+        "105126060901"
+      ],
+      "production_date": "2026-06-09",
+      "analyze_date": "2026-06-10",
+      "record_count": 336,
+      "marker_count": 7,
+      "markers": [
+        "ALB",
+        "ALP",
+        "ALT",
+        "BUN",
+        "CREA",
+        "GLU",
+        "TP"
+      ]
+    },
+    {
+      "id": "05426060801::General Chem 26::control::20",
+      "panel_name": "General Chem 26",
+      "kind": "control",
+      "display_lot_code": "205426060801",
+      "lot_codes": [
+        "205426060801"
+      ],
+      "production_date": "2026-06-08",
+      "analyze_date": "2026-06-09",
+      "record_count": 320,
+      "marker_count": 8,
+      "markers": [
+        "AMY",
+        "AST",
+        "CHOL",
+        "CK",
+        "Ca",
+        "GGT",
+        "PHOS",
+        "TBIL"
+      ]
+    },
+    {
+      "id": "05326060801::General Chem 26::control::19",
+      "panel_name": "General Chem 26",
+      "kind": "control",
+      "display_lot_code": "105326060801",
+      "lot_codes": [
+        "105326060801"
+      ],
+      "production_date": "2026-06-08",
+      "analyze_date": "2026-06-09",
+      "record_count": 320,
+      "marker_count": 7,
+      "markers": [
+        "ALB",
+        "ALP",
+        "ALT",
+        "BUN",
+        "CREA",
+        "GLU",
+        "TP"
+      ]
+    },
+    {
+      "id": "00526060501::Diabetes 10::control::23",
+      "panel_name": "Diabetes 10",
+      "kind": "control",
+      "display_lot_code": "200526060501",
+      "lot_codes": [
+        "200526060501"
+      ],
+      "production_date": "2026-06-05",
+      "analyze_date": "2026-06-05",
+      "record_count": 128,
+      "marker_count": 8,
+      "markers": [
+        "ALB",
+        "AMY",
+        "CHOL",
+        "FRU",
+        "GLU",
+        "P-LIPA",
+        "TP",
+        "TRIG"
+      ]
+    },
+    {
+      "id": "03726060501::Specific Test 6::control::25",
+      "panel_name": "Specific Test 6",
+      "kind": "control",
+      "display_lot_code": "103726060501 & 203726060501",
+      "lot_codes": [
+        "103726060501",
+        "203726060501"
+      ],
+      "production_date": "2026-06-05",
+      "analyze_date": "2026-06-05",
+      "record_count": 40,
+      "marker_count": 2,
+      "markers": [
+        "AMY",
+        "P-LIPA"
+      ]
+    },
+    {
+      "id": "00426060501::Exotic Pets 13::control::22",
+      "panel_name": "Exotic Pets 13",
+      "kind": "control",
+      "display_lot_code": "100426060501",
+      "lot_codes": [
+        "100426060501"
+      ],
+      "production_date": "2026-06-05",
+      "analyze_date": "2026-06-05",
+      "record_count": 128,
+      "marker_count": 8,
+      "markers": [
+        "ALB",
+        "AST",
+        "CK",
+        "Ca",
+        "GLU",
+        "PHOS",
+        "TP",
+        "URIC"
+      ]
+    },
+    {
+      "id": "00326060501::Electrolyte 7::control::24",
+      "panel_name": "Electrolyte 7",
+      "kind": "control",
+      "display_lot_code": "100326060501",
+      "lot_codes": [
+        "100326060501"
+      ],
+      "production_date": "2026-06-05",
+      "analyze_date": "2026-06-05",
+      "record_count": 96,
+      "marker_count": 5,
+      "markers": [
+        "ALP",
+        "Cl",
+        "K",
+        "Na",
+        "TCO2"
+      ]
+    },
+    {
+      "id": "09226060401::Optimum Wellness 37::control::26",
+      "panel_name": "Optimum Wellness 37",
+      "kind": "control",
+      "display_lot_code": "209226060401",
+      "lot_codes": [
+        "209226060401"
+      ],
+      "production_date": "2026-06-04",
+      "analyze_date": "2026-06-04",
+      "record_count": 208,
+      "marker_count": 8,
+      "markers": [
+        "AMY",
+        "AST",
+        "CHOL",
+        "CK",
+        "Ca",
+        "GGT",
+        "PHOS",
+        "TBIL"
+      ]
+    },
+    {
+      "id": "09126060401::Optimum Wellness 37::control::27",
+      "panel_name": "Optimum Wellness 37",
+      "kind": "control",
+      "display_lot_code": "109126060401",
+      "lot_codes": [
+        "109126060401"
+      ],
+      "production_date": "2026-06-04",
+      "analyze_date": "2026-06-04",
+      "record_count": 208,
+      "marker_count": 7,
+      "markers": [
+        "ALB",
+        "ALP",
+        "ALT",
+        "BUN",
+        "CREA",
+        "GLU",
+        "TP"
+      ]
+    },
+    {
+      "id": "00126060301::Core Chem 13::control::28",
+      "panel_name": "Core Chem 13",
+      "kind": "control",
+      "display_lot_code": "100126060301 & 200126060301",
+      "lot_codes": [
+        "100126060301",
+        "200126060301"
+      ],
+      "production_date": "2026-06-03",
+      "analyze_date": "2026-06-03",
+      "record_count": 160,
+      "marker_count": 7,
+      "markers": [
+        "ALB",
+        "ALP",
+        "ALT",
+        "BUN",
+        "CREA",
+        "GLU",
+        "TP"
+      ]
+    },
+    {
+      "id": "05426060201::General Chem 26::control::31",
+      "panel_name": "General Chem 26",
+      "kind": "control",
+      "display_lot_code": "205426060201",
+      "lot_codes": [
+        "205426060201"
+      ],
+      "production_date": "2026-06-02",
+      "analyze_date": "2026-06-02",
+      "record_count": 128,
+      "marker_count": 8,
+      "markers": [
+        "AMY",
+        "AST",
+        "CHOL",
+        "CK",
+        "Ca",
+        "GGT",
+        "PHOS",
+        "TBIL"
+      ]
+    },
+    {
+      "id": "05326060201::General Chem 26::control::30",
+      "panel_name": "General Chem 26",
+      "kind": "control",
+      "display_lot_code": "105326060201",
+      "lot_codes": [
+        "105326060201"
+      ],
+      "production_date": "2026-06-02",
+      "analyze_date": "2026-06-02",
+      "record_count": 128,
+      "marker_count": 7,
+      "markers": [
+        "ALB",
+        "ALP",
+        "ALT",
+        "BUN",
+        "CREA",
+        "GLU",
+        "TP"
+      ]
+    },
+    {
+      "id": "00126060201::Core Chem 13::control::29",
+      "panel_name": "Core Chem 13",
+      "kind": "control",
+      "display_lot_code": "100126060201 & 200126060201",
+      "lot_codes": [
+        "100126060201",
+        "200126060201"
+      ],
+      "production_date": "2026-06-02",
+      "analyze_date": "2026-06-02",
+      "record_count": 224,
+      "marker_count": 7,
+      "markers": [
+        "ALB",
+        "ALP",
+        "ALT",
+        "BUN",
+        "CREA",
+        "GLU",
+        "TP"
+      ]
+    },
+    {
+      "id": "05226060101::Diagnosis Plus 27::control::34",
+      "panel_name": "Diagnosis Plus 27",
+      "kind": "control",
+      "display_lot_code": "205226060101",
+      "lot_codes": [
+        "205226060101"
+      ],
+      "production_date": "2026-06-01",
+      "analyze_date": "2026-06-01",
+      "record_count": 112,
+      "marker_count": 7,
+      "markers": [
+        "AMY",
+        "CHOL",
+        "Ca",
+        "K",
+        "Na",
+        "PHOS",
+        "TBIL"
+      ]
+    },
+    {
+      "id": "09326060101::Optimum Wellness 37::control::32",
+      "panel_name": "Optimum Wellness 37",
+      "kind": "control",
+      "display_lot_code": "109326060101 & 209326060101",
+      "lot_codes": [
+        "109326060101",
+        "209326060101"
+      ],
+      "production_date": "2026-06-01",
+      "analyze_date": "2026-06-01",
+      "record_count": 160,
+      "marker_count": 7,
+      "markers": [
+        "BA",
+        "Cl",
+        "K",
+        "Na",
+        "P-LIPA",
+        "TCO2",
+        "TRIG"
+      ]
+    },
+    {
+      "id": "05126060101::Diagnosis Plus 27::control::33",
+      "panel_name": "Diagnosis Plus 27",
+      "kind": "control",
+      "display_lot_code": "105126060101",
+      "lot_codes": [
+        "105126060101"
+      ],
+      "production_date": "2026-06-01",
+      "analyze_date": "2026-06-01",
+      "record_count": 128,
+      "marker_count": 7,
+      "markers": [
+        "ALB",
+        "ALP",
+        "ALT",
+        "BUN",
+        "CREA",
+        "GLU",
+        "TP"
+      ]
+    },
+    {
+      "id": "11126052901::Canine NT-proBNP::control::35",
+      "panel_name": "Canine NT-proBNP",
+      "kind": "control",
+      "display_lot_code": "111126052901 & 211126052901",
+      "lot_codes": [
+        "111126052901",
+        "211126052901"
+      ],
+      "production_date": "2026-05-29",
+      "analyze_date": "2026-05-29",
+      "record_count": 24,
+      "marker_count": 1,
+      "markers": [
+        "cNT-pBNP"
+      ]
+    },
+    {
+      "id": "10426052802::Canine Cortisol::control::37",
+      "panel_name": "Canine Cortisol",
+      "kind": "control",
+      "display_lot_code": "110426052802 & 210426052802",
+      "lot_codes": [
+        "110426052802",
+        "210426052802"
+      ],
+      "production_date": "2026-05-28",
+      "analyze_date": "2026-05-28",
+      "record_count": 32,
+      "marker_count": 1,
+      "markers": [
+        "cCORT"
+      ]
+    },
+    {
+      "id": "10326052801::Canine Progesterone::control::39",
+      "panel_name": "Canine Progesterone",
+      "kind": "control",
+      "display_lot_code": "110326052801 & 210326052801",
+      "lot_codes": [
+        "110326052801",
+        "210326052801"
+      ],
+      "production_date": "2026-05-28",
+      "analyze_date": "2026-05-28",
+      "record_count": 36,
+      "marker_count": 1,
+      "markers": [
+        "cPROG"
+      ]
+    },
+    {
+      "id": "11126052704::Canine NT-proBNP::control::43",
+      "panel_name": "Canine NT-proBNP",
+      "kind": "control",
+      "display_lot_code": "211126052704",
+      "lot_codes": [
+        "211126052704"
+      ],
+      "production_date": "2026-05-27",
+      "analyze_date": "2026-05-27",
+      "record_count": 24,
+      "marker_count": 1,
+      "markers": [
+        "cNT-pBNP"
+      ]
+    },
+    {
+      "id": "10226052703::Canine TSH::control::44",
+      "panel_name": "Canine TSH",
+      "kind": "control",
+      "display_lot_code": "210226052703",
+      "lot_codes": [
+        "210226052703"
+      ],
+      "production_date": "2026-05-27",
+      "analyze_date": "2026-05-27",
+      "record_count": 12,
+      "marker_count": 1,
+      "markers": [
+        "cTSH"
+      ]
+    },
+    {
+      "id": "10226052701::Canine TSH::control::36",
+      "panel_name": "Canine TSH",
+      "kind": "control",
+      "display_lot_code": "110226052701",
+      "lot_codes": [
+        "110226052701"
+      ],
+      "production_date": "2026-05-27",
+      "analyze_date": "2026-05-28",
+      "record_count": 15,
+      "marker_count": 1,
+      "markers": [
+        "cTSH"
+      ]
+    },
+    {
+      "id": "09326052702::Optimum Wellness 37::control::41",
+      "panel_name": "Optimum Wellness 37",
+      "kind": "control",
+      "display_lot_code": "109326052702",
+      "lot_codes": [
+        "109326052702"
+      ],
+      "production_date": "2026-05-27",
+      "analyze_date": "2026-05-27",
+      "record_count": 128,
+      "marker_count": 7,
+      "markers": [
+        "BA",
+        "Cl",
+        "K",
+        "Na",
+        "P-LIPA",
+        "TCO2",
+        "TRIG"
+      ]
+    },
+    {
+      "id": "00126052701::Core Chem 13::control::42",
+      "panel_name": "Core Chem 13",
+      "kind": "control",
+      "display_lot_code": "100126052701",
+      "lot_codes": [
+        "100126052701"
+      ],
+      "production_date": "2026-05-27",
+      "analyze_date": "2026-05-27",
+      "record_count": 128,
+      "marker_count": 7,
+      "markers": [
+        "ALB",
+        "ALP",
+        "ALT",
+        "BUN",
+        "CREA",
+        "GLU",
+        "TP"
+      ]
+    },
+    {
+      "id": "30126052601::Coagulation::control::45",
+      "panel_name": "Coagulation",
+      "kind": "control",
+      "display_lot_code": "130126052601",
+      "lot_codes": [
+        "130126052601"
+      ],
+      "production_date": "2026-05-26",
+      "analyze_date": "2026-05-26",
+      "record_count": 75,
+      "marker_count": 3,
+      "markers": [
+        "APTT",
+        "FIB",
+        "PT"
+      ]
+    },
+    {
+      "id": "05826052501::Critical Care 26::control::48",
+      "panel_name": "Critical Care 26",
+      "kind": "control",
+      "display_lot_code": "105826052501",
+      "lot_codes": [
+        "105826052501"
+      ],
+      "production_date": "2026-05-25",
+      "analyze_date": "2026-05-25",
+      "record_count": 184,
+      "marker_count": 7,
+      "markers": [
+        "CK",
+        "Ca",
+        "Cl",
+        "K",
+        "LAC",
+        "Na",
+        "TCO2"
+      ]
+    },
+    {
+      "id": "05726052501::Critical Care 26::control::47",
+      "panel_name": "Critical Care 26",
+      "kind": "control",
+      "display_lot_code": "105726052501",
+      "lot_codes": [
+        "105726052501"
+      ],
+      "production_date": "2026-05-25",
+      "analyze_date": "2026-05-25",
+      "record_count": 184,
+      "marker_count": 7,
+      "markers": [
+        "ALB",
+        "ALP",
+        "ALT",
+        "BUN",
+        "CREA",
+        "GLU",
+        "TP"
+      ]
+    },
+    {
+      "id": "30126052201::Coagulation::control::46",
+      "panel_name": "Coagulation",
+      "kind": "control",
+      "display_lot_code": "130126052201",
+      "lot_codes": [
+        "130126052201"
+      ],
+      "production_date": "2026-05-22",
+      "analyze_date": "2026-05-26",
+      "record_count": 144,
+      "marker_count": 3,
+      "markers": [
+        "APTT",
+        "FIB",
+        "PT"
+      ]
+    },
+    {
+      "id": "09326052201::Optimum Wellness 37::control::50",
+      "panel_name": "Optimum Wellness 37",
+      "kind": "control",
+      "display_lot_code": "109326052201",
+      "lot_codes": [
+        "109326052201"
+      ],
+      "production_date": "2026-05-22",
+      "analyze_date": "2026-05-22",
+      "record_count": 168,
+      "marker_count": 7,
+      "markers": [
+        "BA",
+        "Cl",
+        "K",
+        "Na",
+        "P-LIPA",
+        "TCO2",
+        "TRIG"
+      ]
+    },
+    {
+      "id": "03426052201::Specific Test 4::control::51",
+      "panel_name": "Specific Test 4",
+      "kind": "control",
+      "display_lot_code": "103426052201",
+      "lot_codes": [
+        "103426052201"
+      ],
+      "production_date": "2026-05-22",
+      "analyze_date": "2026-05-22",
+      "record_count": 72,
+      "marker_count": 6,
+      "markers": [
+        "ALP",
+        "ALT",
+        "AST",
+        "Ca",
+        "Mg",
+        "PHOS"
+      ]
+    },
+    {
+      "id": "03726052101::Specific Test 6::control::53",
+      "panel_name": "Specific Test 6",
+      "kind": "control",
+      "display_lot_code": "103726052101",
+      "lot_codes": [
+        "103726052101"
+      ],
+      "production_date": "2026-05-21",
+      "analyze_date": "2026-05-21",
+      "record_count": 32,
+      "marker_count": 2,
+      "markers": [
+        "AMY",
+        "P-LIPA"
+      ]
+    },
+    {
+      "id": "03326052101::Specific Test 3::control::52",
+      "panel_name": "Specific Test 3",
+      "kind": "control",
+      "display_lot_code": "103326052101",
+      "lot_codes": [
+        "103326052101"
+      ],
+      "production_date": "2026-05-21",
+      "analyze_date": "2026-05-22",
+      "record_count": 130,
+      "marker_count": 5,
+      "markers": [
+        "CK",
+        "GGT",
+        "LAC",
+        "LDH",
+        "TBIL"
+      ]
+    },
+    {
+      "id": "03226052101::Specific Test 2::control::49",
+      "panel_name": "Specific Test 2",
+      "kind": "control",
+      "display_lot_code": "103226052101",
+      "lot_codes": [
+        "103226052101"
+      ],
+      "production_date": "2026-05-21",
+      "analyze_date": "2026-05-22",
+      "record_count": 114,
+      "marker_count": 5,
+      "markers": [
+        "ALB",
+        "BUN",
+        "CREA",
+        "GLU",
+        "TP"
+      ]
+    },
+    {
+      "id": "30126052007::Coagulation::control::16",
+      "panel_name": "Coagulation",
+      "kind": "control",
+      "display_lot_code": "230126052007",
+      "lot_codes": [
+        "230126052007"
+      ],
+      "production_date": "2026-05-20",
+      "analyze_date": "2026-06-10",
+      "record_count": 57,
+      "marker_count": 3,
+      "markers": [
+        "APTT",
+        "FIB",
+        "PT"
+      ]
+    },
+    {
+      "id": "30126052006::Coagulation::control::40",
+      "panel_name": "Coagulation",
+      "kind": "control",
+      "display_lot_code": "230126052006",
+      "lot_codes": [
+        "230126052006"
+      ],
+      "production_date": "2026-05-20",
+      "analyze_date": "2026-05-28",
+      "record_count": 3,
+      "marker_count": 3,
+      "markers": [
+        "APTT",
+        "FIB",
+        "PT"
+      ]
+    },
+    {
+      "id": "30126052005::Coagulation::control::38",
+      "panel_name": "Coagulation",
+      "kind": "control",
+      "display_lot_code": "230126052005",
+      "lot_codes": [
+        "230126052005"
+      ],
+      "production_date": "2026-05-20",
+      "analyze_date": "2026-05-28",
+      "record_count": 3,
+      "marker_count": 3,
+      "markers": [
+        "APTT",
+        "FIB",
+        "PT"
+      ]
+    },
+    {
+      "id": "30126052004::Coagulation::control::21",
+      "panel_name": "Coagulation",
+      "kind": "control",
+      "display_lot_code": "230126052004",
+      "lot_codes": [
+        "230126052004"
+      ],
+      "production_date": "2026-05-20",
+      "analyze_date": "2026-06-08",
+      "record_count": 207,
+      "marker_count": 3,
+      "markers": [
+        "APTT",
+        "FIB",
+        "PT"
+      ]
+    },
+    {
+      "id": "30126052001::Coagulation::control::54",
+      "panel_name": "Coagulation",
+      "kind": "control",
+      "display_lot_code": "230126052001",
+      "lot_codes": [
+        "230126052001"
+      ],
+      "production_date": "2026-05-20",
+      "analyze_date": "2026-05-20",
+      "record_count": 63,
+      "marker_count": 3,
+      "markers": [
+        "APTT",
+        "FIB",
+        "PT"
+      ]
+    },
+    {
+      "id": "03426051903::Specific Test 4::control::57",
+      "panel_name": "Specific Test 4",
+      "kind": "control",
+      "display_lot_code": "103426051903",
+      "lot_codes": [
+        "103426051903"
+      ],
+      "production_date": "2026-05-19",
+      "analyze_date": "2026-05-19",
+      "record_count": 96,
+      "marker_count": 6,
+      "markers": [
+        "ALP",
+        "ALT",
+        "AST",
+        "Ca",
+        "Mg",
+        "PHOS"
+      ]
+    },
+    {
+      "id": "03326051902::Specific Test 3::control::56",
+      "panel_name": "Specific Test 3",
+      "kind": "control",
+      "display_lot_code": "103326051902",
+      "lot_codes": [
+        "103326051902"
+      ],
+      "production_date": "2026-05-19",
+      "analyze_date": "2026-05-19",
+      "record_count": 80,
+      "marker_count": 5,
+      "markers": [
+        "CK",
+        "GGT",
+        "LAC",
+        "LDH",
+        "TBIL"
+      ]
+    },
+    {
+      "id": "03226051901::Specific Test 2::control::55",
+      "panel_name": "Specific Test 2",
+      "kind": "control",
+      "display_lot_code": "103226051901",
+      "lot_codes": [
+        "103226051901"
+      ],
+      "production_date": "2026-05-19",
+      "analyze_date": "2026-05-19",
+      "record_count": 96,
+      "marker_count": 5,
+      "markers": [
+        "ALB",
+        "BUN",
+        "CREA",
+        "GLU",
+        "TP"
+      ]
+    },
+    {
+      "id": "30126051802::Coagulation::control::58",
+      "panel_name": "Coagulation",
+      "kind": "control",
+      "display_lot_code": "230126051802",
+      "lot_codes": [
+        "230126051802"
+      ],
+      "production_date": "2026-05-18",
+      "analyze_date": "2026-05-19",
+      "record_count": 57,
+      "marker_count": 3,
+      "markers": [
+        "APTT",
+        "FIB",
+        "PT"
+      ]
+    },
+    {
+      "id": "30126051801::Coagulation::control::59",
+      "panel_name": "Coagulation",
+      "kind": "control",
+      "display_lot_code": "230126051801",
+      "lot_codes": [
+        "230126051801"
+      ],
+      "production_date": "2026-05-18",
+      "analyze_date": "2026-05-18",
+      "record_count": 48,
+      "marker_count": 3,
+      "markers": [
+        "APTT",
+        "FIB",
+        "PT"
+      ]
+    },
+    {
+      "id": "11026051501::Feline Pancreas-specific Lipase::control::61",
+      "panel_name": "Feline Pancreas-specific Lipase",
+      "kind": "control",
+      "display_lot_code": "111026051501 & 211026051501",
+      "lot_codes": [
+        "111026051501",
+        "211026051501"
+      ],
+      "production_date": "2026-05-15",
+      "analyze_date": "2026-05-15",
+      "record_count": 73,
+      "marker_count": 1,
+      "markers": [
+        "fPL"
+      ]
+    },
+    {
+      "id": "1-0000028-26052101::Electrolyte 7 Panel 製程紀錄表::control::62",
+      "panel_name": "Electrolyte 7 Panel 製程紀錄表",
+      "kind": "control",
+      "display_lot_code": "1-0000028-26052101",
+      "lot_codes": [
+        "1-0000028-26052101"
+      ],
+      "production_date": "2026-05-15",
+      "analyze_date": "2026-05-15",
+      "record_count": 7,
+      "marker_count": 6,
+      "markers": [
+        "CK",
+        "Cl",
+        "K",
+        "LDH",
+        "Mg",
+        "Na"
+      ]
+    },
+    {
+      "id": "10426051401::Canine Cortisol::control::64",
+      "panel_name": "Canine Cortisol",
+      "kind": "control",
+      "display_lot_code": "210426051401",
+      "lot_codes": [
+        "210426051401"
+      ],
+      "production_date": "2026-05-14",
+      "analyze_date": "2026-05-14",
+      "record_count": 24,
+      "marker_count": 1,
+      "markers": [
+        "cCORT"
+      ]
+    },
+    {
+      "id": "10326051401::Canine Progesterone::control::63",
+      "panel_name": "Canine Progesterone",
+      "kind": "control",
+      "display_lot_code": "210326051401",
+      "lot_codes": [
+        "210326051401"
+      ],
+      "production_date": "2026-05-14",
+      "analyze_date": "2026-05-14",
+      "record_count": 24,
+      "marker_count": 1,
+      "markers": [
+        "cPROG"
+      ]
+    },
+    {
+      "id": "10926051301::Canine Pancreas-specific Lipase::control::60",
+      "panel_name": "Canine Pancreas-specific Lipase",
+      "kind": "control",
+      "display_lot_code": "110926051301 & 210926051301",
+      "lot_codes": [
+        "110926051301",
+        "210926051301"
+      ],
+      "production_date": "2026-05-13",
+      "analyze_date": "2026-05-16",
+      "record_count": 113,
+      "marker_count": 1,
+      "markers": [
+        "cPL"
+      ]
+    },
+    {
+      "id": "03126051201::Specific Test 1::control::67",
+      "panel_name": "Specific Test 1",
+      "kind": "control",
+      "display_lot_code": "203126051201",
+      "lot_codes": [
+        "203126051201"
+      ],
+      "production_date": "2026-05-12",
+      "analyze_date": "2026-05-12",
+      "record_count": 20,
+      "marker_count": 1,
+      "markers": [
+        "NH3"
+      ]
+    },
+    {
+      "id": "09326051201::Optimum Wellness 37::control::66",
+      "panel_name": "Optimum Wellness 37",
+      "kind": "control",
+      "display_lot_code": "109326051201",
+      "lot_codes": [
+        "109326051201"
+      ],
+      "production_date": "2026-05-12",
+      "analyze_date": "2026-05-12",
+      "record_count": 160,
+      "marker_count": 7,
+      "markers": [
+        "BA",
+        "Cl",
+        "K",
+        "Na",
+        "P-LIPA",
+        "TCO2",
+        "TRIG"
+      ]
+    },
+    {
+      "id": "06226051201::Large Animal 25::control::65",
+      "panel_name": "Large Animal 25",
+      "kind": "control",
+      "display_lot_code": "106226051201",
+      "lot_codes": [
+        "106226051201"
+      ],
+      "production_date": "2026-05-12",
+      "analyze_date": "2026-05-12",
+      "record_count": 160,
+      "marker_count": 7,
+      "markers": [
+        "ALP",
+        "Ca",
+        "Cl",
+        "K",
+        "Mg",
+        "Na",
+        "PHOS"
+      ]
+    },
+    {
+      "id": "05826050801::Critical Care 26::control::73",
+      "panel_name": "Critical Care 26",
+      "kind": "control",
+      "display_lot_code": "105826050801 & 205826050801",
+      "lot_codes": [
+        "105826050801",
+        "205826050801"
+      ],
+      "production_date": "2026-05-08",
+      "analyze_date": "2026-05-08",
+      "record_count": 176,
+      "marker_count": 7,
+      "markers": [
+        "CK",
+        "Ca",
+        "Cl",
+        "K",
+        "LAC",
+        "Na",
+        "TCO2"
+      ]
+    },
+    {
+      "id": "03526050801::Specific Test 5::control::72",
+      "panel_name": "Specific Test 5",
+      "kind": "control",
+      "display_lot_code": "103526050801 & 203526050801",
+      "lot_codes": [
+        "103526050801",
+        "203526050801"
+      ],
+      "production_date": "2026-05-08",
+      "analyze_date": "2026-05-08",
+      "record_count": 78,
+      "marker_count": 3,
+      "markers": [
+        "CHOL",
+        "GLU",
+        "TRIG"
+      ]
+    },
+    {
+      "id": "00526050801::Diabetes 10::control::74",
+      "panel_name": "Diabetes 10",
+      "kind": "control",
+      "display_lot_code": "100526050801 & 200526050801",
+      "lot_codes": [
+        "100526050801",
+        "200526050801"
+      ],
+      "production_date": "2026-05-08",
+      "analyze_date": "2026-05-08",
+      "record_count": 240,
+      "marker_count": 8,
+      "markers": [
+        "ALB",
+        "AMY",
+        "CHOL",
+        "FRU",
+        "GLU",
+        "P-LIPA",
+        "TP",
+        "TRIG"
+      ]
+    },
+    {
+      "id": "09326050701::Optimum Wellness 37::control::75",
+      "panel_name": "Optimum Wellness 37",
+      "kind": "control",
+      "display_lot_code": "109326050701 & 209326050701",
+      "lot_codes": [
+        "109326050701",
+        "209326050701"
+      ],
+      "production_date": "2026-05-07",
+      "analyze_date": "2026-05-07",
+      "record_count": 272,
+      "marker_count": 7,
+      "markers": [
+        "BA",
+        "Cl",
+        "K",
+        "Na",
+        "P-LIPA",
+        "TCO2",
+        "TRIG"
+      ]
+    },
+    {
+      "id": "05426050601::General Chem 26::control::69",
+      "panel_name": "General Chem 26",
+      "kind": "control",
+      "display_lot_code": "205426050601",
+      "lot_codes": [
+        "205426050601"
+      ],
+      "production_date": "2026-05-06",
+      "analyze_date": "2026-05-08",
+      "record_count": 392,
+      "marker_count": 8,
+      "markers": [
+        "AMY",
+        "AST",
+        "CHOL",
+        "CK",
+        "Ca",
+        "GGT",
+        "PHOS",
+        "TBIL"
+      ]
+    },
+    {
+      "id": "05326050601::General Chem 26::control::68",
+      "panel_name": "General Chem 26",
+      "kind": "control",
+      "display_lot_code": "105326050601",
+      "lot_codes": [
+        "105326050601"
+      ],
+      "production_date": "2026-05-06",
+      "analyze_date": "2026-05-08",
+      "record_count": 392,
+      "marker_count": 7,
+      "markers": [
+        "ALB",
+        "ALP",
+        "ALT",
+        "BUN",
+        "CREA",
+        "GLU",
+        "TP"
+      ]
+    },
+    {
+      "id": "00126050601::Core Chem 13::control::76",
+      "panel_name": "Core Chem 13",
+      "kind": "control",
+      "display_lot_code": "100126050601 & 200126050601",
+      "lot_codes": [
+        "100126050601",
+        "200126050601"
+      ],
+      "production_date": "2026-05-06",
+      "analyze_date": "2026-05-06",
+      "record_count": 240,
+      "marker_count": 7,
+      "markers": [
+        "ALB",
+        "ALP",
+        "ALT",
+        "BUN",
+        "CREA",
+        "GLU",
+        "TP"
+      ]
+    },
+    {
+      "id": "09326050501::Optimum Wellness 37::control::77",
+      "panel_name": "Optimum Wellness 37",
+      "kind": "control",
+      "display_lot_code": "209326050501",
+      "lot_codes": [
+        "209326050501"
+      ],
+      "production_date": "2026-05-05",
+      "analyze_date": "2026-05-06",
+      "record_count": 152,
+      "marker_count": 7,
+      "markers": [
+        "BA",
+        "Cl",
+        "K",
+        "Na",
+        "P-LIPA",
+        "TCO2",
+        "TRIG"
+      ]
+    },
+    {
+      "id": "03526050501::Specific Test 5::control::78",
+      "panel_name": "Specific Test 5",
+      "kind": "control",
+      "display_lot_code": "103526050501",
+      "lot_codes": [
+        "103526050501"
+      ],
+      "production_date": "2026-05-05",
+      "analyze_date": "2026-05-06",
+      "record_count": 60,
+      "marker_count": 3,
+      "markers": [
+        "CHOL",
+        "GLU",
+        "TRIG"
+      ]
+    },
+    {
+      "id": "00226050501::Liver 11::control::79",
+      "panel_name": "Liver 11",
+      "kind": "control",
+      "display_lot_code": "100226050501 & 200226050501",
+      "lot_codes": [
+        "100226050501",
+        "200226050501"
+      ],
+      "production_date": "2026-05-05",
+      "analyze_date": "2026-05-05",
+      "record_count": 304,
+      "marker_count": 8,
+      "markers": [
+        "ALB",
+        "ALP",
+        "ALT",
+        "AST",
+        "BA",
+        "GGT",
+        "GLU",
+        "TBIL"
+      ]
+    },
+    {
+      "id": "09326050401::Optimum Wellness 37::control::81",
+      "panel_name": "Optimum Wellness 37",
+      "kind": "control",
+      "display_lot_code": "209326050401",
+      "lot_codes": [
+        "209326050401"
+      ],
+      "production_date": "2026-05-04",
+      "analyze_date": "2026-05-05",
+      "record_count": 160,
+      "marker_count": 7,
+      "markers": [
+        "BA",
+        "Cl",
+        "K",
+        "Na",
+        "P-LIPA",
+        "TCO2",
+        "TRIG"
+      ]
+    },
+    {
+      "id": "06026050401::Equine 26::control::82",
+      "panel_name": "Equine 26",
+      "kind": "control",
+      "display_lot_code": "106026050401",
+      "lot_codes": [
+        "106026050401"
+      ],
+      "production_date": "2026-05-04",
+      "analyze_date": "2026-05-04",
+      "record_count": 160,
+      "marker_count": 7,
+      "markers": [
+        "ALP",
+        "CREA",
+        "Ca",
+        "K",
+        "Na",
+        "PHOS",
+        "TBIL"
+      ]
+    },
+    {
+      "id": "00726043001::Renal 15::control::83",
+      "panel_name": "Renal 15",
+      "kind": "control",
+      "display_lot_code": "100726043001 & 200726043001",
+      "lot_codes": [
+        "100726043001",
+        "200726043001"
+      ],
+      "production_date": "2026-04-30",
+      "analyze_date": "2026-04-30",
+      "record_count": 240,
+      "marker_count": 7,
+      "markers": [
+        "ALB",
+        "BUN",
+        "CREA",
+        "Ca",
+        "GLU",
+        "PHOS",
+        "TP"
+      ]
+    },
+    {
+      "id": "09226042901::Optimum Wellness 37::control::85",
+      "panel_name": "Optimum Wellness 37",
+      "kind": "control",
+      "display_lot_code": "209226042901",
+      "lot_codes": [
+        "209226042901"
+      ],
+      "production_date": "2026-04-29",
+      "analyze_date": "2026-04-29",
+      "record_count": 192,
+      "marker_count": 8,
+      "markers": [
+        "AMY",
+        "AST",
+        "CHOL",
+        "CK",
+        "Ca",
+        "GGT",
+        "PHOS",
+        "TBIL"
+      ]
+    },
+    {
+      "id": "09126042901::Optimum Wellness 37::control::84",
+      "panel_name": "Optimum Wellness 37",
+      "kind": "control",
+      "display_lot_code": "109126042901",
+      "lot_codes": [
+        "109126042901"
+      ],
+      "production_date": "2026-04-29",
+      "analyze_date": "2026-04-29",
+      "record_count": 200,
+      "marker_count": 7,
+      "markers": [
+        "ALB",
+        "ALP",
+        "ALT",
+        "BUN",
+        "CREA",
+        "GLU",
+        "TP"
+      ]
+    },
+    {
+      "id": "05426042801::General Chem 26::control::87",
+      "panel_name": "General Chem 26",
+      "kind": "control",
+      "display_lot_code": "205426042801",
+      "lot_codes": [
+        "205426042801"
+      ],
+      "production_date": "2026-04-28",
+      "analyze_date": "2026-04-28",
+      "record_count": 192,
+      "marker_count": 8,
+      "markers": [
+        "AMY",
+        "AST",
+        "CHOL",
+        "CK",
+        "Ca",
+        "GGT",
+        "PHOS",
+        "TBIL"
+      ]
+    },
+    {
+      "id": "05326042801::General Chem 26::control::86",
+      "panel_name": "General Chem 26",
+      "kind": "control",
+      "display_lot_code": "105326042801",
+      "lot_codes": [
+        "105326042801"
+      ],
+      "production_date": "2026-04-28",
+      "analyze_date": "2026-04-28",
+      "record_count": 192,
+      "marker_count": 7,
+      "markers": [
+        "ALB",
+        "ALP",
+        "ALT",
+        "BUN",
+        "CREA",
+        "GLU",
+        "TP"
+      ]
+    },
+    {
+      "id": "06026042701::Equine 26::control::89",
+      "panel_name": "Equine 26",
+      "kind": "control",
+      "display_lot_code": "206026042701",
+      "lot_codes": [
+        "206026042701"
+      ],
+      "production_date": "2026-04-27",
+      "analyze_date": "2026-04-27",
+      "record_count": 128,
+      "marker_count": 7,
+      "markers": [
+        "ALP",
+        "CREA",
+        "Ca",
+        "K",
+        "Na",
+        "PHOS",
+        "TBIL"
+      ]
+    },
+    {
+      "id": "09326042701::Optimum Wellness 37::control::88",
+      "panel_name": "Optimum Wellness 37",
+      "kind": "control",
+      "display_lot_code": "109326042701",
+      "lot_codes": [
+        "109326042701"
+      ],
+      "production_date": "2026-04-27",
+      "analyze_date": "2026-04-27",
+      "record_count": 128,
+      "marker_count": 7,
+      "markers": [
+        "BA",
+        "Cl",
+        "K",
+        "Na",
+        "P-LIPA",
+        "TCO2",
+        "TRIG"
+      ]
+    },
+    {
+      "id": "04026042701::Urine Protein CREA ratio::control::90",
+      "panel_name": "Urine Protein CREA ratio",
+      "kind": "control",
+      "display_lot_code": "104026042701 & 204026042701",
+      "lot_codes": [
+        "104026042701",
+        "204026042701"
+      ],
+      "production_date": "2026-04-27",
+      "analyze_date": "2026-04-27",
+      "record_count": 64,
+      "marker_count": 2,
+      "markers": [
+        "UCRE",
+        "UPRO"
+      ]
+    },
+    {
+      "id": "09226042401::Optimum Wellness 37::control::93",
+      "panel_name": "Optimum Wellness 37",
+      "kind": "control",
+      "display_lot_code": "209226042401",
+      "lot_codes": [
+        "209226042401"
+      ],
+      "production_date": "2026-04-24",
+      "analyze_date": "2026-04-24",
+      "record_count": 176,
+      "marker_count": 8,
+      "markers": [
+        "AMY",
+        "AST",
+        "CHOL",
+        "CK",
+        "Ca",
+        "GGT",
+        "PHOS",
+        "TBIL"
+      ]
+    },
+    {
+      "id": "05426042401::General Chem 26::control::71",
+      "panel_name": "General Chem 26",
+      "kind": "control",
+      "display_lot_code": "205426042401",
+      "lot_codes": [
+        "205426042401"
+      ],
+      "production_date": "2026-04-24",
+      "analyze_date": "2026-05-08",
+      "record_count": 264,
+      "marker_count": 8,
+      "markers": [
+        "AMY",
+        "AST",
+        "CHOL",
+        "CK",
+        "Ca",
+        "GGT",
+        "PHOS",
+        "TBIL"
+      ]
+    },
+    {
+      "id": "09126042401::Optimum Wellness 37::control::92",
+      "panel_name": "Optimum Wellness 37",
+      "kind": "control",
+      "display_lot_code": "109126042401",
+      "lot_codes": [
+        "109126042401"
+      ],
+      "production_date": "2026-04-24",
+      "analyze_date": "2026-04-24",
+      "record_count": 176,
+      "marker_count": 7,
+      "markers": [
+        "ALB",
+        "ALP",
+        "ALT",
+        "BUN",
+        "CREA",
+        "GLU",
+        "TP"
+      ]
+    },
+    {
+      "id": "05326042401::General Chem 26::control::70",
+      "panel_name": "General Chem 26",
+      "kind": "control",
+      "display_lot_code": "105326042401",
+      "lot_codes": [
+        "105326042401"
+      ],
+      "production_date": "2026-04-24",
+      "analyze_date": "2026-05-08",
+      "record_count": 264,
+      "marker_count": 7,
+      "markers": [
+        "ALB",
+        "ALP",
+        "ALT",
+        "BUN",
+        "CREA",
+        "GLU",
+        "TP"
+      ]
+    },
+    {
+      "id": "00200010126042301::Total T4::control::94",
+      "panel_name": "Total T4",
+      "kind": "control",
+      "display_lot_code": "00200010126042301",
+      "lot_codes": [
+        "00200010126042301"
+      ],
+      "production_date": "2026-04-24",
+      "analyze_date": "2026-04-24",
+      "record_count": 4,
+      "marker_count": 1,
+      "markers": [
+        "TT4"
+      ]
+    },
+    {
+      "id": "11326042301::S-DMA::control::95",
+      "panel_name": "S-DMA",
+      "kind": "control",
+      "display_lot_code": "111326042301 & 211326042301",
+      "lot_codes": [
+        "111326042301",
+        "211326042301"
+      ],
+      "production_date": "2026-04-23",
+      "analyze_date": "2026-04-23",
+      "record_count": 11,
+      "marker_count": 1,
+      "markers": [
+        "S-DMA"
+      ]
+    },
+    {
+      "id": "10626042301::Canine CRP::control::97",
+      "panel_name": "Canine CRP",
+      "kind": "control",
+      "display_lot_code": "110626042301 & 210626042301",
+      "lot_codes": [
+        "110626042301",
+        "210626042301"
+      ],
+      "production_date": "2026-04-23",
+      "analyze_date": "2026-04-23",
+      "record_count": 11,
+      "marker_count": 1,
+      "markers": [
+        "cCRP"
+      ]
+    },
+    {
+      "id": "10126042301::Total T4::control::91",
+      "panel_name": "Total T4",
+      "kind": "control",
+      "display_lot_code": "110126042301 & 210126042301",
+      "lot_codes": [
+        "110126042301",
+        "210126042301"
+      ],
+      "production_date": "2026-04-23",
+      "analyze_date": "2026-04-24",
+      "record_count": 24,
+      "marker_count": 1,
+      "markers": [
+        "TT4"
+      ]
+    },
+    {
+      "id": "04026042201::Urine Protein CREA ratio::control::99",
+      "panel_name": "Urine Protein CREA ratio",
+      "kind": "control",
+      "display_lot_code": "204026042201",
+      "lot_codes": [
+        "204026042201"
+      ],
+      "production_date": "2026-04-22",
+      "analyze_date": "2026-04-22",
+      "record_count": 12,
+      "marker_count": 2,
+      "markers": [
+        "UCRE",
+        "UPRO"
+      ]
+    },
+    {
+      "id": "00326042201::Electrolyte 7::control::98",
+      "panel_name": "Electrolyte 7",
+      "kind": "control",
+      "display_lot_code": "100326042201 & 200326042201",
+      "lot_codes": [
+        "100326042201",
+        "200326042201"
+      ],
+      "production_date": "2026-04-22",
+      "analyze_date": "2026-04-22",
+      "record_count": 60,
+      "marker_count": 5,
+      "markers": [
+        "ALP",
+        "Cl",
+        "K",
+        "Na",
+        "TCO2"
+      ]
+    },
+    {
+      "id": "00226042201::Liver 11::control::100",
+      "panel_name": "Liver 11",
+      "kind": "control",
+      "display_lot_code": "100226042201",
+      "lot_codes": [
+        "100226042201"
+      ],
+      "production_date": "2026-04-22",
+      "analyze_date": "2026-04-22",
+      "record_count": 40,
+      "marker_count": 8,
+      "markers": [
+        "ALB",
+        "ALP",
+        "ALT",
+        "AST",
+        "BA",
+        "GGT",
+        "GLU",
+        "TBIL"
+      ]
+    },
+    {
+      "id": "00726042101::Renal 15::control::101",
+      "panel_name": "Renal 15",
+      "kind": "control",
+      "display_lot_code": "200726042101",
+      "lot_codes": [
+        "200726042101"
+      ],
+      "production_date": "2026-04-21",
+      "analyze_date": "2026-04-22",
+      "record_count": 32,
+      "marker_count": 7,
+      "markers": [
+        "ALB",
+        "BUN",
+        "CREA",
+        "Ca",
+        "GLU",
+        "PHOS",
+        "TP"
+      ]
+    }
+  ]
+}

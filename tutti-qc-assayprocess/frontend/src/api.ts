@@ -169,3 +169,149 @@ export async function fetchControlSheet(payload: {
   if (!data.ok) throw new Error(data.error || 'Control sheet request failed');
   return data;
 }
+
+
+export interface LotReportFile {
+  file_name: string;
+  size: number;
+  modified_at: string;
+  download_url: string;
+  has_preview: boolean;
+}
+
+export interface LotReportGroupPreview {
+  id: string;
+  panel_name: string;
+  kind: string;
+  display_lot_code: string;
+  lot_codes: string[];
+  production_date: string;
+  analyze_date: string;
+  record_count: number;
+  marker_count: number;
+  markers: string[];
+}
+
+export interface LotReportSheetRow {
+  type: string;
+  marker: string;
+  tea?: number | null;
+  assigned?: number | null;
+  lcl?: number | null;
+  ucl?: number | null;
+  mean?: number | null;
+  bias?: number | null;
+  cv?: number | null;
+  od_mean?: number | null;
+  n?: number | null;
+}
+
+export interface LotReportSummaryRow {
+  label: string;
+  stat: string;
+  values: Array<number | string | null>;
+}
+
+export interface LotReportSummaryTable {
+  markers: string[];
+  rows: LotReportSummaryRow[];
+}
+
+export interface LotReportDetailCell {
+  original: number | string | null;
+  changed: number | string | null;
+}
+
+export interface LotReportDetailRow {
+  sample: string;
+  device_sn: string;
+  test_zone: string;
+  analyze_time?: string;
+  values: Record<string, LotReportDetailCell>;
+}
+
+export interface LotReportDetailTable {
+  markers: string[];
+  rows: LotReportDetailRow[];
+  value_mode?: 'conc' | 'od';
+}
+
+export interface LotReportSheetPreview {
+  sheet_name: string;
+  markers?: string[];
+  test_count?: number;
+  rows: LotReportSheetRow[];
+  summary_conc?: LotReportSummaryTable;
+  summary_od?: LotReportSummaryTable;
+  detail_conc?: LotReportDetailTable;
+  detail_od?: LotReportDetailTable;
+}
+
+export interface LotReportPreview {
+  ok: boolean;
+  file_name: string;
+  download_url: string;
+  generated_at: string;
+  id?: string;
+  panel_name?: string;
+  display_lot_code?: string;
+  lot_codes?: string[];
+  production_date?: string;
+  analyze_date?: string;
+  record_count?: number;
+  kinds?: string[];
+  sheets?: Record<string, LotReportSheetPreview>;
+  all_batch_rows?: number;
+  group_count?: number;
+  groups: LotReportGroupPreview[];
+  error?: string;
+}
+
+
+export interface LotReportGroupRow {
+  id: string;
+  panel_name: string;
+  display_lot_code: string;
+  lot_codes: string[];
+  production_date: string;
+  analyze_date: string;
+  record_count: number;
+  kinds: string[];
+}
+
+export async function fetchLotReportGroups(): Promise<LotReportGroupRow[]> {
+  const response = await fetch(`${API_BASE}/lot-report-groups`);
+  if (!response.ok) throw new Error(`Lot report groups request failed: ${response.status}`);
+  const data = await response.json();
+  if (!data.ok) throw new Error(data.error || "Lot report groups request failed");
+  return data.rows || [];
+}
+
+
+export async function fetchLotReports(): Promise<LotReportFile[]> {
+  const response = await fetch(`${API_BASE}/lot-reports`);
+  if (!response.ok) throw new Error(`Lot reports request failed: ${response.status}`);
+  const data = await response.json();
+  if (!data.ok) throw new Error(data.error || "Lot reports request failed");
+  return data.reports || [];
+}
+
+export async function fetchLotReportPreview(fileName: string): Promise<LotReportPreview> {
+  const response = await fetch(`${API_BASE}/lot-reports/${encodeURIComponent(fileName)}/preview`);
+  if (!response.ok) throw new Error(`Lot report preview failed: ${response.status}`);
+  const data = await response.json();
+  if (!data.ok) throw new Error(data.error || "Lot report preview failed");
+  return data;
+}
+
+export async function generateLotReport(payload?: { id?: string; dataset_id?: string; lot_code?: string; output_date?: string }): Promise<LotReportPreview> {
+  const response = await fetch(`${API_BASE}/lot-reports/generate`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload || {}),
+  });
+  if (!response.ok) throw new Error(`Lot report generate failed: ${response.status}`);
+  const data = await response.json();
+  if (!data.ok) throw new Error(data.error || "Lot report generate failed");
+  return data;
+}

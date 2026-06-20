@@ -11,6 +11,7 @@ router.get('/orders', async (req, res) => {
       date_from: String(req.query.date_from || '').trim(),
       date_to: String(req.query.date_to || '').trim(),
       only_shippable: req.query.only_shippable === '1' || req.query.only_shippable === 'true',
+      include_status: req.query.include_status === '1' || req.query.include_status === 'true',
     });
 
     res.json({ success: true, rows });

@@ -1,3 +1,4 @@
+import db from '../db/sqlite.js';
 import { queryWithRetry } from '../db/pgPool.js';
 
 const PN_KEYS = ['model p/N', 'model P/N', 'model_pn', 'modelPN', 'modelPn', 'P/N', 'pn', 'part_no', 'model'];
@@ -209,67 +210,176 @@ function buildNormalizedLotCodes(lotCodes) {
   }));
 }
 
-async function checkRdLineChanged(lotNo) {
-  try {
+function patternKey(pattern) {
+  return `${pattern.subPanelType}:${pattern.productionDate}`;
+}
+
+function taskLotPatternKey(lotCode) {
+  const normalized = String(lotCode || '').trim().replace(/_/g, '');
+  if (normalized.length !== 12) return '';
+  return `${normalized.slice(1, 4)}:${normalized.slice(4, 10)}`;
+}
+
+function makeLotContext(lotNos) {
+  const patternToLots = new Map();
+  const lotPatterns = new Map();
+
+  for (const lotNo of lotNos) {
     const patterns = mfgLotNoToLotCodePatterns(lotNo);
+    lotPatterns.set(lotNo, patterns);
+    for (const pattern of patterns) {
+      const key = patternKey(pattern);
+      if (!patternToLots.has(key)) patternToLots.set(key, new Set());
+      patternToLots.get(key).add(lotNo);
+    }
+  }
+
+  return { patternToLots, lotPatterns };
+}
+
+function buildPatternValuesSql(patternToLots) {
+  const keys = Array.from(patternToLots.keys());
+  const params = [];
+  const placeholders = [];
+
+  keys.forEach((key, index) => {
+    const [subPanelType, productionDate] = key.split(':');
+    const offset = index * 2;
+    placeholders.push(`($${offset + 1}, $${offset + 2})`);
+    params.push(subPanelType, productionDate);
+  });
+
+  return { keys, params, valuesSql: placeholders.join(',') };
+}
+
+async function fetchAssayRowsByLot(patternToLots) {
+  const { keys, params, valuesSql } = buildPatternValuesSql(patternToLots);
+  const rowsByLot = new Map();
+  if (keys.length === 0) return rowsByLot;
+
+  const result = await queryWithRetry(`
+    WITH patterns(sub_panel_type, production_date) AS (VALUES ${valuesSql})
+    SELECT DISTINCT
+      p.sub_panel_type,
+      p.production_date,
+      a.analyze_item,
+      a.lot_code,
+      a.patient_id
+    FROM panel_production.assay_process_records a
+    JOIN patterns p
+      ON SUBSTRING(REPLACE(TRIM(COALESCE(a.lot_code, '')), '_', '') FROM 2 FOR 3) = p.sub_panel_type
+     AND SUBSTRING(REPLACE(TRIM(COALESCE(a.lot_code, '')), '_', '') FROM 5 FOR 6) = p.production_date
+    WHERE COALESCE(TRIM(a.analyze_item), '') <> ''
+  `, params);
+
+  for (const row of result.rows) {
+    const lots = patternToLots.get(`${row.sub_panel_type}:${row.production_date}`);
+    if (!lots) continue;
+    for (const lotNo of lots) {
+      if (!rowsByLot.has(lotNo)) rowsByLot.set(lotNo, []);
+      rowsByLot.get(lotNo).push(row);
+    }
+  }
+
+  return rowsByLot;
+}
+
+async function fetchHistoryByLot(lotNos) {
+  const historyByLot = new Map();
+  if (lotNos.length === 0) return historyByLot;
+
+  const result = await queryWithRetry(`
+    SELECT DISTINCT ON (lot_no)
+      lot_no,
+      new_status,
+      modification_count
+    FROM panel_production.batch_build_line_history
+    WHERE lot_no = ANY($1)
+    ORDER BY lot_no, transitioned_at DESC
+  `, [lotNos]);
+
+  for (const row of result.rows) {
+    historyByLot.set(row.lot_no, row);
+  }
+  return historyByLot;
+}
+
+function fetchTaskMapsByLot(patternToLots) {
+  const taskMapsByLot = new Map();
+  try {
+    const table = db.prepare(
+      "SELECT name FROM sqlite_master WHERE type = 'table' AND name = 'rd_build_line_tasks'"
+    ).get();
+    if (!table || patternToLots.size === 0) return taskMapsByLot;
+
+    const tasks = db.prepare(`
+      SELECT marker, lot_no, status
+      FROM rd_build_line_tasks
+      WHERE status IN ('completed','on_hold','rejected','pending_rd','in_progress','pending_qc')
+        AND COALESCE(TRIM(marker), '') <> ''
+        AND COALESCE(TRIM(lot_no), '') <> ''
+    `).all();
+
+    const priority = { rejected: 5, on_hold: 4, completed: 3, pending_qc: 2, in_progress: 1, pending_rd: 0 };
+    for (const task of tasks) {
+      const lots = patternToLots.get(taskLotPatternKey(task.lot_no));
+      if (!lots) continue;
+
+      for (const lotNo of lots) {
+        if (!taskMapsByLot.has(lotNo)) taskMapsByLot.set(lotNo, {});
+        const taskMap = taskMapsByLot.get(lotNo);
+        const marker = task.marker || '';
+        const existing = taskMap[marker];
+        if (!existing || (priority[task.status] || 0) > (priority[existing] || 0)) {
+          taskMap[marker] = task.status;
+        }
+      }
+    }
+  } catch {
+    return taskMapsByLot;
+  }
+
+  return taskMapsByLot;
+}
+
+async function buildShipmentContext(lotNos) {
+  const { patternToLots, lotPatterns } = makeLotContext(lotNos);
+  const [assayRowsByLot, historyByLot] = await Promise.all([
+    fetchAssayRowsByLot(patternToLots),
+    fetchHistoryByLot(lotNos),
+  ]);
+  const taskMapsByLot = fetchTaskMapsByLot(patternToLots);
+
+  return {
+    assayRowsByLot,
+    historyByLot,
+    lotPatterns,
+    taskMapsByLot,
+  };
+}
+
+function checkRdLineChanged(lotNo, context) {
+  try {
+    const patterns = context.lotPatterns.get(lotNo) || [];
     if (patterns.length === 0) {
       return { rd_line_changed: null, rd_line_changed_status: '待確認' };
     }
 
-    // 取得該 lot 對應的所有 lot_codes
-    const patternConditions = patterns.map((_, i) => `(
-      SUBSTRING(REPLACE(TRIM(COALESCE(lot_code, '')), '_', '') FROM 2 FOR 3) = $${1 + i * 2}
-      AND SUBSTRING(REPLACE(TRIM(COALESCE(lot_code, '')), '_', '') FROM 5 FOR 6) = $${2 + i * 2}
-    )`).join(' OR ');
-    const patternParams = patterns.flatMap((p) => [p.subPanelType, p.productionDate]);
+    const assayRows = context.assayRowsByLot.get(lotNo) || [];
+    const analyzeItems = new Set(
+      assayRows
+        .filter((row) => ['control-1', 'control-2', 'control-3', 'control-4'].includes(String(row.patient_id || '').trim().toLowerCase()))
+        .map((row) => row.analyze_item)
+        .filter(Boolean)
+    );
 
-    // 取得 distinct analyze_item (以 control records 為準)
-    const itemResult = await queryWithRetry(`
-      SELECT DISTINCT analyze_item
-      FROM panel_production.assay_process_records
-      WHERE (${patternConditions})
-        AND COALESCE(TRIM(analyze_item), '') <> ''
-        AND LOWER(TRIM(COALESCE(patient_id, ''))) IN ('control-1','control-2','control-3','control-4')
-    `, patternParams);
-
-    if (itemResult.rows.length === 0) {
+    if (analyzeItems.size === 0) {
       return { rd_line_changed: false, rd_line_changed_status: '未建線完成' };
     }
 
-    const totalItems = itemResult.rows.length;
+    const totalItems = analyzeItems.size;
+    const taskMap = context.taskMapsByLot.get(lotNo) || {};
 
-    // 查 rd_build_line_tasks (本地 API) 取得 lot_code 級別的建線狀態
-    // lot_code 格式: lot_no 的 lot_codes (去掉 dash)
-    // rd_build_line_tasks 用 lot_no = lot_code (12碼)
-    let taskMap = {}; // marker -> status
-    try {
-      const taskRes = await fetch('http://127.0.0.1:3201/api/v1/pre-assignment/rd-build-line-tasks?status=completed,on_hold,rejected,pending_rd,in_progress,pending_qc');
-      if (taskRes.ok) {
-        const taskData = await taskRes.json();
-        const allTasks = taskData.data || [];
-        // 找到與此 lot_no 相關的 tasks（lot_no 在 tasks 裡可能是 12碼 lot_code）
-        // 用 sub_panel_type + date 匹配
-        const relevantTasks = allTasks.filter((t) => {
-          const taskLot = String(t.lot_no || '').trim().replace(/_/g, '');
-          if (taskLot.length !== 12) return false;
-          const taskSub = taskLot.slice(1, 4);
-          const taskDate = taskLot.slice(4, 10);
-          return patterns.some((p) => p.subPanelType === taskSub && p.productionDate === taskDate);
-        });
-        // Build status map: highest priority per marker
-        const priority = { rejected: 5, on_hold: 4, completed: 3, pending_qc: 2, in_progress: 1, pending_rd: 0 };
-        for (const t of relevantTasks) {
-          const marker = t.marker || '';
-          if (!marker) continue;
-          const existing = taskMap[marker];
-          if (!existing || (priority[t.status] || 0) > (priority[existing] || 0)) {
-            taskMap[marker] = t.status;
-          }
-        }
-      }
-    } catch { /* non-blocking */ }
-
-    // 統計
     let completedCount = 0;
     let holdCount = 0;
     let rejectCount = 0;
@@ -282,24 +392,9 @@ async function checkRdLineChanged(lotNo) {
     const hasAbnormal = holdCount > 0 || rejectCount > 0;
     const allDone = (completedCount + holdCount + rejectCount) >= totalItems && totalItems > 0;
 
-    // 查 batch_build_line_history 看是否有改線
-    const historyResult = await queryWithRetry(`
-      SELECT new_status, modification_count
-      FROM panel_production.batch_build_line_history
-      WHERE lot_no = $1
-      ORDER BY transitioned_at DESC
-      LIMIT 1
-    `, [lotNo]);
-
-    const hasLineChange = historyResult.rows.length > 0 &&
-      historyResult.rows[0].new_status && historyResult.rows[0].new_status.includes('已改線');
-    const modCount = historyResult.rows.length > 0 ? (Number(historyResult.rows[0].modification_count) || 0) : 0;
-
-    // 判定:
-    // 1. 全部建完線 + 有異常 → 建線完成但有異常
-    // 2. 全部建完線 + 有改線 → 是
-    // 3. 全部建完線 + 未改線 → 否
-    // 4. 未全部完成 → 未建線完成(X/Y)
+    const history = context.historyByLot.get(lotNo);
+    const hasLineChange = Boolean(history?.new_status && history.new_status.includes('已改線'));
+    const modCount = history ? (Number(history.modification_count) || 0) : 0;
     const doneItems = completedCount + holdCount + rejectCount;
 
     if (allDone && hasAbnormal) {
@@ -326,9 +421,9 @@ async function checkRdLineChanged(lotNo) {
   }
 }
 
-async function buildQcStatus(lotNo) {
+function buildQcStatus(lotNo, context) {
   try {
-    const patterns = mfgLotNoToLotCodePatterns(lotNo);
+    const patterns = context.lotPatterns.get(lotNo) || [];
 
     if (patterns.length === 0) {
       return {
@@ -338,25 +433,8 @@ async function buildQcStatus(lotNo) {
       };
     }
 
-    const patternConditions = patterns.map((_, i) => `(
-      SUBSTRING(REPLACE(TRIM(COALESCE(lot_code, '')), '_', '') FROM 2 FOR 3) = $${1 + i * 2}
-      AND SUBSTRING(REPLACE(TRIM(COALESCE(lot_code, '')), '_', '') FROM 5 FOR 6) = $${2 + i * 2}
-    )`).join(' OR ');
-
-    const patternParams = patterns.flatMap((p) => [p.subPanelType, p.productionDate]);
-
-    const sql = `
-      SELECT DISTINCT analyze_item, lot_code
-      FROM panel_production.assay_process_records
-      WHERE COALESCE(TRIM(analyze_item), '') <> ''
-        AND (${patternConditions})
-      ORDER BY analyze_item, lot_code
-      LIMIT 300
-    `;
-
-    const result = await queryWithRetry(sql, patternParams);
-
-    if (result.rows.length === 0) {
+    const assayRows = context.assayRowsByLot.get(lotNo) || [];
+    if (assayRows.length === 0) {
       return {
         qc_ship_status: '待 QC Manager 核准',
         qc_ship_reason: '找不到 assay result，需 QC Manager 核准',
@@ -364,33 +442,8 @@ async function buildQcStatus(lotNo) {
       };
     }
 
-    // 查 rd_build_line_tasks 取得每個 marker 的曲線擬合狀態
-    let taskMap = {}; // marker -> status
-    try {
-      const taskRes = await fetch('http://127.0.0.1:3201/api/v1/pre-assignment/rd-build-line-tasks?status=completed,on_hold,rejected,pending_rd,in_progress,pending_qc');
-      if (taskRes.ok) {
-        const taskData = await taskRes.json();
-        const allTasks = taskData.data || [];
-        const relevantTasks = allTasks.filter((t) => {
-          const taskLot = String(t.lot_no || '').trim().replace(/_/g, '');
-          if (taskLot.length !== 12) return false;
-          const taskSub = taskLot.slice(1, 4);
-          const taskDate = taskLot.slice(4, 10);
-          return patterns.some((p) => p.subPanelType === taskSub && p.productionDate === taskDate);
-        });
-        const priority = { rejected: 5, on_hold: 4, completed: 3, pending_qc: 2, in_progress: 1, pending_rd: 0 };
-        for (const t of relevantTasks) {
-          const marker = t.marker || '';
-          if (!marker) continue;
-          const existing = taskMap[marker];
-          if (!existing || (priority[t.status] || 0) > (priority[existing] || 0)) {
-            taskMap[marker] = t.status;
-          }
-        }
-      }
-    } catch { /* non-blocking */ }
+    const taskMap = context.taskMapsByLot.get(lotNo) || {};
 
-    // 狀態標籤
     const STATUS_LABELS = {
       completed: '已建線',
       on_hold: 'Hold',
@@ -401,7 +454,7 @@ async function buildQcStatus(lotNo) {
     };
 
     const detailsByKey = new Map();
-    for (const row of result.rows) {
+    for (const row of assayRows) {
       const rawLotCode = String(row.lot_code || '').trim();
       const key = `${row.analyze_item}::${rawLotCode}`;
       if (!detailsByKey.has(key)) {
@@ -438,6 +491,7 @@ function rowMatchesFilters(row, filters) {
 }
 
 export async function getShipmentOrders(filters = {}) {
+  const includeStatus = filters.include_status === true || filters.include_status === '1' || filters.include_status === 'true';
   const params = [];
   const where = [];
 
@@ -450,25 +504,64 @@ export async function getShipmentOrders(filters = {}) {
     where.push(`created_at::date <= $${params.length}::date`);
   }
 
-  const whereSql = where.length ? `WHERE ${where.join(' AND ')}` : '';
+  where.push(`COALESCE(TRIM(lot_no), '') ~ '[0-9]{2}$'`);
+  where.push(`RIGHT(TRIM(lot_no), 2)::int < 50`);
+
+  const whereSql = `WHERE ${where.join(' AND ')}`;
+  const selectColumns = `
+    work_order_no,
+    lot_no,
+    form_data->'header'->>'modelPn' AS model_pn,
+    form_data->'header'->>'formTitle' AS form_title,
+    form_data->'header'->>'productionOrderQty' AS production_order_qty,
+    (
+      SELECT item->>'productExpiry'
+      FROM jsonb_array_elements(
+        CASE WHEN jsonb_typeof(form_data->'postProcess') = 'array'
+          THEN form_data->'postProcess'
+          ELSE '[]'::jsonb
+        END
+      ) item
+      WHERE COALESCE(TRIM(item->>'productExpiry'), '') <> ''
+      LIMIT 1
+    ) AS product_expiry,
+    created_at,
+    updated_at
+  `;
   const result = await queryWithRetry(`
-    SELECT source_table, work_order_no, lot_no, form_data, created_at, updated_at
+    SELECT source_table, work_order_no, lot_no, model_pn, form_title,
+           production_order_qty, product_expiry, created_at, updated_at
     FROM (
-      SELECT 'tutti_work_orders' AS source_table, work_order_no, lot_no, form_data, created_at, updated_at
+      SELECT 'tutti_work_orders' AS source_table, ${selectColumns}
       FROM panel_production.tutti_work_orders
       ${whereSql}
       UNION ALL
-      SELECT 'tutti_work_orders_water' AS source_table, work_order_no, lot_no, form_data, created_at, updated_at
+      SELECT 'tutti_work_orders_water' AS source_table, ${selectColumns}
       FROM panel_production.tutti_work_orders_water
       ${whereSql}
     ) orders
     ORDER BY created_at DESC NULLS LAST
-    LIMIT 500
+    LIMIT 100
   `, params);
 
   const rows = [];
+
+  const shipmentLotNos = result.rows
+    .map((workOrder) => String(workOrder.lot_no || '').trim())
+    .filter((lotNo) => lotNo && isShipmentLot(lotNo));
+  const context = includeStatus ? await buildShipmentContext(shipmentLotNos) : null;
+
   for (const workOrder of result.rows) {
-    const formData = parseFormData(workOrder.form_data);
+    const formData = workOrder.form_data
+      ? parseFormData(workOrder.form_data)
+      : {
+          header: {
+            modelPn: workOrder.model_pn,
+            formTitle: workOrder.form_title,
+            productionOrderQty: workOrder.production_order_qty,
+          },
+          postProcess: workOrder.product_expiry ? [{ productExpiry: workOrder.product_expiry }] : [],
+        };
     // lot_no 唯一來源: tutti_work_orders.lot_no (由 Excel upload 或 MRP 頁面人工填入)
     // 不做任何 fallback 計算或從 lot_code 反推
     const lotNo = String(workOrder.lot_no || '').trim();
@@ -476,8 +569,12 @@ export async function getShipmentOrders(filters = {}) {
 
     const pn = extractFromFormData(formData, PN_KEYS);
     const panel = extractPanelFromFormData(formData);
-    const rd = await checkRdLineChanged(lotNo);
-    const qc = await buildQcStatus(lotNo);
+    const rd = includeStatus
+      ? checkRdLineChanged(lotNo, context)
+      : { rd_line_changed: null, rd_line_changed_status: '未載入' };
+    const qc = includeStatus
+      ? buildQcStatus(lotNo, context)
+      : { qc_ship_status: '未載入', qc_ship_reason: '快速模式未載入 RD/QC 狀態', qc_details: [] };
 
     const row = {
       source_table: workOrder.source_table,

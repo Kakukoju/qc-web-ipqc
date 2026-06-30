@@ -1,0 +1,15 @@
+{
+  "version": "v1",
+  "hooks": [
+    {
+      "name": "after-kiro-report",
+      "trigger": "PostFileSave",
+      "description": "After Kiro writes kiro_report.md, run the full approval pipeline: tests → Codex review → parse → gate.",
+      "matcher": "kiro_report\\.md$",
+      "action": {
+        "type": "command",
+        "command": "cd /home/ubuntu/qc-web-ipqc && bash scripts/run_project_tests.sh && bash scripts/codex_review.sh && python3 scripts/approval_gate.py"
+      }
+    }
+  ]
+}

@@ -20,7 +20,7 @@ CONTROL_CONC_COLUMNS = {
     "control-4": "N3",
 }
 CONTROL_IDS = tuple(CONTROL_CONC_COLUMNS)
-EXCLUDED_BUILD_LINE_MARKERS = {"BCl"}
+EXCLUDED_BUILD_LINE_MARKERS = {"BCl", "CRE"}
 
 
 def _as_text(value: Any) -> str:

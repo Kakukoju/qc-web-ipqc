@@ -15,6 +15,7 @@ import {
   type EquationDirection,
   type FitStrategy,
 } from './curveFitting';
+import AiFeasibilityPanel from './AiFeasibilityPanel';
 
 interface Props {
   fitData: FitData | null;
@@ -23,7 +24,7 @@ interface Props {
   saving: boolean;
 }
 
-type Tab = 'chart' | 'residuals';
+type Tab = 'chart' | 'residuals' | 'ai-auto-fit';
 
 function formatCoefficient(value: number) {
   return Number(value.toPrecision(8)).toString();
@@ -37,6 +38,7 @@ export default function CurveFitAdjust({ fitData, onConfirm, onCancel, saving }:
   const [equationDirection, setEquationDirection] = useState<EquationDirection>('forward_od_to_conc');
   const [curveModel, setCurveModel] = useState<CurveModel>('linear');
   const [fitStrategy, setFitStrategy] = useState<FitStrategy>('full_range');
+  const [opticalResolution, setOpticalResolution] = useState(0.001);
 
   // Extract ALL data points — OD as x-axis, Conc as y-axis
   const allPoints = useMemo(() => {
@@ -286,6 +288,22 @@ export default function CurveFitAdjust({ fitData, onConfirm, onCancel, saving }:
               ))}
             </select>
           </label>
+          <label>
+            <span>光學解析度 (OD)</span>
+            <input
+              type="number"
+              inputMode="decimal"
+              step="0.001"
+              min="0.001"
+              max="0.1"
+              value={opticalResolution}
+              onChange={event => {
+                const v = parseFloat(event.target.value);
+                if (isFinite(v) && v > 0) setOpticalResolution(v);
+              }}
+              placeholder="0.001"
+            />
+          </label>
           {fitStrategy === 'weighted_near_target' && (
             <label>
               <span>Target Concentration</span>
@@ -375,6 +393,7 @@ export default function CurveFitAdjust({ fitData, onConfirm, onCancel, saving }:
       <div className="rd-filter-tabs">
         <button className={tab === 'chart' ? 'active' : ''} onClick={() => setTab('chart')}>📈 擬合圖</button>
         <button className={tab === 'residuals' ? 'active' : ''} onClick={() => setTab('residuals')}>📉 殘差</button>
+        <button className={tab === 'ai-auto-fit' ? 'active' : ''} onClick={() => setTab('ai-auto-fit')}>🧠 AI分析</button>
       </div>
 
       {tab === 'chart' && (
@@ -513,6 +532,17 @@ export default function CurveFitAdjust({ fitData, onConfirm, onCancel, saving }:
             </div>
           )}
         </>
+      )}
+
+      {tab === 'ai-auto-fit' && (
+        <AiFeasibilityPanel
+          fitData={fitData}
+          opticalResolution={opticalResolution}
+          onApplyAutoFit={(indices, _eq) => {
+            setRemovedIndices(prev => [...new Set([...prev, ...indices])]);
+            setTab('chart');
+          }}
+        />
       )}
 
       {/* Equation */}

@@ -1,0 +1,15 @@
+{
+  "version": "v1",
+  "hooks": [
+    {
+      "name": "After Codex Review",
+      "trigger": "PostFileSave",
+      "description": "Fallback: if codex_review.md is created by agent (not by codex_review.sh), parse and run gate.",
+      "matcher": "codex_review\\.md$",
+      "action": {
+        "type": "command",
+        "command": "cd /home/ubuntu/qc-web-ipqc && python3 scripts/parse_codex_review.py && python3 scripts/approval_gate.py"
+      }
+    }
+  ]
+}

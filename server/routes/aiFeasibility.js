@@ -157,12 +157,18 @@ router.post('/ai-feasibility-analysis', async (req, res) => {
         );
         if (specResp.ok) {
           const specs = await specResp.json();
-          if (specs.length > 0) {
-            clinicalSpec = specs[0];
+          // Find spec with tea_percent: prefer CLIA with tea_percent, then any with tea_percent
+          const withTeaPct = specs.filter(s => s.tea_percent != null && s.tea_percent > 0);
+          if (withTeaPct.length > 0) {
+            clinicalSpec = withTeaPct[0];
             teaPercent = clinicalSpec.tea_percent;
-            if (clinicalSpec.reportable_min != null && clinicalSpec.reportable_max != null) {
-              referenceRange = { low: clinicalSpec.reportable_min, high: clinicalSpec.reportable_max };
-            }
+          } else if (specs.length > 0) {
+            clinicalSpec = specs[0];
+            // For absolute TEa mode, we can't easily convert without knowing concentration
+            teaPercent = null;
+          }
+          if (clinicalSpec && clinicalSpec.reportable_min != null && clinicalSpec.reportable_max != null) {
+            referenceRange = { low: clinicalSpec.reportable_min, high: clinicalSpec.reportable_max };
           }
         }
       } catch (e) {
@@ -295,8 +301,9 @@ router.post('/ai-auto-fit', async (req, res) => {
         );
         if (specResp.ok) {
           const specs = await specResp.json();
-          if (specs.length > 0) {
-            clinicalSpec = specs[0];
+          const withTeaPct = specs.filter(s => s.tea_percent != null && s.tea_percent > 0);
+          if (withTeaPct.length > 0) {
+            clinicalSpec = withTeaPct[0];
             teaPercent = clinicalSpec.tea_percent;
           }
         }

@@ -13,7 +13,12 @@ export interface ResolutionCheck {
   passed: boolean;
   concResolution: number;
   rangeSpan: number;
-  resolutionRatio: number;
+  resolutionRatio?: number;
+  resolutionRatioRI?: number;
+  teaBudgetWorst?: number | null;
+  teaBudgetLevel?: string | null;
+  riPassed?: boolean;
+  teaBudgetPassed?: boolean;
   opticalResolution: number;
   message: string;
 }
@@ -24,8 +29,11 @@ export interface TeaLevelResult {
   meanFitted: number;
   biasPercent: number;
   cvPercent: number;
+  biasAbs?: number;
+  sdAbs?: number;
   tea: number;
   teaThreshold: number | null;
+  teaMode?: 'percent' | 'absolute';
   passed: boolean | null;
 }
 
@@ -66,6 +74,30 @@ export interface AiAnalysis {
   fallbackUsed: boolean;
 }
 
+export interface SuggestedFit {
+  strategy: string;
+  targetConc: number;
+  usedConcs?: number[];
+  fit: { slope: number; intercept: number; r2: number; n: number };
+  teaCheck: TeaCheck;
+  equation: string;
+  improved: boolean;
+}
+
+export interface AlternativeSpec {
+  source: string;
+  species: string;
+  tea_mode: string;
+  tea_percent: number | null;
+  tea_absolute: number | null;
+  unit: string;
+  aps_level: string;
+  cv_percent?: number;
+  passCount?: number | null;
+  totalCount?: number | null;
+  allPass?: boolean;
+}
+
 export interface FeasibilityResult {
   fit: { slope: number; intercept: number; r2: number; n: number };
   resolutionCheck: ResolutionCheck | null;
@@ -74,6 +106,9 @@ export interface FeasibilityResult {
   residuals: Array<{ idx: number; patient_id: string; conc: number; od: number; predicted: number; residual: number; absResidual: number }>;
   needsAi: boolean;
   aiAnalysis: AiAnalysis | null;
+  suggestedFits?: SuggestedFit[];
+  alternativeSpecs?: AlternativeSpec[];
+  teaOverride?: { source: string; tea_percent: number } | null;
 }
 
 export interface AutoFitIteration {
@@ -109,6 +144,7 @@ export async function runFeasibilityAnalysis(params: {
   analyze_item?: string;
   optical_resolution?: number;
   assigned_concs?: Record<string, number>;
+  user_context?: string;
 }): Promise<{ ok: boolean; data?: FeasibilityResult; error?: string }> {
   const res = await fetch(`${BASE}/ai-feasibility-analysis`, {
     method: 'POST',

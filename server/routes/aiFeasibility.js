@@ -34,6 +34,114 @@ function linearFit(points) {
   return { slope, intercept, r2, n };
 }
 
+/**
+ * Weighted linear fit: points closer to targetConc get higher weight.
+ * Weight = 1 / (1 + (distance/scale)^2)  (inverse-distance squared)
+ */
+function weightedLinearFit(points, targetConc) {
+  const valid = points.filter(p => p.conc != null && p.od != null && isFinite(p.conc) && isFinite(p.od));
+  if (valid.length < 2) return null;
+  const distances = valid.map(p => Math.abs(p.conc - targetConc));
+  const positiveDistances = distances.filter(d => d > 1e-9).sort((a, b) => a - b);
+  const scale = positiveDistances[0] || Math.max(...valid.map(p => Math.abs(p.conc)), 1);
+  const weights = distances.map(d => 1 / (1 + (d / scale) ** 2));
+  const totalW = weights.reduce((s, w) => s + w, 0);
+  const xMeanW = valid.reduce((s, p, i) => s + weights[i] * p.od, 0) / totalW;
+  const yMeanW = valid.reduce((s, p, i) => s + weights[i] * p.conc, 0) / totalW;
+  const denomW = valid.reduce((s, p, i) => s + weights[i] * (p.od - xMeanW) ** 2, 0);
+  if (denomW === 0) return null;
+  const slope = valid.reduce((s, p, i) => s + weights[i] * (p.od - xMeanW) * (p.conc - yMeanW), 0) / denomW;
+  const intercept = yMeanW - slope * xMeanW;
+  const predictions = valid.map(p => slope * p.od + intercept);
+  const ssTot = valid.reduce((s, p, i) => s + weights[i] * (p.conc - yMeanW) ** 2, 0);
+  const ssRes = valid.reduce((s, p, i) => s + weights[i] * (p.conc - predictions[i]) ** 2, 0);
+  const r2 = ssTot === 0 ? 1 : 1 - ssRes / ssTot;
+  return { slope, intercept, r2, n: valid.length, strategy: 'weighted_near_target', targetConc };
+}
+
+/**
+ * Local fit: only use the two concentrations closest to targetConc.
+ */
+function localLinearFit(points, targetConc) {
+  const valid = points.filter(p => p.conc != null && p.od != null && isFinite(p.conc) && isFinite(p.od));
+  if (valid.length < 2) return null;
+  // Find the two unique concentrations closest to targetConc
+  const uniqueConcs = [...new Set(valid.map(p => p.conc))].sort((a, b) => Math.abs(a - targetConc) - Math.abs(b - targetConc));
+  const closestTwo = uniqueConcs.slice(0, 2);
+  const localPoints = valid.filter(p => closestTwo.includes(p.conc));
+  if (localPoints.length < 2) return null;
+  const fit = linearFit(localPoints);
+  if (!fit) return null;
+  return { ...fit, strategy: 'local_near_cutoff', targetConc, usedConcs: closestTwo };
+}
+
+/**
+ * Try alternative fitting strategies for decision-zone targets.
+ * Returns array of suggested fits with TEa comparison.
+ */
+function computeSuggestedFits(normalizedPoints, teaPercent, assignedConcs, referenceRange, currentFit) {
+  if (!teaPercent) return [];
+  const suggestions = [];
+
+  // Find decision-zone targets (near RI boundaries) or first failing level
+  const decisionZoneConcs = [];
+
+  if (referenceRange) {
+    const margin = (referenceRange.high - referenceRange.low) * 0.1;
+    const levels = ['control-1', 'control-2', 'control-3', 'control-4'];
+    const levelLabels = { 'control-1': 'L1', 'control-2': 'L2', 'control-3': 'N1', 'control-4': 'N3' };
+
+    for (const level of levels) {
+      const label = levelLabels[level];
+      const conc = assignedConcs[label] || assignedConcs[level];
+      if (!conc) continue;
+      const nearLow = Math.abs(conc - referenceRange.low) <= margin;
+      const nearHigh = Math.abs(conc - referenceRange.high) <= margin;
+      if (nearLow || nearHigh) decisionZoneConcs.push(conc);
+    }
+  }
+
+  // Fallback: use first failing level as target
+  if (decisionZoneConcs.length === 0) {
+    const currentTeaCheck = checkTeaCompliance(normalizedPoints, currentFit, teaPercent, assignedConcs);
+    const failedLevel = currentTeaCheck.levels.find(l => l.passed === false);
+    if (failedLevel) decisionZoneConcs.push(failedLevel.assignedConc);
+  }
+
+  for (const targetConc of decisionZoneConcs) {
+    // Try weighted fit
+    const wFit = weightedLinearFit(normalizedPoints, targetConc);
+    if (wFit) {
+      const wTeaCheck = checkTeaCompliance(normalizedPoints, wFit, teaPercent, assignedConcs);
+      suggestions.push({
+        strategy: 'weighted_near_target',
+        targetConc,
+        fit: { slope: wFit.slope, intercept: wFit.intercept, r2: wFit.r2, n: wFit.n },
+        teaCheck: wTeaCheck,
+        equation: `conc = ${wFit.slope.toPrecision(6)} * OD + ${wFit.intercept.toPrecision(6)}`,
+        improved: wTeaCheck.levels.filter(l => l.passed).length > checkTeaCompliance(normalizedPoints, currentFit, teaPercent, assignedConcs).levels.filter(l => l.passed).length,
+      });
+    }
+
+    // Try local fit
+    const lFit = localLinearFit(normalizedPoints, targetConc);
+    if (lFit) {
+      const lTeaCheck = checkTeaCompliance(normalizedPoints, lFit, teaPercent, assignedConcs);
+      suggestions.push({
+        strategy: 'local_near_cutoff',
+        targetConc,
+        usedConcs: lFit.usedConcs,
+        fit: { slope: lFit.slope, intercept: lFit.intercept, r2: lFit.r2, n: lFit.n },
+        teaCheck: lTeaCheck,
+        equation: `conc = ${lFit.slope.toPrecision(6)} * OD + ${lFit.intercept.toPrecision(6)}`,
+        improved: lTeaCheck.levels.filter(l => l.passed).length > checkTeaCompliance(normalizedPoints, currentFit, teaPercent, assignedConcs).levels.filter(l => l.passed).length,
+      });
+    }
+  }
+
+  return suggestions;
+}
+
 function computeResiduals(points, fit) {
   return points
     .filter(p => p.conc != null && p.od != null)
@@ -45,34 +153,78 @@ function computeResiduals(points, fit) {
 
 /**
  * Check if reference range is resolvable at given optical resolution.
- * Resolution in OD → concentration resolution = slope * optical_resolution
- * If concentration resolution > (reference_range / resolution_factor), flag it.
+ * Two checks:
+ * 1. resolution / RI_span — can the instrument distinguish normal vs abnormal?
+ * 2. resolution / TEa_abs_per_level — how much of TEa budget does resolution consume?
  */
-function checkReferenceRangeResolution(slope, opticalResolution, referenceRange) {
+function checkReferenceRangeResolution(slope, opticalResolution, referenceRange, teaPercent, assignedConcs) {
   const concResolution = Math.abs(slope) * opticalResolution;
   const rangeSpan = referenceRange.high - referenceRange.low;
-  const resolutionRatio = rangeSpan > 0 ? concResolution / rangeSpan : Infinity;
-  // If concentration resolution uses more than 10% of the range, it's problematic
-  const passed = resolutionRatio <= 0.1;
+  const resolutionRatioRI = rangeSpan > 0 ? concResolution / rangeSpan : Infinity;
+
+  // Check 1: vs RI span (>10% = can't distinguish normal/abnormal)
+  const riPassed = resolutionRatioRI <= 0.1;
+
+  // Check 2: vs TEa budget per level (>25% = resolution eats too much allowance)
+  let teaBudgetWorst = null;
+  let teaBudgetLevel = null;
+  if (teaPercent && assignedConcs) {
+    const levels = Object.entries(assignedConcs);
+    for (const [label, conc] of levels) {
+      if (!conc || conc <= 0) continue;
+      const teaAbs = conc * teaPercent / 100;  // allowable error in concentration units
+      const ratio = teaAbs > 0 ? concResolution / teaAbs : Infinity;
+      if (teaBudgetWorst === null || ratio > teaBudgetWorst) {
+        teaBudgetWorst = ratio;
+        teaBudgetLevel = label;
+      }
+    }
+  }
+
+  const teaBudgetPassed = teaBudgetWorst === null || teaBudgetWorst <= 0.25;
+  const passed = riPassed && teaBudgetPassed;
+
+  // Build message
+  let message = '';
+  if (riPassed && teaBudgetPassed) {
+    message = `光學解析度 ${opticalResolution} OD 可解析 reference range (佔 RI ${(resolutionRatioRI * 100).toFixed(2)}%)`;
+    if (teaBudgetWorst !== null) {
+      message += `，佔 TEa budget ${(teaBudgetWorst * 100).toFixed(1)}% (${teaBudgetLevel})`;
+    }
+  } else if (!riPassed) {
+    message = `光學解析度 ${opticalResolution} OD 無法充分解析 reference range (佔 RI ${(resolutionRatioRI * 100).toFixed(2)}% > 10%)`;
+  } else {
+    message = `光學解析度佔 TEa budget ${(teaBudgetWorst * 100).toFixed(1)}% (${teaBudgetLevel}) > 25%，留給 Bias+CV 的空間受壓縮`;
+  }
+
   return {
     passed,
     concResolution,
     rangeSpan,
-    resolutionRatio,
+    resolutionRatioRI,
+    teaBudgetWorst,
+    teaBudgetLevel,
+    riPassed,
+    teaBudgetPassed,
     opticalResolution,
-    message: passed
-      ? `光學解析度 ${opticalResolution} OD 可解析 reference range (比率 ${(resolutionRatio * 100).toFixed(2)}%)`
-      : `光學解析度 ${opticalResolution} OD 無法充分解析 reference range (比率 ${(resolutionRatio * 100).toFixed(2)}% > 10%)`,
+    message,
   };
 }
 
 /**
  * Check TEa compliance: |Bias| + 2*CV <= TEa
  */
-function checkTeaCompliance(points, fit, teaPercent, assignedConcs) {
+/**
+ * Check TEa compliance.
+ * Supports two modes:
+ * - percent: |Bias%| + 2*CV% <= TEa%  (most markers)
+ * - absolute: |Bias_abs| + 2*SD_abs <= TEa_abs  (e.g. Ca/CLIA = ±1.0 mg/dL)
+ */
+function checkTeaCompliance(points, fit, teaPercent, assignedConcs, teaAbsolute = null) {
   const levels = ['control-1', 'control-2', 'control-3', 'control-4'];
   const levelLabels = { 'control-1': 'L1', 'control-2': 'L2', 'control-3': 'N1', 'control-4': 'N3' };
   const results = [];
+  const useAbsolute = teaAbsolute != null && teaAbsolute > 0;
 
   for (const level of levels) {
     const levelPoints = points.filter(p => (p.patient_id || '').toLowerCase() === level && p.od != null);
@@ -83,16 +235,29 @@ function checkTeaCompliance(points, fit, teaPercent, assignedConcs) {
     const fittedConcs = levelPoints.map(p => fit.slope * p.od + fit.intercept);
     const meanFitted = fittedConcs.reduce((s, v) => s + v, 0) / fittedConcs.length;
     const biasPercent = ((meanFitted - assignedConc) / assignedConc) * 100;
+    const biasAbs = Math.abs(meanFitted - assignedConc);
 
     let cvPercent = 0;
+    let sdAbs = 0;
     if (fittedConcs.length >= 2) {
       const mean = fittedConcs.reduce((s, v) => s + v, 0) / fittedConcs.length;
       const variance = fittedConcs.reduce((s, v) => s + (v - mean) ** 2, 0) / fittedConcs.length;
-      cvPercent = mean !== 0 ? (Math.sqrt(variance) / Math.abs(mean)) * 100 : 0;
+      sdAbs = Math.sqrt(variance);
+      cvPercent = mean !== 0 ? (sdAbs / Math.abs(mean)) * 100 : 0;
     }
 
-    const tea = Math.abs(biasPercent) + 2 * cvPercent;
-    const passed = teaPercent != null ? tea <= teaPercent : null;
+    let tea, teaThreshold, passed;
+    if (useAbsolute) {
+      // Absolute mode: |Bias_abs| + 2*SD_abs <= TEa_abs
+      tea = biasAbs + 2 * sdAbs;
+      teaThreshold = teaAbsolute;
+      passed = tea <= teaAbsolute;
+    } else {
+      // Percent mode: |Bias%| + 2*CV% <= TEa%
+      tea = Math.abs(biasPercent) + 2 * cvPercent;
+      teaThreshold = teaPercent;
+      passed = teaPercent != null ? tea <= teaPercent : null;
+    }
 
     results.push({
       level: levelLabels[level],
@@ -100,8 +265,11 @@ function checkTeaCompliance(points, fit, teaPercent, assignedConcs) {
       meanFitted,
       biasPercent,
       cvPercent,
+      biasAbs,
+      sdAbs,
       tea,
-      teaThreshold: teaPercent,
+      teaThreshold,
+      teaMode: useAbsolute ? 'absolute' : 'percent',
       passed,
     });
   }
@@ -123,6 +291,9 @@ router.post('/ai-feasibility-analysis', async (req, res) => {
       analyze_item,    // Marker name
       optical_resolution = 0.001,  // Default 0.001 OD
       assigned_concs,  // { L1: x, L2: x, N1: x, N3: x }
+      user_context,    // Optional user question/request for AI re-analysis
+      override_tea_percent,  // Optional: override TEa% threshold (e.g. switch to ASVCP 5%)
+      override_tea_source,   // Optional: label for the overridden source
     } = req.body;
 
     if (!points || !Array.isArray(points) || points.length < 2) {
@@ -176,16 +347,163 @@ router.post('/ai-feasibility-analysis', async (req, res) => {
       }
     }
 
+    // 1b. If no reference range from clinical_analyte_specs, try species_references
+    let speciesRefData = null;
+    if (!referenceRange && analyze_item) {
+      for (const species of ['Dog', 'Cat']) {
+        try {
+          const srResp = await fetch(
+            `${VET_LAB_URL}/api/catalog/species-references?species=${species}&analyte=${encodeURIComponent(analyze_item)}`
+          );
+          if (srResp.ok) {
+            const sr = await srResp.json();
+            if (sr.available && sr.reference_interval_low != null && sr.reference_interval_high != null) {
+              speciesRefData = sr;
+              referenceRange = { low: sr.reference_interval_low, high: sr.reference_interval_high };
+              break;
+            }
+          }
+        } catch { /* continue */ }
+      }
+    }
+
+    // 1c. Fetch all alternative TEa specs for comparison
+    let alternativeSpecs = [];
+    if (analyze_item) {
+      try {
+        // Get all clinical_analyte_specs (CLIA, EFLM-BV, etc.)
+        const allSpecsResp = await fetch(
+          `${VET_LAB_URL}/api/vet-lab/clinical-analyte-specs?q=${encodeURIComponent(analyze_item)}`
+        );
+        if (allSpecsResp.ok) {
+          const allSpecs = await allSpecsResp.json();
+          // Filter to exact analyte_code match (q= does substring, so CA125/CEA may sneak in)
+          const exactSpecs = allSpecs.filter(s =>
+            s.analyte_code && s.analyte_code.toUpperCase() === analyze_item.toUpperCase()
+          );
+          alternativeSpecs = exactSpecs.map(s => ({
+            source: s.source_code,
+            species: s.species,
+            tea_mode: s.tea_mode,
+            tea_percent: s.tea_percent,
+            tea_absolute: s.tea_absolute,
+            unit: s.unit,
+            aps_level: s.aps_level,
+          }));
+        }
+        // Add ASVCP from species_references if available
+        if (speciesRefData && speciesRefData.clinical_tea_goal) {
+          const exists = alternativeSpecs.some(s => s.source === 'ASVCP' || s.source === speciesRefData.tea_source);
+          if (!exists) {
+            alternativeSpecs.push({
+              source: speciesRefData.tea_source || 'ASVCP',
+              species: speciesRefData.species,
+              tea_mode: 'percent',
+              tea_percent: speciesRefData.clinical_tea_goal,
+              tea_absolute: null,
+              unit: speciesRefData.unit,
+              aps_level: 'species_reference',
+            });
+          }
+        }
+        // Add Analyzer catalog specs (IDEXX, Horiba, etc.)
+        try {
+          const analyzersResp = await fetch(`${VET_LAB_URL}/api/catalog/analyzers`);
+          if (analyzersResp.ok) {
+            const analyzers = await analyzersResp.json();
+            for (const analyzer of analyzers) {
+              const matchingSpecs = (analyzer.analyte_specs || []).filter(
+                s => s.analyte_name && s.analyte_name.toLowerCase() === analyze_item.toLowerCase()
+              );
+              for (const s of matchingSpecs) {
+                alternativeSpecs.push({
+                  source: `${analyzer.manufacturer} ${analyzer.model_name}`,
+                  species: s.species,
+                  tea_mode: 'percent',
+                  tea_percent: s.tae_percent,
+                  tea_absolute: null,
+                  unit: speciesRefData?.unit || clinicalSpec?.unit || '',
+                  aps_level: 'analyzer_catalog',
+                  cv_percent: s.cv_percent,
+                });
+              }
+            }
+          }
+        } catch { /* ignore analyzer lookup failure */ }
+      } catch { /* ignore */ }
+    }
+
     // 2. Reference range resolution check
     let resolutionCheck = null;
     if (referenceRange && fit.slope) {
-      resolutionCheck = checkReferenceRangeResolution(fit.slope, optical_resolution, referenceRange);
+      resolutionCheck = checkReferenceRangeResolution(fit.slope, optical_resolution, referenceRange, teaPercent, assigned_concs);
+    }
+
+    // 2b. Parse user_context for TEa override via AI intent parsing
+    let teaOverrideSource = null;
+    if (user_context && user_context.trim()) {
+      try {
+        const intentPrompt = `You are an action parser for a QC baseline analysis system.
+The user typed: "${user_context}"
+
+Current state:
+- Analyte: ${analyze_item || 'unknown'}
+- Current TEa spec: ${teaPercent != null ? teaPercent + '%' : 'not set'} (source: ${clinicalSpec?.source_code || 'unknown'})
+- Available alternative TEa specs: ${JSON.stringify(alternativeSpecs.map(s => ({ source: s.source, tea_percent: s.tea_percent, tea_absolute: s.tea_absolute, species: s.species })))}
+
+Determine what action the user wants. Return ONLY a JSON object (no markdown, no explanation):
+{
+  "action": "override_tea" | "change_fitting" | "ask_question" | "none",
+  "tea_percent": <number or null>,
+  "tea_source": "<source name or null>",
+  "fitting_strategy": "<weighted_near_target|local_near_cutoff|null>",
+  "fitting_target_conc": <number or null>
+}
+
+Rules:
+- If user mentions a percentage or a source name (ASVCP, CLIA, IDEXX, Horiba, etc.), set action=override_tea
+- If user mentions fitting strategy change, set action=change_fitting  
+- If user asks a question without requesting action, set action=ask_question
+- Otherwise action=none`;
+
+        const intentResp = await fetch(`${AI_GATEWAY_URL}/ai/chat`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            system: 'You are a strict JSON action parser. Return ONLY valid JSON, no markdown fences, no explanation.',
+            message: intentPrompt,
+            maxTokens: 300,
+            temperature: 0,
+          }),
+        });
+        if (intentResp.ok) {
+          const intentData = await intentResp.json();
+          const text = (intentData.text || '').trim();
+          // Extract JSON from response (may have markdown fences)
+          const jsonMatch = text.match(/\{[\s\S]*\}/);
+          if (jsonMatch) {
+            const action = JSON.parse(jsonMatch[0]);
+            if (action.action === 'override_tea' && action.tea_percent > 0) {
+              teaPercent = action.tea_percent;
+              teaOverrideSource = action.tea_source || `custom ${action.tea_percent}%`;
+            }
+          }
+        }
+      } catch (e) {
+        console.warn('[AI Feasibility] Intent parsing failed:', e.message);
+      }
+    }
+    // Fallback: also support explicit override_tea_percent param
+    if (!teaOverrideSource && override_tea_percent != null && override_tea_percent > 0) {
+      teaPercent = override_tea_percent;
+      teaOverrideSource = override_tea_source || `custom ${override_tea_percent}%`;
     }
 
     // 3. TEa compliance check
     let teaCheck = null;
-    if (assigned_concs && teaPercent != null) {
-      teaCheck = checkTeaCompliance(normalizedPoints, fit, teaPercent, assigned_concs);
+    const teaAbsolute = (teaOverrideSource ? null : clinicalSpec?.tea_absolute) || null;
+    if (assigned_concs && (teaPercent != null || teaAbsolute != null)) {
+      teaCheck = checkTeaCompliance(normalizedPoints, fit, teaPercent, assigned_concs, teaAbsolute);
     }
 
     // 4. Compute residuals
@@ -199,6 +517,7 @@ router.post('/ai-feasibility-analysis', async (req, res) => {
     if (needsAi) {
       try {
         const aiPayload = {
+          userContext: user_context || undefined,
           deterministicResult: {
             decision: teaCheck && !teaCheck.passed ? 'FAIL' : 'WARNING',
             failures: [],
@@ -206,10 +525,12 @@ router.post('/ai-feasibility-analysis', async (req, res) => {
           },
           context: {
             analyte: analyze_item || 'Unknown',
-            unit: clinicalSpec?.unit || '',
+            unit: clinicalSpec?.unit || speciesRefData?.unit || '',
             clinicalReferenceSnapshot: referenceRange ? {
               reference_interval_low: referenceRange.low,
               reference_interval_high: referenceRange.high,
+              cutoff_value: speciesRefData?.cutoff_value || null,
+              species: speciesRefData?.species || clinicalSpec?.species || null,
             } : {},
           },
           baseline: {
@@ -220,19 +541,27 @@ router.post('/ai-feasibility-analysis', async (req, res) => {
           },
           levelSummary: teaCheck ? teaCheck.levels.map(l => ({
             targetConc: l.assignedConc,
-            observedTeAbs: l.tea,
-            allowableTeAbs: l.teaThreshold,
-            resolutionAbs: Math.abs(fit.slope) * optical_resolution,
+            teaMode: l.teaMode,
+            observedTe: +l.tea.toFixed(2),
+            allowableTe: +l.teaThreshold.toFixed(2),
+            teaUnit: l.teaMode === 'absolute' ? (clinicalSpec?.unit || speciesRefData?.unit || '') : '%',
+            biasPct: +l.biasPercent.toFixed(2),
+            cvPct: +l.cvPercent.toFixed(2),
+            biasAbs: l.biasAbs != null ? +l.biasAbs.toFixed(4) : undefined,
+            sdAbs: l.sdAbs != null ? +l.sdAbs.toFixed(4) : undefined,
+            teaFormula: l.teaMode === 'absolute' ? '|Bias_abs| + 2*SD_abs' : '|Bias%| + 2*CV%',
+            resolutionAbs: +(Math.abs(fit.slope) * optical_resolution).toFixed(4),
             decision: l.passed ? 'PASS' : 'FAIL',
-            reasons: l.passed ? [] : ['TEa fail'],
+            reasons: l.passed ? [] : [l.teaMode === 'absolute' ? 'TEa_abs exceeds allowable TEa' : 'TEa% exceeds allowable TEa%'],
           })) : [],
           rawData: residuals.map(r => ({
             sampleName: r.patient_id,
             targetConc: r.conc,
             observedOd: r.od,
-            predictedConc: r.predicted,
-            errorAbs: Math.abs(r.residual),
-            allowableTeAbs: teaPercent && r.conc ? Math.abs(r.conc * teaPercent / 100) : null,
+            predictedConc: +r.predicted.toFixed(4),
+            errorAbs: +Math.abs(r.residual).toFixed(4),
+            errorAbsUnit: clinicalSpec?.unit || speciesRefData?.unit || '',
+            halfTeaAbs: teaPercent && r.conc ? +(Math.abs(r.conc * teaPercent / 100) / 2).toFixed(4) : null,
           })),
         };
 
@@ -249,6 +578,12 @@ router.post('/ai-feasibility-analysis', async (req, res) => {
       }
     }
 
+    // 6. Compute suggested alternative fits for decision-zone targets
+    let suggestedFits = [];
+    if (teaCheck && !teaCheck.passed && assigned_concs) {
+      suggestedFits = computeSuggestedFits(normalizedPoints, teaPercent, assigned_concs, referenceRange, fit);
+    }
+
     res.json({
       ok: true,
       data: {
@@ -259,6 +594,21 @@ router.post('/ai-feasibility-analysis', async (req, res) => {
         residuals: residuals.map(r => ({ ...r, absResidual: Math.abs(r.residual) })),
         needsAi,
         aiAnalysis,
+        suggestedFits,
+        alternativeSpecs: teaCheck && !teaCheck.passed ? alternativeSpecs.map(s => {
+          // Pre-compute how many levels would pass with this spec's TEa
+          let passCount = null;
+          let totalCount = null;
+          let allPass = false;
+          if (s.tea_percent && s.tea_percent > 0 && assigned_concs) {
+            const simCheck = checkTeaCompliance(normalizedPoints, fit, s.tea_percent, assigned_concs);
+            passCount = simCheck.levels.filter(l => l.passed).length;
+            totalCount = simCheck.levels.length;
+            allPass = simCheck.passed;
+          }
+          return { ...s, passCount, totalCount, allPass };
+        }) : [],
+        teaOverride: teaOverrideSource ? { source: teaOverrideSource, tea_percent: teaPercent } : null,
       },
     });
   } catch (err) {

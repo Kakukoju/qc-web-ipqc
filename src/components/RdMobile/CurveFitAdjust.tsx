@@ -403,8 +403,8 @@ export default function CurveFitAdjust({ fitData, onConfirm, onCancel, saving }:
             <ResponsiveContainer width="100%" height={240}>
               <ScatterChart margin={{ top: 10, right: 10, bottom: 10, left: 0 }}>
                 <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="x" type="number" name={fitted?.xLabel || 'X'} tick={{ fontSize: 10 }} />
-                <YAxis dataKey="y" type="number" name={fitted?.yLabel || 'Y'} tick={{ fontSize: 10 }} />
+                <XAxis dataKey="x" type="number" name={fitted?.xLabel || 'X'} tick={{ fontSize: 10 }} domain={['auto', 'auto']} />
+                <YAxis dataKey="y" type="number" name={fitted?.yLabel || 'Y'} tick={{ fontSize: 10 }} domain={['auto', 'auto']} />
                 <Tooltip content={({ active, payload }) => {
                   if (!active || !payload?.[0]) return null;
                   const d = payload[0].payload as { x: number; y: number; label?: string; well?: string };

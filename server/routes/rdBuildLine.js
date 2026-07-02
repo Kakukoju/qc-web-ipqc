@@ -41,6 +41,49 @@ const FIT_DEFAULTS = {
   formula_text: 'conc = a * OD + b',
 };
 
+/**
+ * Look up real work_order_no from RDS given a lot_code and panel_name.
+ * lot_code format: N(1) + sub_panel(3) + YYMMDD(6) + BB(2)
+ * Searches tutti_work_orders by matching panel type + date in lot_no.
+ */
+async function lookupWorkOrder(lotCode, panelName) {
+  if (!lotCode || lotCode.length < 10) return null;
+  // Extract sub_panel_type and date from lot_code
+  const subPanel = lotCode.substring(1, 4); // e.g. "052"
+  const dateStr = lotCode.substring(4, 10); // e.g. "260615"
+
+  try {
+    // First get the box panel type (one_piece_box_panel_type) for this sub_panel
+    const panelRow = await queryWithRetry(
+      `SELECT one_piece_box_panel_type FROM qbi_qr.panels WHERE sub_panel_type = $1 LIMIT 1`,
+      [subPanel]
+    );
+    const boxType = panelRow.rows[0]?.one_piece_box_panel_type;
+
+    // Search tutti_work_orders where lot_no contains the box type + date
+    let searchPattern = boxType ? `%${boxType}%${dateStr}%` : `%${subPanel}%${dateStr}%`;
+    const woRow = await queryWithRetry(
+      `SELECT work_order_no FROM panel_production.tutti_work_orders
+       WHERE lot_no LIKE $1
+       ORDER BY created_at DESC LIMIT 1`,
+      [searchPattern]
+    );
+    if (woRow.rows[0]?.work_order_no) return woRow.rows[0].work_order_no;
+
+    // Fallback: try tutti_work_orders_water
+    const woRow2 = await queryWithRetry(
+      `SELECT work_order_no FROM panel_production.tutti_work_orders_water
+       WHERE lot_no LIKE $1
+       ORDER BY created_at DESC LIMIT 1`,
+      [searchPattern]
+    );
+    return woRow2.rows[0]?.work_order_no || null;
+  } catch (e) {
+    console.error('[rdBuildLine] lookupWorkOrder error:', e.message);
+    return null;
+  }
+}
+
 function withFitMetadata(fitData) {
   return { ...FIT_DEFAULTS, ...(fitData || {}) };
 }
@@ -528,11 +571,19 @@ router.post('/rd-auth/verify', (req, res) => {
 });
 
 // ── POST /rd-build-line-tasks — Create a new RD task ─────────────────────
-router.post('/rd-build-line-tasks', (req, res) => {
-  const { panel_name, lot_no, marker, work_order, source_fit_id, created_by, fit_data } = req.body;
+router.post('/rd-build-line-tasks', async (req, res) => {
+  let { panel_name, lot_no, marker, work_order, source_fit_id, created_by, fit_data } = req.body;
 
   if (!panel_name || !lot_no) {
     return res.status(400).json({ ok: false, error: { code: 'MISSING_FIELDS', message: 'panel_name and lot_no are required' } });
+  }
+
+  // If work_order looks like a lot_code (12-digit number same as lot_no), look up real WO from RDS
+  if (!work_order || work_order === lot_no || /^\d{12}$/.test(work_order)) {
+    try {
+      const realWo = await lookupWorkOrder(lot_no, panel_name);
+      if (realWo) work_order = realWo;
+    } catch (e) { /* non-blocking, keep original */ }
   }
 
   // Check for existing pending/in_progress/pending_qc task
@@ -685,19 +736,14 @@ router.get('/rd-build-line-tasks/:id', async (req, res) => {
   if (!task) return res.status(404).json({ ok: false, error: { code: 'NOT_FOUND', message: 'Task not found' } });
 
   // Fix work_order: if work_order equals lot_no (bug), look up real work_order_no from RDS
-  if (task.work_order && task.lot_no && task.work_order === task.lot_no) {
+  if (!task.work_order || task.work_order === task.lot_no || /^\d{12}$/.test(task.work_order)) {
     try {
-      const rdsResult = await queryWithRetry(
-        `SELECT work_order_no FROM panel_production.tutti_work_orders
-         WHERE lot_no = $1 AND work_order_no IS NOT NULL AND work_order_no != ''
-         LIMIT 1`,
-        [task.lot_no]
-      );
-      if (rdsResult.rows.length > 0 && rdsResult.rows[0].work_order_no) {
-        task.work_order = rdsResult.rows[0].work_order_no;
+      const realWo = await lookupWorkOrder(task.lot_no, task.panel_name);
+      if (realWo) {
+        task.work_order = realWo;
         // Also fix in SQLite for future queries
         db.prepare('UPDATE rd_build_line_tasks SET work_order = ? WHERE id = ?')
-          .run(rdsResult.rows[0].work_order_no, id);
+          .run(realWo, id);
       }
     } catch { /* non-blocking */ }
   }
@@ -781,7 +827,7 @@ router.post('/rd-build-line-tasks/:id/start-adjust', (req, res) => {
 // ── POST /rd-build-line-tasks/:id/direct-write — Direct write to DB ──────
 router.post('/rd-build-line-tasks/:id/direct-write', async (req, res) => {
   const id = Number(req.params.id);
-  const { emp_no, confirmed } = req.body;
+  const { emp_no, confirmed, override_equation } = req.body;
 
   if (!emp_no) {
     return res.status(400).json({ ok: false, error: { code: 'MISSING_EMP_NO', message: '請輸入工號' } });
@@ -812,12 +858,20 @@ router.post('/rd-build-line-tasks/:id/direct-write', async (req, res) => {
   // Build name@date
   const confirmedBy = formatNameAtDate(person.english_name);
 
-  // Extract equation/slope/intercept/r2 from fit_data
+  // Extract equation/slope/intercept/r2 from fit_data (or override from AI scoring)
   fitData = withFitMetadata(fitData);
-  const equation = fitData.equation || fitData.baseline_equation || '';
-  const slope = fitData.fit?.slope ?? fitData.slope ?? null;
-  const intercept = fitData.fit?.intercept ?? fitData.intercept ?? null;
-  const r2 = fitData.fit?.r2 ?? fitData.r2 ?? null;
+  let equation, slope, intercept, r2;
+  if (override_equation && override_equation.equation) {
+    equation = override_equation.equation;
+    slope = override_equation.slope ?? null;
+    intercept = override_equation.intercept ?? null;
+    r2 = override_equation.r_squared ?? null;
+  } else {
+    equation = fitData.equation || fitData.baseline_equation || '';
+    slope = fitData.fit?.slope ?? fitData.slope ?? null;
+    intercept = fitData.fit?.intercept ?? fitData.intercept ?? null;
+    r2 = fitData.fit?.r2 ?? fitData.r2 ?? null;
+  }
 
   try {
     const writeResult = await writeBuildLineResult({
@@ -877,8 +931,10 @@ router.post('/rd-build-line-tasks/:id/direct-write', async (req, res) => {
         rds_updated: writeResult.rdsUpdated,
       }
     });
+    // Run spec check BEFORE notifying PC, so status may auto-approve to 'completed'
+    await notifyQcManagerSpecCheck(task, fitData, confirmedBy);
     sendPcBuildLineCompletionEvent(payload);
-    notifyQcManagerSpecCheck(task, fitData, confirmedBy);
+    triggerComparisonUpdate(task.marker, task.lot_no);
   } catch (err) {
     // Mark task as failed
     db.prepare(`
@@ -1005,8 +1061,10 @@ router.post('/rd-build-line-tasks/:id/save-adjusted-fit', async (req, res) => {
         rds_updated: writeResult.rdsUpdated,
       }
     });
+    // Run spec check BEFORE notifying PC, so status may auto-approve to 'completed'
+    await notifyQcManagerSpecCheck(task, adjustedFitData, confirmedBy);
     sendPcBuildLineCompletionEvent(payload);
-    notifyQcManagerSpecCheck(task, adjustedFitData, confirmedBy);
+    triggerComparisonUpdate(task.marker, task.lot_no);
   } catch (err) {
     db.prepare(`
       UPDATE rd_build_line_tasks
@@ -1106,5 +1164,35 @@ router.get('/mergeable-batches', (req, res) => {
     res.status(500).json({ ok: false, error: { code: 'QUERY_FAILED', message: err.message } });
   }
 });
+
+// ── Auto-trigger: update comparison DB + S3 on build-line write ──────────────
+function triggerComparisonUpdate(marker, lotCode) {
+  // Fire-and-forget: non-blocking call to tutti-qc-assayprocess comparison API
+  const body = JSON.stringify({ since: null });
+  fetch("http://127.0.0.1:8200/api/comparison/collect", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body,
+    signal: AbortSignal.timeout(30000),
+  })
+    .then(res => res.json())
+    .then(data => {
+      if (data.ok) {
+        console.log(`[ComparisonDB] Collected: +${data.records_added} updated=${data.records_updated} (trigger: ${marker}/${lotCode})`);
+        // Sync to S3
+        return fetch("http://127.0.0.1:8200/api/comparison/sync-s3", {
+          method: "POST",
+          signal: AbortSignal.timeout(30000),
+        });
+      }
+    })
+    .then(res => res?.json())
+    .then(data => {
+      if (data?.ok) console.log(`[ComparisonDB] S3 synced: ${data.key}`);
+    })
+    .catch(err => {
+      console.warn(`[ComparisonDB] Auto-update failed (non-blocking): ${err.message}`);
+    });
+}
 
 export default router;

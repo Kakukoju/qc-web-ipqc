@@ -298,3 +298,71 @@ def abnormal_records(limit: int = 100, offset: int = 0) -> dict:
         return {"ok": True, "records": [{**r, "created_at": str(r["created_at"])} for r in rows], "total": total}
     except Exception as exc:
         return {"ok": False, "error": str(exc)}
+
+
+# ─── Vet Lab Catalog Spec Lookup ──────────────────────────────────────────────
+
+from auto_curve_fit_service import _fetch_spec_thresholds as fetch_vetlab_spec, _fetch_species_boundaries
+
+
+@app.get("/api/vetlab-spec/{analyte}")
+def vetlab_spec_lookup(analyte: str) -> dict:
+    """Look up spec thresholds from Vet Lab catalog for a given analyte."""
+    spec = fetch_vetlab_spec(analyte)
+    boundaries = _fetch_species_boundaries(analyte)
+    return {
+        "ok": True,
+        "analyte": analyte,
+        "spec": spec,
+        "boundaries": boundaries,
+    }
+
+
+# ─── AI Curve Fitting Endpoints ───────────────────────────────────────────────
+
+from fastapi import Request as _Request
+import json
+from auto_curve_fit_service import list_ai_curve_fit_groups, run_auto_curve_fit
+
+
+@app.get("/api/ai-curve-fit-groups")
+def ai_curve_fit_groups(limit: int = 200) -> dict:
+    """List baseline groups for AI curve fitting, sorted by date DESC."""
+    return list_ai_curve_fit_groups(limit)
+
+
+@app.post("/api/ai-curve-fit")
+async def ai_curve_fit(request: _Request) -> dict:
+    """Run AI-powered auto curve fitting for a selected baseline group."""
+    try:
+        body = await request.body()
+        payload = json.loads(body) if body else {}
+        return run_auto_curve_fit(payload)
+    except Exception as exc:
+        logger.exception("AI curve fit error")
+        return {"ok": False, "error": str(exc)}
+
+
+from ai_curve_score_service import score_curve_models, run_curve_score_for_task
+
+
+@app.post("/api/ai-curve-score")
+async def ai_curve_score(request: _Request) -> dict:
+    """
+    AI-powered multi-model curve scoring.
+    Evaluates 5 models with clinical Curve Score (100 pts).
+    Input: { points: [...], analyze_item, Species }
+    """
+    try:
+        body = await request.body()
+        payload = json.loads(body) if body else {}
+        return run_curve_score_for_task(payload)
+    except Exception as exc:
+        logger.exception("AI curve score error")
+        return {"ok": False, "error": str(exc)}
+
+
+# ─── Comparison DB (AI vs Human) Router ───────────────────────────────────────
+
+from comparison_api import comparison_router
+app.include_router(comparison_router)
